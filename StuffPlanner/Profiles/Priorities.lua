@@ -1,0 +1,114 @@
+-- CONTRAT
+-- Priorités de stats : l'utilisateur classe ses stats, on en déduit des poids. Pur : aucun appel
+-- à l'API WoW. Charger après Engine/StatKeys.lua.
+--   ns.Priorities.MAX = 10 ; DECAY = 0.7
+--   toWeights(order) -> {KEY = DECAY^(rang-1)} (1re stat = 1, décroissance géométrique, jamais nul)
+--     | nil, code, détail? ; codes : EMPTY, TOO_MANY, STAT (détail = clé), DUPLICATE (détail = clé)
+--   fromWeights(weights) -> order : clés connues de poids > 0, poids décroissant puis clé, MAX au plus
+--   move(order, index, delta) -> copie, rang index échangé avec index + delta (bornes : inchangée)
+--   remove(order, index) -> copie sans ce rang ; add(order, key) -> copie avec key en dernier
+--     (doublon, clé inconnue ou liste pleine : copie inchangée)
+--   candidates(order) -> clés absentes de order, dans l'ordre de ns.StatKeyList
+
+local _, ns = ...
+
+local Priorities = {}
+ns.Priorities = Priorities
+
+Priorities.MAX = 10
+Priorities.DECAY = 0.7
+
+local function known(key)
+    return type(key) == "string" and rawget(ns.StatKeys, key) ~= nil
+end
+
+local function copy(order)
+    local result = {}
+    for i, key in ipairs(order) do
+        result[i] = key
+    end
+    return result
+end
+
+function Priorities.toWeights(order)
+    if type(order) ~= "table" or #order == 0 then
+        return nil, "EMPTY"
+    end
+    if #order > Priorities.MAX then
+        return nil, "TOO_MANY"
+    end
+    local weights = {}
+    for rank, key in ipairs(order) do
+        if not known(key) then
+            return nil, "STAT", tostring(key)
+        end
+        if weights[key] then
+            return nil, "DUPLICATE", key
+        end
+        weights[key] = Priorities.DECAY ^ (rank - 1)
+    end
+    return weights
+end
+
+function Priorities.fromWeights(weights)
+    local order = {}
+    for key, weight in pairs(type(weights) == "table" and weights or {}) do
+        if known(key) and type(weight) == "number" and weight > 0 then
+            order[#order + 1] = key
+        end
+    end
+    table.sort(order, function(a, b)
+        if weights[a] ~= weights[b] then
+            return weights[a] > weights[b]
+        end
+        return a < b
+    end)
+    for i = #order, Priorities.MAX + 1, -1 do
+        order[i] = nil
+    end
+    return order
+end
+
+function Priorities.move(order, index, delta)
+    local result = copy(order)
+    local target = index + delta
+    if result[index] and result[target] then
+        result[index], result[target] = result[target], result[index]
+    end
+    return result
+end
+
+function Priorities.remove(order, index)
+    local result = copy(order)
+    if result[index] then
+        table.remove(result, index)
+    end
+    return result
+end
+
+local function contains(order, wanted)
+    for _, key in ipairs(order) do
+        if key == wanted then
+            return true
+        end
+    end
+    return false
+end
+
+function Priorities.add(order, key)
+    local result = copy(order)
+    if known(key) and #result < Priorities.MAX and not contains(result, key) then
+        result[#result + 1] = key
+    end
+    return result
+end
+
+function Priorities.candidates(order)
+    local result = {}
+    for _, key in ipairs(ns.StatKeyList) do
+        if not contains(order, key) then
+            result[#result + 1] = key
+        end
+    end
+    return result
+end

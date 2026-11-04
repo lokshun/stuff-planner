@@ -1,0 +1,21 @@
+{
+    "class": "DRUID",
+    "spec": "FERAL",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Cat » (ui/specs/druid/feralcat/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatAttackPower",
+    "ep": {
+        "PseudoStatMainHandDps": 2.0463,
+        "StatAgility": 0.5159,
+        "StatAttackPower": 0.2047,
+        "StatMeleeCrit": 5.3226,
+        "StatMeleeHaste": 2.9461,
+        "StatMeleeHit": 4.079,
+        "StatStrength": 0.4963
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

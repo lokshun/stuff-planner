@@ -1,0 +1,27 @@
+{
+    "class": "PALADIN",
+    "spec": "PROTECTION",
+    "source": "Provisoire : estimation, à remplacer par un export WoWSims",
+    "date": "2026-11-02",
+    "version": "provisoire-1",
+    "reference": "StatStamina",
+    "phase": "60",
+    "ep": {
+        "StatStamina": 1.0,
+        "StatDefense": 1.5,
+        "StatArmor": 0.08,
+        "StatDodge": 12.0,
+        "StatParry": 10.0,
+        "StatBlock": 5.0,
+        "StatBlockValue": 0.4,
+        "StatStrength": 0.5,
+        "StatAgility": 0.7,
+        "StatMeleeHit": 4.0,
+        "StatSpellPower": 0.8,
+        "StatHolyPower": 0.8,
+        "StatIntellect": 0.4,
+        "StatMP5": 0.6,
+        "StatSpellHit": 4.0
+    },
+    "caps": {}
+}

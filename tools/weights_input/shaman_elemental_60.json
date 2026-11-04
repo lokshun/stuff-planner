@@ -1,0 +1,28 @@
+{
+    "class": "SHAMAN",
+    "spec": "ELEMENTAL",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Testing » (ui/specs/shaman/elemental/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatSpellPower",
+    "ep": {
+        "StatMeleeCrit": 8.54,
+        "StatSpellCrit": 8.54,
+        "StatFirePower": 0.31,
+        "StatMeleeHaste": 12.3,
+        "StatMeleeHit": 11.8,
+        "StatSpellHit": 11.8,
+        "StatIntellect": 0.19,
+        "StatMP5": 0.04,
+        "StatNaturePower": 0.69,
+        "StatSpellDamage": 1.0,
+        "StatSpellPower": 1.0,
+        "StatSpellPenetration": 1.81,
+        "StatSpirit": 0.02
+    },
+    "caps": {
+        "HIT": 17,
+        "SPELL_HIT": 17
+    }
+}

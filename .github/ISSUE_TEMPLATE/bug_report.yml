@@ -1,0 +1,81 @@
+name: Bug report
+description: Something does not work as expected (error, wrong display, broken feature).
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!
+        For wrong or missing quests, items or loot, please use the **Wrong or missing data** form instead.
+
+  - type: input
+    id: version
+    attributes:
+      label: Addon version
+      description: Shown in the AddOns list of the character screen, or in the CurseForge / Wago app.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: client
+    attributes:
+      label: Game client
+      options:
+        - WoW Forever
+        - WoW Classic Era
+    validations:
+      required: true
+
+  - type: dropdown
+    id: locale
+    attributes:
+      label: Client language
+      options:
+        - English
+        - French
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the main window with /splan
+        2. Go to the Route tab
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Lua error
+      description: |
+        If a Lua error was shown, paste it here (with [BugSack](https://www.curseforge.com/wow/addons/bugsack)
+        or after `/console scriptErrors 1`).
+      render: text
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Character and other addons
+      description: Class, specialization, level, zone, and other addons you use (QuestieDB, TomTom, Questie...).
+      placeholder: "Level 24 Hunter (Marksmanship), Stranglethorn Vale — QuestieDB, TomTom"
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag and drop images here if they help.

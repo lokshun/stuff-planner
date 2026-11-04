@@ -1,0 +1,68 @@
+name: Wrong or missing data
+description: A quest, reward, loot, recipe, NPC position or item stat is wrong or missing.
+title: "[Data] "
+labels: ["data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Data is built from public databases and corrected with what players see in game.
+        The fastest way to fix it is to attach the output of **`/splan export`**.
+
+  - type: input
+    id: version
+    attributes:
+      label: Addon version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: client
+    attributes:
+      label: Game client
+      options:
+        - WoW Forever
+        - WoW Classic Era
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong?
+      options:
+        - Quest (level, chain, giver, zone)
+        - Quest reward
+        - Dungeon or raid loot
+        - Crafted item or recipe
+        - NPC position
+        - Item stats
+        - Stat weights of a specialization
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: subject
+    attributes:
+      label: Quest, item or NPC
+      description: Name and, if you know it, the ID (from Wowhead or the URL of its database page).
+      placeholder: "The Defias Brotherhood (quest 166)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: What the addon shows, and what is correct
+      description: Where did you check the correct value? (in game, Wowhead, ...)
+    validations:
+      required: true
+
+  - type: textarea
+    id: export
+    attributes:
+      label: "/splan export"
+      description: Type `/splan export` in game, copy the text and paste it here.
+      render: text

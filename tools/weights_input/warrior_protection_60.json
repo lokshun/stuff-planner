@@ -1,0 +1,28 @@
+{
+    "class": "WARRIOR",
+    "spec": "PROTECTION",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Pre-BiS (Defense Cap) » (ui/specs/warrior/protection/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatStamina",
+    "ep": {
+        "PseudoStatMainHandDps": 2.16,
+        "StatAgility": 0.66,
+        "StatArmor": 0.05,
+        "StatAttackPower": 0.27,
+        "StatBlock": 0.1,
+        "StatBlockValue": 0.6,
+        "StatMeleeCrit": 8.12,
+        "StatDefense": 0.22,
+        "StatDodge": 2.04,
+        "StatMeleeHaste": 3.6,
+        "StatMeleeHit": 11.3,
+        "StatParry": 2.7,
+        "StatStamina": 1.15,
+        "StatStrength": 0.62
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

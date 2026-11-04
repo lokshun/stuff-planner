@@ -1,0 +1,25 @@
+{
+    "class": "PRIEST",
+    "spec": "SHADOW",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Shadow » (ui/specs/priest/dps/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatSpellPower",
+    "ep": {
+        "StatMeleeCrit": 11.76,
+        "StatSpellCrit": 11.76,
+        "StatMeleeHaste": 7.3,
+        "StatMeleeHit": 11.4,
+        "StatSpellHit": 11.4,
+        "StatIntellect": 0.24,
+        "StatShadowPower": 1.0,
+        "StatSpellDamage": 1.0,
+        "StatSpellPower": 1.0,
+        "StatSpirit": 0.01
+    },
+    "caps": {
+        "HIT": 17,
+        "SPELL_HIT": 17
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "class": "WARRIOR",
+    "spec": "FURY",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Pre-BiS - Fury » (ui/specs/warrior/dps/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatAttackPower",
+    "ep": {
+        "PseudoStatMainHandDps": 9.89,
+        "StatAgility": 2.25,
+        "StatAttackPower": 1.0,
+        "StatMeleeCrit": 40.88,
+        "StatMeleeHaste": 22.9,
+        "StatMeleeHit": 22.9,
+        "StatStrength": 2.2
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

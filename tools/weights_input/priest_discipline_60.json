@@ -1,0 +1,20 @@
+{
+    "class": "PRIEST",
+    "spec": "DISCIPLINE",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Disc Single-Target » (ui/specs/priest/healer/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatHealingPower",
+    "ep": {
+        "StatMeleeCrit": 9.8,
+        "StatSpellCrit": 9.8,
+        "StatMeleeHaste": 1.5,
+        "StatHealingPower": 1.0,
+        "StatSpellPower": 1.0,
+        "StatIntellect": 0.2,
+        "StatMP5": 0.4,
+        "StatSpirit": 0.15
+    },
+    "caps": {}
+}

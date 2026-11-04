@@ -1,0 +1,21 @@
+{
+    "class": "WARRIOR",
+    "spec": "ARMS",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Pre-BiS - Arms » (ui/specs/warrior/dps/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatAttackPower",
+    "ep": {
+        "PseudoStatMainHandDps": 17.69,
+        "StatAgility": 1.82,
+        "StatAttackPower": 1.0,
+        "StatMeleeCrit": 33.04,
+        "StatMeleeHaste": 20.0,
+        "StatMeleeHit": 45.9,
+        "StatStrength": 2.2
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

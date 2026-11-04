@@ -1,0 +1,26 @@
+{
+    "class": "SHAMAN",
+    "spec": "ENHANCEMENT",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Pre-BiS » (ui/specs/shaman/enhancement/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatAttackPower",
+    "ep": {
+        "PseudoStatMainHandDps": 14.18,
+        "StatAgility": 1.32,
+        "StatAttackPower": 1.0,
+        "StatMeleeCrit": 33.88,
+        "StatMeleeHaste": 28.1,
+        "StatMeleeHit": 52.0,
+        "StatIntellect": 1.99,
+        "StatNaturePower": 0.72,
+        "StatSpellDamage": 1.27,
+        "StatSpellPower": 1.27,
+        "StatSpellPenetration": 2.52,
+        "StatStrength": 2.2
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

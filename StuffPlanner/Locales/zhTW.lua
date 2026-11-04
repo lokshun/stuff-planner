@@ -1,0 +1,6 @@
+local ADDON = ...
+
+local L = LibStub("AceLocale-3.0"):NewLocale(ADDON, "zhTW")
+if not L then
+    return
+end

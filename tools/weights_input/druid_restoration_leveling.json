@@ -1,0 +1,29 @@
+{
+    "class": "DRUID",
+    "spec": "RESTORATION",
+    "source": "Provisoire : estimation, à remplacer par un export WoWSims",
+    "date": "2026-11-02",
+    "version": "provisoire-1",
+    "reference": "StatSpellPower",
+    "phase": "leveling",
+    "ep": {
+        "StatSpellPower": 1.0,
+        "StatSpellDamage": 1.0,
+        "StatSpellHit": 4.0,
+        "StatSpellCrit": 2.0,
+        "StatMeleeHit": 4.0,
+        "StatMeleeCrit": 2.0,
+        "StatIntellect": 0.4,
+        "StatStamina": 0.5,
+        "StatSpirit": 0.4,
+        "StatMP5": 0.6,
+        "StatArmor": 0.01,
+        "StatNaturePower": 0.8,
+        "StatArcanePower": 0.5,
+        "StatHealingPower": 0.4
+    },
+    "caps": {
+        "HIT": 3,
+        "SPELL_HIT": 3
+    }
+}

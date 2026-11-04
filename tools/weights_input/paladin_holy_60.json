@@ -1,0 +1,20 @@
+{
+    "class": "PALADIN",
+    "spec": "HOLY",
+    "source": "Provisoire : estimation, à remplacer par un export WoWSims",
+    "date": "2026-11-02",
+    "version": "provisoire-1",
+    "reference": "StatHealingPower",
+    "phase": "60",
+    "ep": {
+        "StatHealingPower": 1.0,
+        "StatSpellPower": 1.0,
+        "StatIntellect": 0.7,
+        "StatSpirit": 0.15,
+        "StatMP5": 2.2,
+        "StatSpellCrit": 9.0,
+        "StatMeleeCrit": 9.0,
+        "StatStamina": 0.1
+    },
+    "caps": {}
+}

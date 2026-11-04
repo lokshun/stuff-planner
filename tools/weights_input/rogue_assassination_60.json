@@ -1,0 +1,23 @@
+{
+    "class": "ROGUE",
+    "spec": "ASSASSINATION",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Assassination » (ui/specs/rogue/dps/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatAttackPower",
+    "ep": {
+        "PseudoStatMainHandDps": 8.44,
+        "StatAgility": 2.06,
+        "StatAttackPower": 1.0,
+        "StatMeleeCrit": 28.28,
+        "StatMeleeHaste": 19.3,
+        "StatMeleeHit": 28.0,
+        "StatSpellPenetration": 0.65,
+        "StatStamina": 0.01,
+        "StatStrength": 1.1
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

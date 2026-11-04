@@ -1,0 +1,26 @@
+{
+    "class": "PALADIN",
+    "spec": "RETRIBUTION",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Unsealed Wrath » (ui/specs/paladin/retribution/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatAttackPower",
+    "ep": {
+        "PseudoStatMainHandDps": 13.85,
+        "StatAgility": 2.23,
+        "StatAttackPower": 1.0,
+        "StatMeleeCrit": 43.12,
+        "StatMeleeHaste": 228.7,
+        "StatMeleeHit": 68.3,
+        "StatIntellect": 2.06,
+        "StatMP5": 0.23,
+        "StatSpellDamage": 2.36,
+        "StatSpellPower": 2.36,
+        "StatSpellPenetration": 0.01,
+        "StatStrength": 2.4
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

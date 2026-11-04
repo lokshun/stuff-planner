@@ -1,0 +1,24 @@
+{
+    "class": "HUNTER",
+    "spec": "BEASTMASTERY",
+    "source": "Provisoire : estimation, à remplacer par un export WoWSims",
+    "date": "2026-11-02",
+    "version": "provisoire-1",
+    "reference": "StatRangedAttackPower",
+    "phase": "60",
+    "ep": {
+        "StatAttackPower": 1.0,
+        "StatStrength": 0.1,
+        "StatAgility": 2.4,
+        "StatMeleeHit": 22.0,
+        "StatMeleeCrit": 30.0,
+        "StatStamina": 0.1,
+        "PseudoStatRangedDps": 14.0,
+        "StatRangedAttackPower": 1.0,
+        "StatIntellect": 0.3,
+        "StatMP5": 0.6
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

@@ -1,0 +1,96 @@
+## Interface: 16001
+## Title: Stuff Planner
+## Title-frFR: Stuff Planner
+## Notes: Prioritizes the quests, dungeons, raids and crafts whose rewards improve your character.
+## Notes-frFR: Priorise les quêtes, donjons, raids et métiers dont les objets améliorent votre personnage.
+## IconTexture: Interface\AddOns\StuffPlanner\Media\Icon
+## Version: @project-version@
+## X-Curse-Project-ID: 1781853
+## OptionalDeps: QuestieDB
+## SavedVariables: StuffPlannerDB
+## SavedVariablesPerCharacter: StuffPlannerCharDB
+## AddonCompartmentFunc: StuffPlanner_OnAddonCompartmentClick
+
+embeds.xml
+
+Locales\enUS.lua
+Locales\frFR.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\esMX.lua
+Locales\itIT.lua
+Locales\koKR.lua
+Locales\ptBR.lua
+Locales\ruRU.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+Locales\Format.lua
+
+Core.lua
+Options.lua
+Compat.lua
+CompatQuest.lua
+CompatMap.lua
+CompatOptions.lua
+Debug\Pseudo.lua
+Debug\Perf.lua
+Player.lua
+Data\Names.lua
+Data\Codec.lua
+Data\DataProvider.lua
+Data\InstanceIndex.lua
+Data\QuestieAdapter.lua
+Data\Collector.lua
+Data\Loader.lua
+Data\Export.lua
+Engine\StatKeys.lua
+Engine\StatParser.lua
+Data\ItemProbe.lua
+Engine\Proficiency.lua
+Engine\Scoring.lua
+Engine\Chains.lua
+Engine\Planner.lua
+Engine\Tiers.lua
+Engine\Recompute.lua
+Engine\Bearing.lua
+Profiles\Defaults.lua
+Profiles\Manager.lua
+Profiles\ProfileIO.lua
+Profiles\Priorities.lua
+Results.lua
+RouteResults.lua
+UI\Theme.lua
+UI\Presenters\RowPresenter.lua
+UI\Presenters\Filters.lua
+UI\Presenters\TrackerPresenter.lua
+UI\Presenters\TooltipPresenter.lua
+UI\Presenters\GearPresenter.lua
+UI\Presenters\ProfilePresenter.lua
+UI\Presenters\DetailPresenter.lua
+UI\Presenters\RoutePresenter.lua
+UI\Presenters\SourcePresenter.lua
+UI\Chat.lua
+UI\Arrow.lua
+Integrations\TomTom.lua
+UI\MainFrame.lua
+UI\Chips.lua
+UI\RowActions.lua
+UI\ZoneTab.lua
+UI\RouteTab.lua
+UI\GearRows.lua
+UI\GearTab.lua
+UI\PriorityList.lua
+UI\ProfileGrid.lua
+UI\WeightBars.lua
+UI\ProfileTab.lua
+UI\Onboarding.lua
+UI\MiniTracker.lua
+UI\Tooltip.lua
+UI\QuestFrameHint.lua
+UI\DetailWidgets.lua
+UI\QuestDetail.lua
+UI\SourceDetail.lua
+UI\MapPins.lua
+UI\OptionsWidgets.lua
+UI\OptionsPanel.lua
+UI\MinimapButton.lua

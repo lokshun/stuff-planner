@@ -1,0 +1,23 @@
+{
+    "class": "ROGUE",
+    "spec": "COMBAT",
+    "phase": "60",
+    "source": "WoWSims Forever, preset « Combat Sinister » (ui/specs/rogue/dps/presets.ts)",
+    "date": "2026-11-02",
+    "version": "62c923e",
+    "reference": "StatAttackPower",
+    "ep": {
+        "PseudoStatMainHandDps": 10.57,
+        "StatAgility": 1.96,
+        "StatAttackPower": 1.0,
+        "StatMeleeCrit": 23.8,
+        "StatMeleeHaste": 17.2,
+        "StatMeleeHit": 24.2,
+        "StatSpellPenetration": 0.19,
+        "StatStamina": 0.01,
+        "StatStrength": 1.1
+    },
+    "caps": {
+        "HIT": 8
+    }
+}

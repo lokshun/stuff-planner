@@ -1,0 +1,27 @@
+{
+    "class": "SHAMAN",
+    "spec": "RESTORATION",
+    "source": "Provisoire : estimation, à remplacer par un export WoWSims",
+    "date": "2026-11-02",
+    "version": "provisoire-1",
+    "reference": "StatAttackPower",
+    "phase": "leveling",
+    "ep": {
+        "StatAttackPower": 1.0,
+        "StatStrength": 2.0,
+        "StatAgility": 0.8,
+        "StatStamina": 0.6,
+        "StatSpirit": 0.1,
+        "StatMeleeHit": 10.0,
+        "StatMeleeCrit": 15.0,
+        "StatArmor": 0.03,
+        "PseudoStatMainHandDps": 14.0,
+        "StatIntellect": 0.5,
+        "StatMP5": 0.6,
+        "StatHealingPower": 0.3,
+        "StatSpellPower": 0.3
+    },
+    "caps": {
+        "HIT": 5
+    }
+}

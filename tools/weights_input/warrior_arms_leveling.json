@@ -1,0 +1,23 @@
+{
+    "class": "WARRIOR",
+    "spec": "ARMS",
+    "source": "Provisoire : estimation, à remplacer par un export WoWSims",
+    "date": "2026-11-02",
+    "version": "provisoire-1",
+    "reference": "StatAttackPower",
+    "phase": "leveling",
+    "ep": {
+        "StatAttackPower": 1.0,
+        "StatStrength": 2.0,
+        "StatAgility": 1.0,
+        "StatStamina": 0.6,
+        "StatSpirit": 0.1,
+        "StatMeleeHit": 10.0,
+        "StatMeleeCrit": 15.0,
+        "StatArmor": 0.02,
+        "PseudoStatMainHandDps": 15.0
+    },
+    "caps": {
+        "HIT": 5
+    }
+}

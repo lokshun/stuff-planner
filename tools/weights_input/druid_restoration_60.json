@@ -1,0 +1,20 @@
+{
+    "class": "DRUID",
+    "spec": "RESTORATION",
+    "source": "Provisoire : estimation, à remplacer par un export WoWSims",
+    "date": "2026-11-02",
+    "version": "provisoire-1",
+    "reference": "StatHealingPower",
+    "phase": "60",
+    "ep": {
+        "StatHealingPower": 1.0,
+        "StatSpellPower": 1.0,
+        "StatIntellect": 0.5,
+        "StatSpirit": 0.5,
+        "StatMP5": 2.0,
+        "StatSpellCrit": 2.0,
+        "StatMeleeCrit": 2.0,
+        "StatStamina": 0.1
+    },
+    "caps": {}
+}

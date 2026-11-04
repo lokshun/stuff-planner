@@ -1,0 +1,27 @@
+{
+    "class": "MAGE",
+    "spec": "FROST",
+    "source": "Provisoire : estimation, à remplacer par un export WoWSims",
+    "date": "2026-11-02",
+    "version": "provisoire-1",
+    "reference": "StatSpellPower",
+    "phase": "60",
+    "ep": {
+        "StatSpellPower": 1.0,
+        "StatSpellDamage": 1.0,
+        "StatSpellHit": 12.0,
+        "StatSpellCrit": 6.0,
+        "StatMeleeHit": 12.0,
+        "StatMeleeCrit": 6.0,
+        "StatIntellect": 0.35,
+        "StatSpirit": 0.1,
+        "StatMP5": 0.6,
+        "StatStamina": 0.1,
+        "StatSpellPenetration": 0.3,
+        "StatFrostPower": 1.0
+    },
+    "caps": {
+        "HIT": 17,
+        "SPELL_HIT": 17
+    }
+}
