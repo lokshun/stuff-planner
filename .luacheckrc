@@ -6,3 +6,7 @@ exclude_files = { "StuffPlanner/Libs/**", "StuffPlanner_Data/**", "tests/fixture
 
 files["StuffPlanner/Engine/**"] = { std = "lua51" }
 files["tests/**"] = { std = "lua51+wow+busted" }
+-- Langues générées par tools/gen_locales.py : une chaîne par ligne, longueur libre.
+for _, locale in ipairs({ "deDE", "esES", "esMX", "koKR", "ptBR", "ruRU", "zhCN", "zhTW" }) do
+    files["StuffPlanner/Locales/" .. locale .. ".lua"] = { max_line_length = false }
+end

@@ -44,7 +44,7 @@ Also:
 - **Works on its own** — ships its own database; uses [QuestieDB](https://github.com/Questie/QuestieDB) when installed for richer quest data.
 - **Combat-safe** — nothing is computed during combat; burst events are batched.
 - **Lightweight** — the database is a load-on-demand addon, decoded zone by zone.
-- **Localized** — English and French; other client languages fall back to English.
+- **Localized** — every language of the Forever client: English, French, German, Spanish (EU and Latin America), Brazilian Portuguese, Russian, Korean, Simplified and Traditional Chinese. Game terms (stats, specializations, interface words) come from the game data; the other phrases are first drafts awaiting review by native speakers on the CurseForge translation portal.
 
 ## Supported clients
 

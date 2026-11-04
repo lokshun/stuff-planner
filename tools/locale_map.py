@@ -1,0 +1,91 @@
+"""CONTRAT
+Termes du jeu repris tels quels dans les traductions (tools/gen_locales.py).
+  LOCALES -> langues générées ; itIT absent : le client Forever n'a pas d'italien (stub conservé)
+  TERMS -> {clé de Locales/enUS.lua: ("GlobalStrings", BaseTag) | ("TalentTab", ID)}
+  EXCLUDED -> {clé: {langues}} : le terme du jeu ne convient pas comme libellé dans ces langues
+Choix relus langue par langue (wago.tools, build 1.60.1.70707, 2026-11-04) :
+  ITEM_MOD_*_SHORT est décliné en ruRU (« к силе атаки », « маны в 5 сек. ») : préférer SPELL_STAT*_NAME, STAT_*.
+  Abréviations (HIT, CRIT : « Мет », « KRIT » ; NEXT : « Sig. ») écartées ; texte en minuscules dans enUS écarté.
+"""
+
+LOCALES = ("deDE", "esES", "esMX", "koKR", "ptBR", "ruRU", "zhCN", "zhTW")
+
+TERMS = {
+    "STAT_STR": ("GlobalStrings", "SPELL_STAT1_NAME"),
+    "STAT_AGI": ("GlobalStrings", "SPELL_STAT2_NAME"),
+    "STAT_STA": ("GlobalStrings", "SPELL_STAT3_NAME"),
+    "STAT_INT": ("GlobalStrings", "SPELL_STAT4_NAME"),
+    "STAT_SPI": ("GlobalStrings", "SPELL_STAT5_NAME"),
+    "STAT_AP": ("GlobalStrings", "STAT_ATTACK_POWER"),
+    "STAT_RAP": ("GlobalStrings", "RANGED_ATTACK_POWER"),
+    "STAT_HASTE": ("GlobalStrings", "STAT_HASTE"),
+    "STAT_DPS": ("GlobalStrings", "DAMAGE_PER_SECOND"),
+    "STAT_SPELL_POWER": ("GlobalStrings", "ITEM_MOD_SPELL_POWER_SHORT"),
+    "STAT_SPELL_DMG": ("GlobalStrings", "STAT_SPELLDAMAGE"),
+    "STAT_ARMOR": ("GlobalStrings", "RESISTANCE0_NAME"),
+    "STAT_DEF": ("GlobalStrings", "DEFENSE"),
+    "STAT_DODGE": ("GlobalStrings", "STAT_DODGE"),
+    "STAT_PARRY": ("GlobalStrings", "STAT_PARRY"),
+    "STAT_BLOCK": ("GlobalStrings", "STAT_BLOCK"),
+    "STAT_BLOCK_VALUE": ("GlobalStrings", "ITEM_MOD_BLOCK_VALUE_SHORT"),
+    "STAT_MP5": ("GlobalStrings", "ITEM_MOD_POWER_REGEN0_SHORT"),
+    "STAT_HP5": ("GlobalStrings", "ITEM_MOD_HEALTH_REGEN_SHORT"),
+    "STAT_HEALING": ("GlobalStrings", "ITEM_MOD_SPELL_HEALING_DONE_SHORT"),
+    "STAT_SPELL_PEN": ("GlobalStrings", "ITEM_MOD_SPELL_PENETRATION_SHORT"),
+    "STAT_RES_HOLY": ("GlobalStrings", "RESISTANCE1_NAME"),
+    "STAT_RES_FIRE": ("GlobalStrings", "RESISTANCE2_NAME"),
+    "STAT_RES_NATURE": ("GlobalStrings", "RESISTANCE3_NAME"),
+    "STAT_RES_FROST": ("GlobalStrings", "RESISTANCE4_NAME"),
+    "STAT_RES_SHADOW": ("GlobalStrings", "RESISTANCE5_NAME"),
+    "STAT_RES_ARCANE": ("GlobalStrings", "RESISTANCE6_NAME"),
+    "GEAR_EMPTY": ("GlobalStrings", "EMPTY"),
+    "FILTER_QUEST": ("GlobalStrings", "QUESTS_LABEL"),
+    "FILTER_DUNGEON": ("GlobalStrings", "DUNGEONS"),
+    "FILTER_RAID": ("GlobalStrings", "RAIDS"),
+    "SOURCE_DETAIL_DUNGEON": ("GlobalStrings", "LFG_TYPE_DUNGEON"),
+    "SOURCE_DETAIL_RAID": ("GlobalStrings", "LFG_TYPE_RAID"),
+    "TAG_DUNGEON": ("GlobalStrings", "LFG_TYPE_DUNGEON"),
+    "TAG_RAID": ("GlobalStrings", "LFG_TYPE_RAID"),
+    "SOURCE_DETAIL_REAGENTS": ("GlobalStrings", "SPELL_REAGENTS"),
+    "DETAIL_PREREQS": ("GlobalStrings", "REQUIRES_LABEL"),
+    "DETAIL_REWARDS": ("GlobalStrings", "REWARD_ITEMS_ONLY"),
+    "PROFILE_SPEC": ("GlobalStrings", "SPECIALIZATION"),
+    "OPTIONS_OPEN": ("GlobalStrings", "SETTINGS"),
+    "ONBOARD_NEXT": ("GlobalStrings", "NEXT"),
+    "ONBOARD_BACK": ("GlobalStrings", "BACK"),
+    "ONBOARD_DONE": ("GlobalStrings", "DONE"),
+    "PRIORITY_ADD": ("GlobalStrings", "ADD"),
+    "PRIORITY_APPLY": ("GlobalStrings", "APPLY"),
+    "SPEC_ARMS": ("TalentTab", 161),
+    "SPEC_FURY": ("TalentTab", 164),
+    "SPEC_PROTECTION": ("TalentTab", 163),
+    "SPEC_HOLY": ("TalentTab", 382),
+    "SPEC_RETRIBUTION": ("TalentTab", 381),
+    "SPEC_BEASTMASTERY": ("TalentTab", 361),
+    "SPEC_MARKSMANSHIP": ("TalentTab", 363),
+    "SPEC_SURVIVAL": ("TalentTab", 362),
+    "SPEC_ASSASSINATION": ("TalentTab", 182),
+    "SPEC_COMBAT": ("TalentTab", 181),
+    "SPEC_SUBTLETY": ("TalentTab", 183),
+    "SPEC_DISCIPLINE": ("TalentTab", 201),
+    "SPEC_SHADOW": ("TalentTab", 203),
+    "SPEC_ELEMENTAL": ("TalentTab", 261),
+    "SPEC_ENHANCEMENT": ("TalentTab", 263),
+    "SPEC_RESTORATION": ("TalentTab", 262),
+    "SPEC_ARCANE": ("TalentTab", 81),
+    "SPEC_FIRE": ("TalentTab", 41),
+    "SPEC_FROST": ("TalentTab", 61),
+    "SPEC_AFFLICTION": ("TalentTab", 302),
+    "SPEC_DEMONOLOGY": ("TalentTab", 303),
+    "SPEC_DESTRUCTION": ("TalentTab", 301),
+    "SPEC_BALANCE": ("TalentTab", 283),
+    "SPEC_FERAL": ("TalentTab", 281),
+}
+
+EXCLUDED = {
+    "STAT_SPELL_POWER": {"ruRU"},
+    "STAT_BLOCK_VALUE": {"ruRU", "deDE"},
+    "STAT_MP5": {"ruRU"},
+    "STAT_HP5": {"ruRU", "zhTW"},
+    "ONBOARD_NEXT": {"esES", "esMX", "ptBR"},
+}

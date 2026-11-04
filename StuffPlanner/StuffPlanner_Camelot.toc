@@ -3,6 +3,14 @@
 ## Title-frFR: Stuff Planner
 ## Notes: Prioritizes the quests, dungeons, raids and crafts whose rewards improve your character.
 ## Notes-frFR: Priorise les quêtes, donjons, raids et métiers dont les objets améliorent votre personnage.
+## Notes-deDE: Priorisiert die Quests, Dungeons, Schlachtzüge und Berufe, deren Belohnungen Euren Charakter verbessern.
+## Notes-esES: Prioriza las misiones, mazmorras, bandas y profesiones cuyas recompensas mejoran a tu personaje.
+## Notes-esMX: Prioriza las misiones, calabozos, bandas y profesiones cuyas recompensas mejoran a tu personaje.
+## Notes-koKR: 캐릭터를 강화하는 보상을 주는 퀘스트, 던전, 공격대, 전문 기술의 우선순위를 정합니다.
+## Notes-ptBR: Prioriza as missões, masmorras, raides e profissões cujas recompensas melhoram o seu personagem.
+## Notes-ruRU: Расставляет приоритеты заданий, подземелий, рейдов и профессий, награды за которые улучшают вашего персонажа.
+## Notes-zhCN: 为奖励能提升角色的任务、地下城、团队副本和专业技能排定优先级。
+## Notes-zhTW: 為獎勵能強化角色的任務、地城、團隊副本和專業技能排定優先順序。
 ## IconTexture: Interface\AddOns\StuffPlanner\Media\Icon
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1781853

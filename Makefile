@@ -12,7 +12,7 @@ endif
 # (bash peut désigner le lanceur WSL) ; `|| exit 1` force le passage par sh,
 # sans quoi make lance le .bat via cmd, qui refuse ce chemin.
 
-.PHONY: lint check test data overlay weights arrow wowsims deploy zip
+.PHONY: lint check test data overlay weights arrow wowsims locales locales-push locales-pull deploy zip
 
 # Analyse statique seule (utilisée par la CI).
 lint:
@@ -44,6 +44,17 @@ weights:
 wowsims:
 	@$(PYTHON) tools/import_wowsims.py || exit 1
 	@$(PYTHON) tools/gen_weights.py || exit 1
+
+# Traductions : termes du jeu (wago.tools) > CurseForge > premier jet (tools/locales).
+locales:
+	@$(PYTHON) tools/gen_locales.py || exit 1
+
+locales-push:
+	@$(PYTHON) tools/curseforge_locales.py push || exit 1
+
+locales-pull:
+	@$(PYTHON) tools/curseforge_locales.py pull || exit 1
+	@$(PYTHON) tools/gen_locales.py || exit 1
 
 deploy:
 	@sh tools/deploy.sh

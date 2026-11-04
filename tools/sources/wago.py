@@ -4,6 +4,8 @@ Importe les objets équipables du client Forever depuis wago.tools (tables DB2 e
   TABLES -> tables nécessaires
   STAT_KEYS -> {code de stat du client: clé interne} ; RATING_PER_PERCENT -> points pour 1 %
   fetch(cache_dir, opener=None) -> dossier cache_dir/BUILD complété ; RuntimeError si réseau en échec
+  fetch_locale(cache_dir, locale, tables, opener=None) -> dossier cache_dir/BUILD/locale, tables dans
+    cette langue (`&locale=` de wago.tools) ; mêmes erreurs que fetch
   load_bases(source_dir) -> {itemID: {"itemClass", "itemSubClass", "slot", "icon"}}, équipement seul,
     objets masqués compris : Item.csv les connaît, pas ItemSparse
   load_items(source_dir) -> enregistrements `items` triés par id, sans réseau ; ValueError si une
@@ -144,6 +146,11 @@ ARMOR_TABLES = ("ItemArmorQuality", "ItemArmorTotal", "ItemArmorShield", "ArmorL
 def fetch(cache_dir, opener=None):
     urls = {f"{table}.csv": URL.format(table=table, build=BUILD) for table in TABLES}
     return cache.complete(Path(cache_dir) / BUILD, urls, opener)
+
+
+def fetch_locale(cache_dir, locale, tables, opener=None):
+    urls = {f"{table}.csv": URL.format(table=table, build=BUILD) + f"&locale={locale}" for table in tables}
+    return cache.complete(Path(cache_dir) / BUILD / locale, urls, opener)
 
 
 def read_table(source_dir, table, columns):
