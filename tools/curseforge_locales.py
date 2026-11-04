@@ -1,12 +1,13 @@
 """CONTRAT
 Échange les phrases avec le portail de traduction CurseForge (projet PROJECT_ID).
-  push(phrases, skipped, token, opener=None) : envoie les phrases enUS (format TableAdditions), sauf
-    les clés de `skipped` (termes du jeu) ; RuntimeError sans jeton
+  push(phrases, skipped, token, opener=None, language="enUS") : envoie les phrases (format TableAdditions)
+    dans `language`, sauf les clés de `skipped` (termes du jeu) ; RuntimeError sans jeton
   pull(locale, token, opener=None) -> {clé: texte} traduit sur le portail (non traduit : ignoré)
   write_community(directory, locale, phrases) -> directory/<langue>.json
 opener(request) -> octets ; remplaçable pour que les tests n'utilisent jamais le réseau.
 Jeton : CF_API_TOKEN dans .env ou l'environnement (curseforge.com, Paramètres > Jetons d'API).
-Usage : python tools/curseforge_locales.py push|pull
+Usage : python tools/curseforge_locales.py push|push-drafts|pull
+  push-drafts : premiers jets (tools/locales/draft) envoyés comme traductions de départ
 """
 
 import json
@@ -36,11 +37,11 @@ def _quote(text):
     return '"' + text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
 
 
-def push(phrases, skipped, token, opener=None):
+def push(phrases, skipped, token, opener=None, language="enUS"):
     if not token:
         raise RuntimeError("CF_API_TOKEN manquant (.env)")
     lua = "\n".join(f'L["{key}"] = {_quote(text)}' for key, text in phrases.items() if key not in skipped)
-    metadata = json.dumps({"language": "enUS", "formatType": "TableAdditions",
+    metadata = json.dumps({"language": language, "formatType": "TableAdditions",
                            "missing-phrase-handling": "DoNothing"})
     boundary = uuid.uuid4().hex
     parts = [(name, value) for name, value in (("metadata", metadata), ("localizations", lua))]
@@ -84,13 +85,19 @@ def main(command):
         phrases = gen_locales.parse_locale(gen_locales.ENUS_PATH.read_text(encoding="utf-8"))
         push(phrases, set(locale_map.TERMS), token)
         print(f"{len(phrases) - len(set(locale_map.TERMS) & set(phrases))} phrases envoyées")
+    elif command == "push-drafts":
+        for locale in locale_map.LOCALES:
+            draft = json.loads((gen_locales.DRAFT_DIR / f"{locale}.json").read_text(encoding="utf-8"))
+            draft.pop(gen_locales.TOC_KEY, None)
+            push(draft, set(locale_map.TERMS), token, language=locale)
+            print(f"{locale} : {len(set(draft) - set(locale_map.TERMS))} phrases")
     elif command == "pull":
         for locale in locale_map.LOCALES:
             phrases = pull(locale, token)
             write_community(gen_locales.COMMUNITY_DIR, locale, phrases)
             print(f"{locale} : {len(phrases)} phrases")
     else:
-        raise SystemExit("Usage : python tools/curseforge_locales.py push|pull")
+        raise SystemExit("Usage : python tools/curseforge_locales.py push|push-drafts|pull")
 
 
 if __name__ == "__main__":
