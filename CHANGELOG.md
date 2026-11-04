@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 — 2026-11-04
+
+### Changes
+- Translated into every language of the WoW Forever client: German, Spanish (EU and Latin America),
+  Brazilian Portuguese, Russian, Korean, Simplified and Traditional Chinese (English and French already).
+- Game terms (stats, specializations, interface words) come from the game's own data, so they match
+  what you see in game; the other phrases are first drafts. Corrections are welcome on the
+  CurseForge translation page.
+- Addon description translated in the addon list.
+
 ## 1.0.0 — 2026-11-04
 
 First stable release, for WoW Forever launch day. Source code now public on GitHub.
