@@ -1,10 +1,12 @@
 """CONTRAT
 Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
   build(source_dir, out_dir, interfaces, quests=None, items=None, recipes=None, crafts=None, drops=(), instances=(),
-        npcs=(), npc_names=None, report=None, overlay=None, era_items=())
-    -> {"quests": n, "items": n, "origins": n, "instances": n, "npcNames": n, "eraItems": n, "instanceQuests": n, "memory": octets,
+        npcs=(), npc_names=None, report=None, overlay=None, era_items=(), quest_names=None, item_names=None)
+    -> {"quests": n, "items": n, "origins": n, "instances": n, "npcNames": n, "questNames": n, "itemNames": n, "eraItems": n,
+        "instanceQuests": n, "memory": octets,
         "eraMemory": octets} ;
-    npc_names ({langue: {npcID: nom}}) réduit aux donneurs et aux boss, un fichier par langue ; `quests` et `items`
+    npc_names ({langue: {npcID: nom}}) réduit aux donneurs et aux boss, un fichier par langue ; quest_names,
+    item_names (même forme) réduits aux quêtes et objets émis : repli des noms du client ; `quests` et `items`
     remplacent les fichiers de source_dir ; overlay ({"quests": {id: champs}}, tools/overlay.json
     de merge_exports.py) devient Overlay.lua ; `origins` est précalculé ; seuls les objets ayant une
     origine sont émis ; era_items (precompute.era_differences) réduit aux objets émis sans `forever`, écrit
@@ -48,18 +50,22 @@ def read_interfaces(addon_dir):
     return interfaces
 
 
-def _wanted_names(npc_names, starters, origins):
+def _bosses(origins):
     raid_kinds = (schema.ORIGIN_KINDS["dungeon"], schema.ORIGIN_KINDS["raid"])
-    bosses = {
+    return {
         entry[3] for origin in origins for entry in origin["entries"]
         if entry[0] in raid_kinds and len(entry) > 3 and entry[3]
     }
-    wanted = starters | bosses
+
+
+# Une langue ne charge que son fichier : l'anglais comble ses trous, plutôt que le repli « Quest #id ».
+def _wanted_names(by_locale, wanted):
+    english = {key: name for key, name in (by_locale or {}).get("enUS", {}).items() if key in wanted}
     names = {}
-    for locale, table in (npc_names or {}).items():
-        kept = {npc: name for npc, name in table.items() if npc in wanted}
+    for locale, table in (by_locale or {}).items():
+        kept = {key: name for key, name in table.items() if key in wanted}
         if kept:
-            names[locale] = kept
+            names[locale] = {**english, **kept}
     return names
 
 
@@ -78,6 +84,8 @@ def build(
     report=None,
     overlay=None,
     era_items=(),
+    quest_names=None,
+    item_names=None,
 ):
     tables = {}
     for table in TABLES:
@@ -105,13 +113,17 @@ def build(
         raise ValueError("Base refusée : " + " ; ".join(errors))
     common = {item["id"] for item in tables["items"] if not item.get("forever")}
     era = [record for record in era_items if record["id"] in common]
-    names = _wanted_names(npc_names, starters, tables["origins"])
-    emit_lua.write_addon(out_dir, {**tables, "eraItems": era}, interfaces, names, overlay)
+    names = _wanted_names(npc_names, starters | _bosses(tables["origins"]))
+    quest_names = _wanted_names(quest_names, {quest["id"] for quest in tables["quests"]})
+    item_names = _wanted_names(item_names, {item["id"] for item in tables["items"]})
+    emit_lua.write_addon(out_dir, {**tables, "eraItems": era}, interfaces, names, overlay, quest_names, item_names)
     counts = {table: len(records) for table, records in tables.items()}
     counts["eraItems"] = len(era)
     counts["instanceQuests"] = sum(1 for quest in tables["quests"] if quest.get("instance"))
     counts["eraMemory"] = lua_memory.estimate({"eraItems": era})
     counts["npcNames"] = len(names.get("enUS", {}))
+    counts["questNames"] = len(quest_names.get("enUS", {}))
+    counts["itemNames"] = len(item_names.get("enUS", {}))
     counts["memory"] = lua_memory.estimate(tables)
     return counts
 
@@ -152,6 +164,8 @@ def load_sources():
         "instances": list(instances.values()),
         "npcs": npcs,
         "npc_names": questie.load_npc_names(questie_dir),
+        "quest_names": questie.load_names(questie_dir, "quest"),
+        "item_names": questie.load_names(questie_dir, "item"),
         "era_items": precompute.era_differences(forever_items, era_items, scan),
     }
 
@@ -170,7 +184,8 @@ def main():
         f"Base : {counts['quests']} quêtes, {counts['items']} objets, "
         f"{counts['origins']} objets avec origine, {counts['instances']} instances, "
         f"{counts['npcs']} donneurs placés, {counts['eraItems']} objets différents sur Classic Era, "
-        f"{counts['instanceQuests']} quêtes de donjon ou de raid"
+        f"{counts['instanceQuests']} quêtes de donjon ou de raid, "
+        f"noms de base : {counts['questNames']} quêtes, {counts['itemNames']} objets"
     )
     print(f"Mémoire estimée en jeu : {counts['memory'] // 1024} Ko (Lua 5.1, 64 bits), EraItems {counts['eraMemory'] // 1024} Ko")
     return 0

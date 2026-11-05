@@ -160,7 +160,7 @@ function MapPins.refresh()
     for index, data in ipairs(list) do
         local world, minimap = pinFrame("world", index), pinFrame("minimap", index)
         local item = data.itemID and ns.Data.item(data.itemID)
-        local icon = data.itemID and (item and item.icon or UNKNOWN_ICON) or QUEST_ICON
+        local icon = data.itemID and (ns.Names.itemIcon(data.itemID, item and item.icon) or UNKNOWN_ICON) or QUEST_ICON
         world.data, minimap.data = data, data
         world.icon:SetTexture(icon)
         minimap.icon:SetTexture(icon)

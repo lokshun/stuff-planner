@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+- Quest and item names no longer show as "Quest #id" / "Item #id" when the client has not loaded them:
+  localized names from QuestieDB are shipped as a fallback (English fills the gaps).
+- Item icons: the client icon replaces the question mark once the server sends a hidden item.
+- Settings gear on the main window shown again on WoW Forever (it was hidden behind the frame title bar).
+
+### Changes
+- Mini tracker tooltip shows the full item tooltip (stats and gain) before the source and state lines.
+- Data rebuilt for client 1.60.1.70790 and QuestieDB revision 4ab6431 (post-launch).
+
 ## 1.1.0 — 2026-11-04
 
 ### Changes

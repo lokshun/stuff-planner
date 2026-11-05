@@ -6,6 +6,7 @@ return {
     "C_Spell",
     "GetSpellInfo",
     "GetItemIcon",
+    "GetItemInfo",
     "GetRealZoneText",
     "C_QuestLog",
     "C_SkillInfo",

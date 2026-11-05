@@ -1,11 +1,14 @@
 -- CONTRAT
 -- Noms affichables, lus dans le client : la base n'en stocke aucun. Charger après Compat.lua.
 --   ns.Names.quest(id), item(id), npc(id), zone(mapID), spell(id), instance(id) -> string ;
---     repli « Quest #id » (ns.L) tant que le client ne connaît pas le nom
+--     quête et objet : client > base (Data.baseName, langue du client) > repli « Quest #id » (ns.L)
+--   ns.Names.itemIcon(id, icon?) -> icon de la base, sinon celle du client, si ce n'est pas le point
+--     d'interrogation (objet masqué pas encore reçu) | nil
 --   ns.Names.profession(skillLine) -> nom du métier (sort d'apprenti) ; repli « Profession #id »
 --   ns.Names.onReady(kind, id, fn) -> fn(name) dès que le nom est connu, tout de suite s'il l'est ;
 --     kind : "quest" | "item" | "npc" | "zone" | "spell" | "instance" ; chaque rappel est appelé une fois
---   ns.Names.isKnown(kind, id) -> bool : vrai nom disponible (pas le repli)
+--   ns.Names.isKnown(kind, id) -> bool : nom connu du client ou appris (pas la base ni le repli) ;
+--     onReady attend ce nom-là (il apporte aussi l'icône)
 --   ns.Names.learn(kind, id, name) -> nom appris hors client ; PNJ : gardé dans
 --     StuffPlannerDB.npcNames[GetLocale()], appris au dialogue de quête et au ciblage d'une créature
 -- PNJ : nom appris > client (info-bulle) > base (Data.npcName).
@@ -43,6 +46,8 @@ local PROFESSION_SPELLS = {
     [186] = 2575, [197] = 3908, [202] = 4036, [333] = 7411, [356] = 7620, [393] = 8613,
 }
 local REQUESTS = { quest = Compat.RequestQuestData, item = Compat.RequestItemData }
+local BASE_NAMES = { quest = true, item = true }
+local UNKNOWN_ICON = 134400
 
 local known = { quest = {}, item = {}, npc = {}, zone = {}, spell = {}, instance = {} }
 local waiting = { quest = {}, item = {}, npc = {}, zone = {}, spell = {}, instance = {} }
@@ -61,8 +66,20 @@ local function lookup(kind, id)
     return nil
 end
 
+local function baseName(kind, id)
+    return BASE_NAMES[kind] and ns.Data and ns.Data.baseName and ns.Data.baseName(kind, id) or nil
+end
+
 local function nameOf(kind, id)
-    return lookup(kind, id) or L[FALLBACKS[kind]]:format(id)
+    return lookup(kind, id) or baseName(kind, id) or L[FALLBACKS[kind]]:format(id)
+end
+
+local function validIcon(icon)
+    return icon and icon ~= UNKNOWN_ICON and icon ~= 0 and icon or nil
+end
+
+function Names.itemIcon(id, icon)
+    return validIcon(icon) or validIcon(Compat.GetItemIcon(id))
 end
 
 function Names.quest(id)

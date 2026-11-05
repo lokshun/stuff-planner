@@ -114,7 +114,7 @@ local function present(slot, slotName, player, profile, data, read)
     end
     local item = data.item(itemID)
     row.name = ns.Names.item(itemID)
-    row.icon = (item and item.icon) or (read and read.icon)
+    row.icon = ns.Names.itemIcon(itemID, (item and item.icon) or (read and read.icon))
     row.quality = (item and item.quality) or (read and read.quality)
     row.nameColor = ns.Theme.quality(row.quality)
     row.estimated = item ~= nil and item.confidence == ESTIMATED_ITEM

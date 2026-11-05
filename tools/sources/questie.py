@@ -10,8 +10,9 @@ Importe les quêtes Forever de QuestieDB (github.com/Questie/QuestieDB), sans ex
   load_quest_areas(source_dir) -> {questID: zoneOrSort} des zones positives (donjons compris ; négatif =
     catégorie, ignoré), sans réseau ; lu par precompute.mark_instances
   load_classic_quest_ids(source_dir) -> {questID} de Classic Era (base Classic + classicQuestFixes), sans réseau
-  load_npc_names(source_dir) -> {"enUS": {npcID: nom}, langue: {...}} : anglais de la base de PNJ (couches
-    comprises), traductions l10n/Forever/lookupNpcs puis traces (prioritaires) ; langue sans fichier absente
+  load_names(source_dir, kind) -> {"enUS": {id: nom}, langue: {...}}, kind "npc" | "quest" | "item" :
+    anglais de la base (couches comprises), traductions l10n/Forever/lookup<Npcs|Quests|Items> puis traces
+    (prioritaires) ; langue sans fichier absente. load_npc_names(source_dir) = load_names(source_dir, "npc")
 Couches, dans l'ordre amont (docs/forever.md) : brut, legacy, delta, traces, corrections d'auteur.
 Les corrections de faction et par personnage sont ignorées.
 Écarts avec la source :
@@ -34,7 +35,7 @@ from pathlib import Path
 
 from sources import cache, lua_table
 
-COMMIT = "8f55e69de02e8a67229c4a54575f899244359cb8"
+COMMIT = "4ab64311b6f0be1a96b38a5b95bfa27fa95416af"
 RAW_URL = "https://raw.githubusercontent.com/Questie/QuestieDB/{commit}/{path}"
 
 QUEST_DB = "data/Forever/foreverQuestDB.lua"
@@ -112,10 +113,21 @@ CLASS_KEYS = {
     "DRUID": 1024,
 }
 LOCALES = ("deDE", "esES", "esMX", "frFR", "koKR", "ptBR", "ruRU", "zhCN", "zhTW")
-L10N_FILES = {f"npcNames_{locale}.lua": f"l10n/Forever/lookupNpcs/{locale}.lua" for locale in LOCALES}
-L10N_FILES.update(
-    {f"npcNamesTraces_{locale}.lua": f"l10n/Forever/traces/lookupNpcs/{locale}.lua" for locale in LOCALES if locale != "zhCN"}
-)
+NAME_SOURCES = {
+    "npc": ("lookupNpcs", NPC_DB, NPC_LAYERS),
+    "quest": ("lookupQuests", QUEST_DB, QUEST_LAYERS),
+    "item": ("lookupItems", ITEM_DB, ITEM_LAYERS),
+}
+L10N_FILES = {
+    name: path
+    for kind, (folder, _, _) in NAME_SOURCES.items()
+    for locale in LOCALES
+    for name, path in (
+        (f"{kind}Names_{locale}.lua", f"l10n/Forever/{folder}/{locale}.lua"),
+        (f"{kind}NamesTraces_{locale}.lua", f"l10n/Forever/traces/{folder}/{locale}.lua"),
+    )
+    if locale != "zhCN" or "Traces" not in name
+}
 L10N_BODY = re.compile(r"\[\[(.*?)\]\]", re.DOTALL)
 KEY_LINE = re.compile(r"^\s*\['(\w+)'\]\s*=\s*(\d+)", re.MULTILINE)
 KEY_TABLES = ("questKeys", "itemKeys", "npcKeys")
@@ -368,18 +380,28 @@ def _l10n_names(path):
     if not match:
         raise ValueError(f"{path.name} : table de noms introuvable")
     rows = lua_table.parse(match.group(1).removeprefix("return "))
-    return {npc: row[1] for npc, row in rows.items() if isinstance(row, dict) and isinstance(row.get(1), str)}
+    names = {}
+    for entity_id, row in rows.items():
+        name = row.get(1) if isinstance(row, dict) else row
+        if isinstance(name, str):
+            names[entity_id] = name
+    return names
 
 
-def load_npc_names(source_dir):
-    npcs = _entities(source_dir, NPC_DB, NPC_LAYERS, ("name",), _resolver(source_dir))
-    names = {"enUS": {npc: row["name"] for npc, row in npcs.items() if isinstance(row.get("name"), str)}}
+def load_names(source_dir, kind):
+    _, raw_path, layers = NAME_SOURCES[kind]
+    entities = _entities(source_dir, raw_path, layers, ("name",), _resolver(source_dir))
+    names = {"enUS": {key: row["name"] for key, row in entities.items() if isinstance(row.get("name"), str)}}
     for locale in LOCALES:
         merged = {}
-        for prefix in ("npcNames_", "npcNamesTraces_"):
+        for prefix in (f"{kind}Names_", f"{kind}NamesTraces_"):
             path = Path(source_dir) / f"{prefix}{locale}.lua"
             if path.exists():
                 merged.update(_l10n_names(path))
         if merged:
             names[locale] = merged
     return names
+
+
+def load_npc_names(source_dir):
+    return load_names(source_dir, "npc")

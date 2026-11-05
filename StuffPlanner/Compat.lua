@@ -109,24 +109,27 @@ function Compat.HookItemTooltip(fn)
     end
 end
 
-function Compat.GetQuestTitle(id)
-    if not C_QuestLog then
-        return nil
-    end
-    if C_QuestLog.GetTitleForQuestID then
-        return C_QuestLog.GetTitleForQuestID(id)
-    end
-    if C_QuestLog.GetQuestInfo then
-        return C_QuestLog.GetQuestInfo(id)
+-- Premier texte non vide rendu par l'une des fonctions présentes : sur Forever, une fonction peut
+-- exister et ne rien rendre alors qu'une autre connaît le nom.
+local function firstName(id, ...)
+    for i = 1, select("#", ...) do
+        local fn = select(i, ...)
+        local name = fn and fn(id)
+        if type(name) == "string" and name ~= "" then
+            return name
+        end
     end
     return nil
 end
 
+function Compat.GetQuestTitle(id)
+    local log = C_QuestLog or {}
+    return firstName(id, log.GetTitleForQuestID, log.GetQuestInfo)
+end
+
 function Compat.GetItemName(id)
-    if C_Item and C_Item.GetItemNameByID then
-        return C_Item.GetItemNameByID(id)
-    end
-    return nil
+    local item = C_Item or {}
+    return firstName(id, item.GetItemNameByID, item.GetItemInfo, GetItemInfo)
 end
 
 function Compat.RequestQuestData(id)

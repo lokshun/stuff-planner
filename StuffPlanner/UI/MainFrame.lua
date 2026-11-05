@@ -55,9 +55,16 @@ local function restorePosition()
 end
 
 local function createGear()
+    -- Au-dessus du cadre du modèle (TitleContainer, NineSlice) : sinon caché sur Forever.
+    local close = frame.CloseButton
     local gear = CreateFrame("Button", nil, frame)
     gear:SetSize(18, 18)
-    gear:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -26, -3)
+    gear:SetFrameLevel((close or frame):GetFrameLevel() + 2)
+    if close then
+        gear:SetPoint("RIGHT", close, "LEFT", -2, 0)
+    else
+        gear:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -26, -3)
+    end
     gear:SetNormalTexture(GEAR_ICON)
     gear:SetHighlightTexture(GEAR_ICON, "ADD")
     gear:SetScript("OnClick", function()

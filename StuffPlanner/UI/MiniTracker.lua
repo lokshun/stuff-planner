@@ -5,8 +5,8 @@
 -- (Results) et à l'arrivée des noms ; jamais en combat (reporté à la sortie).
 -- Déplaçable à la souris (clic gauche maintenu) ; clic sur une ligne : fiche de la quête
 -- (QuestDetail, sur l'onglet Zone actuelle) ; Maj+clic : repère vers le donneur ;
--- Ctrl+clic : essayage (Compat.DressUpItem) ; survol : quête, état (journal, niveau, prérequis),
--- badge « non confirmé ». /splan tracker affiche ou masque.
+-- Ctrl+clic : essayage (Compat.DressUpItem) ; survol : info-bulle de l'objet (stats, gain), quête,
+-- état (journal, niveau, prérequis), badge « non confirmé ». /splan tracker affiche ou masque.
 -- Sauvegarde : StuffPlannerDB.ui.tracker = {point, relativePoint, x, y} ; réglages par ns.Options :
 -- tracker.shown, tracker.lines (1-5), tracker.locked (pas de glisser), tracker.alpha (fond).
 --   ns.MiniTracker.resetPosition() -> position par défaut
@@ -65,7 +65,8 @@ local function showTooltip(button)
         return
     end
     GameTooltip:SetOwner(button, "ANCHOR_LEFT")
-    GameTooltip:AddLine(row.name, row.nameColor.r, row.nameColor.g, row.nameColor.b)
+    GameTooltip:SetHyperlink("item:" .. row.itemID)
+    GameTooltip:AddLine(" ")
     GameTooltip:AddLine(row.sourceText, 1, 1, 1)
     if row.stateText ~= "" then
         GameTooltip:AddLine(row.stateText, row.stateColor.r, row.stateColor.g, row.stateColor.b)

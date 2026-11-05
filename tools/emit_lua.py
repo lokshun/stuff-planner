@@ -14,12 +14,14 @@
   lua_name(table) -> nom Lua d'une table (« eraItems » -> « EraItems ») : ns.<nom> dans <nom>.lua
   emit_toc(interface, name_files=(), flavor=None) -> contenu d'un TOC LoadOnDemand ; name_files avant
     Register.lua ; EraItems.lua (après Items.lua) pour le seul flavor ERA_FLAVOR
-  emit_npc_names(locale, names, fallback=False) -> NpcNames_<langue>.lua : ns.NpcNames = {[id]="nom"} si
-    GetLocale() vaut la langue ; fallback (anglais, chargé après les autres) : si aucune autre ne l'a rempli
+  emit_names(var, locale, names, fallback=False) -> <var>_<langue>.lua (var : NpcNames, QuestNames, ItemNames) :
+    ns.<var> = {[id]="nom"} si GetLocale() vaut la langue ; fallback (anglais, chargé après les autres) : si
+    aucune autre ne l'a rempli. emit_npc_names(locale, names, fallback) = emit_names("NpcNames", ...)
   emit_overlay(overlay) -> Overlay.lua : ns.Overlay = {quests={[id]={champ=valeur}}} en tables Lua (lues par
     Data, peu nombreuses) ; ValueError si table ou champ absent de schema.FIELDS
-  write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None) -> écrit tous les fichiers, mentions
-    de licence comprises ; EraItems.lua toujours écrit (vide sans tables["eraItems"]) ; npc_names = {langue: {npcID: nom}}, "enUS" en repli ; overlay vide par défaut
+  write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None)
+    -> écrit tous les fichiers, mentions de licence comprises ; EraItems.lua toujours écrit (vide sans
+    tables["eraItems"]) ; *_names = {langue: {id: nom}}, "enUS" en repli ; overlay vide par défaut
 """
 
 import math
@@ -187,16 +189,20 @@ def emit_register():
     )
 
 
-def emit_npc_names(locale, names, fallback=False):
+def emit_names(var, locale, names, fallback=False):
     if fallback:
-        guard = "if ns.NpcNames then\n    return\nend\n\n"
+        guard = f"if ns.{var} then\n    return\nend\n\n"
     else:
         guard = f"if GetLocale() ~= {lua_string(locale)} then\n    return\nend\n\n"
-    lines = [HEADER, "local _, ns = ...\n\n", guard, "ns.NpcNames = {\n"]
+    lines = [HEADER, "local _, ns = ...\n\n", guard, f"ns.{var} = {{\n"]
     for npc_id in sorted(names):
         lines.append(f"    [{npc_id}]={lua_string(names[npc_id])},\n")
     lines.append("}\n")
     return "".join(lines)
+
+
+def emit_npc_names(locale, names, fallback=False):
+    return emit_names("NpcNames", locale, names, fallback)
 
 
 def emit_overlay(overlay):
@@ -216,11 +222,11 @@ def emit_overlay(overlay):
     return "".join(lines)
 
 
-def _name_files(npc_names):
-    locales = sorted(locale for locale in (npc_names or {}) if locale != "enUS")
-    if npc_names and "enUS" in npc_names:
+def _name_files(var, by_locale):
+    locales = sorted(locale for locale in (by_locale or {}) if locale != "enUS")
+    if by_locale and "enUS" in by_locale:
         locales.append("enUS")
-    return [f"NpcNames_{locale}.lua" for locale in locales]
+    return [f"{var}_{locale}.lua" for locale in locales]
 
 
 def emit_toc(interface, name_files=(), flavor=None):
@@ -241,7 +247,7 @@ def emit_toc(interface, name_files=(), flavor=None):
     return "\n".join(lines) + "\n"
 
 
-def write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None):
+def write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     files = {
@@ -252,9 +258,11 @@ def write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None):
     }
     for table, records in tables.items():
         files[f"{lua_name(table)}.lua"] = emit_table(table, records)
-    for locale, names in (npc_names or {}).items():
-        files[f"NpcNames_{locale}.lua"] = emit_npc_names(locale, names, fallback=locale == "enUS")
-    name_files = _name_files(npc_names)
+    name_files = []
+    for var, by_locale in (("NpcNames", npc_names), ("QuestNames", quest_names), ("ItemNames", item_names)):
+        for locale, names in (by_locale or {}).items():
+            files[f"{var}_{locale}.lua"] = emit_names(var, locale, names, fallback=locale == "enUS")
+        name_files += _name_files(var, by_locale)
     for flavor, interface in interfaces.items():
         files[f"StuffPlanner_Data_{flavor}.toc"] = emit_toc(interface, name_files, flavor)
     files["THIRD_PARTY.txt"] = NOTICE.read_text(encoding="utf-8")

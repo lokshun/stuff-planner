@@ -155,7 +155,7 @@ function RowPresenter.present(entry, data)
     local row = {
         itemID = entry.itemID,
         name = ns.Names.item(entry.itemID),
-        icon = item and item.icon,
+        icon = ns.Names.itemIcon(entry.itemID, item and item.icon),
         quality = quality,
         nameColor = ns.Theme.quality(quality),
         sourceKind = entry.source and entry.source.type,

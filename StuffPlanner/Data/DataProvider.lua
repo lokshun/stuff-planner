@@ -6,7 +6,8 @@
 --   quest(id), item(id), instance(id) -> table aux champs nommés de tools/schema.py, `id` compris | nil ;
 --     la base n'a que les objets ayant une origine : item(id) d'un objet porté peut valoir nil
 --   npc(id) -> {id, mapID, x, y} (x, y en 0–1) | nil ; base = donneurs de quête, position observée d'abord
---   npcName(id) -> nom du PNJ dans la langue du client (ns.NpcNames de la base) | nil
+--   npcName(id) -> nom du PNJ dans la langue du client (ns.NpcNames de la base) | nil ;
+--     baseName("npc"|"quest"|"item", id) -> nom de la base (NpcNames, QuestNames, ItemNames) | nil
 --   recipe(itemID) -> {spellID, skillLine} | nil, première recette de l'objet
 --   sourcesOf(itemID) -> {{type="quest"|"dungeon"|"raid"|"craft", id, chance, npcID, skillLine}...} ;
 --     id = questID, instance ou spellID ; vide si inconnu ; artisanat : yellow, grey (seuils de
@@ -46,12 +47,12 @@ local QUEST_KINDS = { detail = true, complete = true, log = true }
 local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "starter" }
 local GUESSED, CONFIRMED, ESTIMATED = 2, 3, 1
 
-local db, overlay, kinds, hideForever, npcNames, external, eraItems
+local db, overlay, kinds, hideForever, external, eraItems
 local cache, observed, observedItems, npcs, byMap, itemList
 local isReady = false
 
 local function reset()
-    db, overlay, kinds, hideForever, npcNames, external, eraItems = nil, nil, nil, false, EMPTY, nil, nil
+    db, overlay, kinds, hideForever, external, eraItems = nil, nil, nil, false, nil, nil
     cache = {}
     for _, name in ipairs({ "quests", "items", "instances", "npcs", "sources" }) do
         cache[name] = setmetatable({}, WEAK)
@@ -68,7 +69,6 @@ function Data.attach(database, opts)
     end
     db = database
     overlay = database.Overlay or EMPTY
-    npcNames = database.NpcNames or EMPTY
     hideForever = (opts and opts.hideForever) == true
     external = opts and opts.external
     eraItems = opts and opts.era == true and database.EraItems or nil
@@ -194,7 +194,13 @@ function Data.npc(id)
 end
 
 function Data.npcName(id)
-    return (external and external.npcName(id)) or npcNames[id]
+    return (external and external.npcName(id)) or Data.baseName("npc", id)
+end
+
+local NAME_TABLES = { npc = "NpcNames", quest = "QuestNames", item = "ItemNames" }
+function Data.baseName(kind, id)
+    local names = db and NAME_TABLES[kind] and db[NAME_TABLES[kind]]
+    return names and names[id] or nil
 end
 
 local function mapOf(id)
