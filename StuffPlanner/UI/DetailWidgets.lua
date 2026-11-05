@@ -12,7 +12,8 @@
 --   stacker(content) -> place(region, height?, gapBefore?), finish() : empile de haut en bas,
 --     finish fixe la hauteur du contenu et remonte en haut si le contenu a changé de taille
 --   nameAsker(refresh) -> askName(kind, id) : nom demandé une fois, refresh regroupé (NAME_DELAY s)
---   openMap(mapID) -> Compat.OpenWorldMap puis fenêtre principale cachée, message en cas d'échec
+--   openMap(mapID, target?) -> Compat.OpenWorldMap puis fenêtre principale cachée, message en cas d'échec ;
+--     target ({mapID, x, y, title, giver}, view.waypoint) : ping au donneur (MapPins.focus)
 --   setColor(region, color)
 
 local _, ns = ...
@@ -163,12 +164,15 @@ function DetailWidgets.nameAsker(refresh)
     end
 end
 
-function DetailWidgets.openMap(mapID)
+function DetailWidgets.openMap(mapID, target)
     if not mapID then
         return
     end
     if ns.Compat.OpenWorldMap(mapID) then
         ns.MainFrame.hide()
+        if target and target.mapID == mapID and ns.MapPins then
+            ns.MapPins.focus(target)
+        end
     else
         print(L.DETAIL_MAP_FAILED)
     end

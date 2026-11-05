@@ -10,6 +10,7 @@
 
 ### Changes
 - Mini tracker tooltip shows the full item tooltip (stats and gain) before the source and state lines.
+- "Show on map" pings the quest giver: pulsing ring at its position, removed when the map closes.
 - Data rebuilt for client 1.60.1.70790 and QuestieDB revision 4ab6431 (post-launch).
 
 ## 1.1.0 — 2026-11-04

@@ -112,7 +112,7 @@ local function create()
     waypointButton:SetScript("OnClick", toggleWaypoint)
     mapButton = W.button(content, L.DETAIL_MAP)
     mapButton:SetScript("OnClick", function()
-        W.openMap(currentView and currentView.mapID)
+        W.openMap(currentView and currentView.mapID, currentView and currentView.waypoint)
     end)
     mapButton:SetPoint("LEFT", waypointButton, "RIGHT", theme.spacing.gap, 0)
 end

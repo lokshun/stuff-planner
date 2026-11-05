@@ -9,6 +9,8 @@
 --   quête disponible ; toutes refaites sur SP_WAYPOINT_CHANGED.
 -- Survol : quête, meilleur objet et gain ; clic : fiche (QuestDetail.show) ; Maj+clic : repère.
 -- Rafraîchies sur SP_RESULTS_UPDATED (Results) ; jamais en combat (reporté).
+-- MapPins.focus(target) : ping pulsant au donneur ({mapID, x, y, title?, giver?}), même épingles masquées ;
+--   retiré à la fermeture de la carte ; false sans HereBeDragons.
 -- /splan pins affiche ou masque (carte du monde et minicarte) ; réglages ns.Options pins.world et
 -- pins.minimap, appliqués sur SP_OPTION_CHANGED. Sans la bibliothèque : rien.
 
@@ -21,6 +23,8 @@ local PIN_SIZE = 20
 local MINIMAP_SIZE = 14
 local UNKNOWN_ICON = 134400
 local QUEST_ICON = "Interface\\GossipFrame\\AvailableQuestIcon"
+local FOCUS_RING = "Interface\\Cooldown\\star4"
+local FOCUS_SIZE = 32
 local ICON_CROP = 0.08
 local SHOW_PARENT = 1 -- HBD_PINS_WORLDMAP_SHOW_PARENT
 
@@ -172,6 +176,70 @@ function MapPins.refresh()
         end
     end
     MapPins.updateMarkers()
+end
+
+-- Ping de « Voir sur la carte » : anneau pulsant au donneur, indépendant des réglages des épingles,
+-- retiré à la fermeture de la carte ou au ping suivant.
+local focusRef, focusPin = {}, nil
+
+local function createFocusPin()
+    local pin = CreateFrame("Frame", nil, UIParent)
+    pin:SetSize(FOCUS_SIZE, FOCUS_SIZE)
+    pin:EnableMouse(true)
+    local color = ns.Theme.colors.gain
+    local ring = pin:CreateTexture(nil, "BACKGROUND")
+    ring:SetTexture(FOCUS_RING)
+    ring:SetBlendMode("ADD")
+    ring:SetVertexColor(color.r, color.g, color.b)
+    ring:SetPoint("CENTER")
+    ring:SetSize(FOCUS_SIZE, FOCUS_SIZE)
+    local icon = pin:CreateTexture(nil, "ARTWORK")
+    icon:SetTexture(QUEST_ICON)
+    icon:SetPoint("CENTER")
+    icon:SetSize(PIN_SIZE, PIN_SIZE)
+    local pulse = ring:CreateAnimationGroup()
+    pulse:SetLooping("REPEAT")
+    local grow = pulse:CreateAnimation("Scale")
+    grow:SetScale(2.5, 2.5)
+    grow:SetDuration(1)
+    local fade = pulse:CreateAnimation("Alpha")
+    fade:SetFromAlpha(1)
+    fade:SetToAlpha(0)
+    fade:SetDuration(1)
+    pin.pulse = pulse
+    pin:SetScript("OnEnter", function(self)
+        local target = self.target
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine(target.giver or target.title, 1, 0.82, 0)
+        if target.giver and target.title then
+            GameTooltip:AddLine(target.title, 1, 1, 1)
+        end
+        GameTooltip:Show()
+    end)
+    pin:SetScript("OnLeave", hideTooltip)
+    WorldMapFrame:HookScript("OnHide", function()
+        local pins = library()
+        if pins then
+            pins:RemoveAllWorldMapIcons(focusRef)
+        end
+        pin.pulse:Stop()
+    end)
+    return pin
+end
+
+-- target = {mapID, x, y (0–1), title?, giver?} ; false sans bibliothèque ni carte.
+function MapPins.focus(target)
+    local pins = library()
+    if not pins or not WorldMapFrame or not (target and target.mapID and target.x and target.y) then
+        return false
+    end
+    focusPin = focusPin or createFocusPin()
+    focusPin.target = target
+    pins:RemoveAllWorldMapIcons(focusRef)
+    pins:AddWorldMapIconMap(focusRef, focusPin, target.mapID, target.x, target.y, SHOW_PARENT)
+    focusPin:SetFrameLevel(focusPin:GetFrameLevel() + 10)
+    focusPin.pulse:Play()
+    return true
 end
 
 local function toggle()
