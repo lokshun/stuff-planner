@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 — 2026-11-05
 
 ### Fixes
 - Quest and item names no longer show as "Quest #id" / "Item #id" when the client has not loaded them:
