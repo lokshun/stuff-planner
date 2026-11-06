@@ -87,6 +87,7 @@ UI\ZoneTab.lua
 UI\RouteTab.lua
 UI\GearRows.lua
 UI\GearTab.lua
+UI\StatPicker.lua
 UI\PriorityList.lua
 UI\ProfileGrid.lua
 UI\ProfileSummary.lua

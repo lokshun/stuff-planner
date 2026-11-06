@@ -1,11 +1,12 @@
 -- CONTRAT
 -- Section « Mes stats » de l'onglet Profil : l'utilisateur classe jusqu'à 10 stats, l'addon en
--- déduit les poids (ns.Priorities). Charger après Profiles/Priorities.lua et ProfilePresenter.lua.
+-- déduit les poids (ns.Priorities). Charger après Profiles/Priorities.lua, ProfilePresenter.lua et
+-- StatPicker.lua.
 --   ns.PriorityList.HEIGHT -> hauteur de la section (pixels)
 --   ns.PriorityList.create(parent) -> frame ; refresh() redessine (sans effet avant create)
 -- Brouillon local : ordre du profil actif (order s'il vient des priorités, sinon poids décroissants)
--- et plafonds de ce profil ; repris tant qu'il n'a pas été modifié. Ajouter (sélecteur < >), flèches haut/bas, x,
--- « Partir du profil de la spé » (Profiles.baseID), « Appliquer » -> Profiles.setCustom({weights,
+-- et plafonds de ce profil ; repris tant qu'il n'a pas été modifié. Ajouter (menu ns.StatPicker, groupé),
+-- flèches haut/bas, x, « Partir du profil de la spé » (Profiles.baseID), « Appliquer » -> Profiles.setCustom({weights,
 -- caps, order}), qui émet SP_PROFILE_CHANGED (onglet Zone, mini-suivi).
 
 local _, ns = ...
@@ -25,10 +26,9 @@ local ARROW_DOWN = { 0, 1, 1, 1, 0, 0, 1, 0 }
 
 PriorityList.HEIGHT = 14 + ns.Priorities.MAX * ROW_HEIGHT + 2 * BUTTON_HEIGHT + 14 + 5 * 6
 
-local section, hint, addLabel, addButton, statusText
+local section, hint, addButton, statusText
 local rows = {}
 local draft -- {order, caps, source, dirty}
-local candidateIndex = 1
 
 local function setStatus(text, color)
     statusText:SetText(text or "")
@@ -117,32 +117,15 @@ local function row(index)
     return line
 end
 
-local function currentCandidate()
-    local candidates = ns.Priorities.candidates(draft.order)
-    if #candidates == 0 then
-        return nil
-    end
-    candidateIndex = (candidateIndex - 1) % #candidates + 1
-    return candidates[candidateIndex]
-end
-
-local function cycle(delta)
-    candidateIndex = candidateIndex + delta
-    PriorityList.refresh()
-end
-
 local function renderAdd()
-    local key = currentCandidate()
     local full = #draft.order >= ns.Priorities.MAX
-    addLabel:SetText(key and (rawget(L, "STAT_" .. key) or key) or "")
-    addButton:SetEnabled(key ~= nil and not full)
+    addButton:SetEnabled(not full and #ns.Priorities.candidates(draft.order) > 0)
 end
 
 local function onAdd()
-    local key = currentCandidate()
-    if key then
+    ns.StatPicker.open(addButton, ns.ProfilePresenter.statGroups(draft.order), function(key)
         edit(ns.Priorities.add(draft.order, key))
-    end
+    end)
 end
 
 local function onFromSpec()
@@ -199,21 +182,17 @@ function PriorityList.create(parent)
     hint:SetJustifyH("LEFT")
     hint:SetText(L.PRIORITY_HINT)
     local rowsBottom = -(14 + 2 * theme.spacing.gap + ns.Priorities.MAX * ROW_HEIGHT)
-    local previous = smallButton(section, "<", function()
-        cycle(-1)
-    end)
-    previous:SetPoint("TOPLEFT", 0, rowsBottom)
-    addLabel = section:CreateFontString(nil, "OVERLAY", theme.fonts.body)
-    addLabel:SetPoint("LEFT", previous, "RIGHT", theme.spacing.gap, 0)
-    addLabel:SetWidth(160)
-    local nextButton = smallButton(section, ">", function()
-        cycle(1)
-    end)
-    nextButton:SetPoint("LEFT", addLabel, "RIGHT", theme.spacing.gap, 0)
     addButton = button(section, L.PRIORITY_ADD, onAdd)
-    addButton:SetPoint("LEFT", nextButton, "RIGHT", theme.spacing.gap, 0)
+    addButton:SetWidth(addButton:GetWidth() + ARROW_SIZE + 4)
+    addButton:GetFontString():SetPoint("CENTER", -(ARROW_SIZE + 4) / 2, 0)
+    local addArrow = addButton:CreateTexture(nil, "ARTWORK")
+    addArrow:SetSize(ARROW_SIZE, ARROW_SIZE)
+    addArrow:SetPoint("RIGHT", -8, 0)
+    addArrow:SetTexture(ARROW_TEXTURE)
+    addArrow:SetTexCoord(unpack(ARROW_DOWN))
+    addButton:SetPoint("TOPLEFT", 0, rowsBottom)
     local fromSpec = button(section, L.PRIORITY_FROM_SPEC, onFromSpec)
-    fromSpec:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    fromSpec:SetPoint("TOPLEFT", addButton, "BOTTOMLEFT", 0, -theme.spacing.gap)
     local apply = button(section, L.PRIORITY_APPLY, onApply)
     apply:SetPoint("LEFT", fromSpec, "RIGHT", theme.spacing.gap, 0)
     statusText = section:CreateFontString(nil, "OVERLAY", theme.fonts.small)

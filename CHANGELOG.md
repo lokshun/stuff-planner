@@ -11,6 +11,7 @@
   shows the profile it resolves to.
 - Profile tab: summary of the active profile at the top (main stats, caps, source) with an "Edit" button that
   opens "My stats".
+- My stats: the "Add" button opens a menu of the remaining stats grouped by category, instead of the < > selector.
 
 ## 1.2.0 — 2026-11-05
 

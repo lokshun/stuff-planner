@@ -19,6 +19,8 @@
 --   summary(profile?) -> {title, topText, capsText, sourceText, editable} : L.PROFILE_ACTIVE, SUMMARY_TOP
 --     (3 premières stats de order, sinon des poids positifs), SUMMARY_CAPS (plafonds par clé), source ;
 --     textes vides s'il n'y a rien ; sans profil : L.BEST_NO_PROFILE, editable false
+--   statGroups(order?) -> {{label, stats = {{key, label}, …}}, …} : Primaires, Physique, Sorts, Défense,
+--     Résistances (toutes les clés de ns.StatKeyList) ; clés de order exclues, groupe vide retiré
 --   importError(code, detail?) -> message localisé (L.IMPORT_ERR_<code>, FORMAT si inconnu)
 
 local _, ns = ...
@@ -193,6 +195,36 @@ function ProfilePresenter.summary(profile)
         sourceText = profile.source and L.PROFILE_SOURCE:format(profile.source) or "",
         editable = true,
     }
+end
+
+local STAT_GROUPS = {
+    { label = "PRIORITY_GROUP_PRIMARY", keys = { "STR", "AGI", "STA", "INT", "SPI" } },
+    { label = "PRIORITY_GROUP_PHYSICAL", keys = { "AP", "RAP", "HIT", "CRIT", "HASTE", "DPS" } },
+    { label = "PRIORITY_GROUP_SPELL", keys = { "SPELL_POWER", "SPELL_DMG", "HEALING", "SPELL_HIT", "SPELL_CRIT",
+        "SPELL_PEN", "HOLY_DMG", "FIRE_DMG", "NATURE_DMG", "FROST_DMG", "SHADOW_DMG", "ARCANE_DMG", "MP5" } },
+    { label = "PRIORITY_GROUP_DEFENSE", keys = { "ARMOR", "DEF", "DODGE", "PARRY", "BLOCK", "BLOCK_VALUE", "HP5" } },
+    { label = "PRIORITY_GROUP_RESIST", keys = { "RES_HOLY", "RES_FIRE", "RES_NATURE", "RES_FROST", "RES_SHADOW",
+        "RES_ARCANE" } },
+}
+
+function ProfilePresenter.statGroups(order)
+    local ranked = {}
+    for _, key in ipairs(order or {}) do
+        ranked[key] = true
+    end
+    local groups = {}
+    for _, group in ipairs(STAT_GROUPS) do
+        local stats = {}
+        for _, key in ipairs(group.keys) do
+            if not ranked[key] then
+                stats[#stats + 1] = { key = key, label = statLabel(key) }
+            end
+        end
+        if #stats > 0 then
+            groups[#groups + 1] = { label = L[group.label], stats = stats }
+        end
+    end
+    return groups
 end
 
 function ProfilePresenter.priorityRows(order, weights)
