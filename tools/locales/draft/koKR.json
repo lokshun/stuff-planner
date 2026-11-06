@@ -126,6 +126,8 @@
   "PRIORITY_GROUP_SPELL": "주문",
   "PRIORITY_GROUP_DEFENSE": "방어",
   "PRIORITY_GROUP_RESIST": "저항",
+  "PRIORITY_CAP_HINT": "상한(%): 이를 넘는 부분은 계산하지 않습니다. 비워 두면 상한이 없습니다.",
+  "PRIORITY_CAP_INVALID": "상한: 0~100 사이의 숫자를 입력하거나 비워 두세요.",
   "PROFILE_ADVANCED": "고급 설정",
   "PROFILE_SOURCE": "출처: %s",
   "PROFILE_EXPORT": "내보내기",

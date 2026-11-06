@@ -126,6 +126,8 @@
   "PRIORITY_GROUP_SPELL": "Hechizos",
   "PRIORITY_GROUP_DEFENSE": "Defensa",
   "PRIORITY_GROUP_RESIST": "Resistencias",
+  "PRIORITY_CAP_HINT": "Tope en %: por encima, la mejora ya no cuenta. Vacío: sin tope.",
+  "PRIORITY_CAP_INVALID": "Tope: introduce un número de 0 a 100 o déjalo vacío.",
   "PROFILE_ADVANCED": "Ajustes avanzados",
   "PROFILE_SOURCE": "Fuente: %s",
   "PROFILE_EXPORT": "Exportar",

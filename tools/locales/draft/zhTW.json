@@ -127,6 +127,8 @@
   "PRIORITY_GROUP_SPELL": "法術",
   "PRIORITY_GROUP_DEFENSE": "防禦",
   "PRIORITY_GROUP_RESIST": "抗性",
+  "PRIORITY_CAP_HINT": "上限（%）：超出部分不再計算收益。留空：無上限。",
+  "PRIORITY_CAP_INVALID": "上限：請輸入 0 到 100 之間的數字，或留空。",
   "PROFILE_ADVANCED": "進階設定",
   "PROFILE_SOURCE": "來源：%s",
   "PROFILE_EXPORT": "匯出",

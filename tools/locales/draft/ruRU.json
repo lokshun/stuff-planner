@@ -130,6 +130,8 @@
   "PRIORITY_GROUP_SPELL": "Заклинания",
   "PRIORITY_GROUP_DEFENSE": "Защита",
   "PRIORITY_GROUP_RESIST": "Сопротивления",
+  "PRIORITY_CAP_HINT": "Предел в %: выше него прирост не учитывается. Пусто — без предела.",
+  "PRIORITY_CAP_INVALID": "Предел: введите число от 0 до 100 или оставьте пустым.",
   "PROFILE_ADVANCED": "Дополнительные настройки",
   "PROFILE_SOURCE": "Источник: %s",
   "PROFILE_EXPORT": "Экспорт",

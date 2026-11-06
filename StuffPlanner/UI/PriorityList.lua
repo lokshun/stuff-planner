@@ -1,7 +1,7 @@
 -- CONTRAT
 -- Section « Mes stats » de l'onglet Profil : l'utilisateur classe jusqu'à 10 stats, l'addon en
--- déduit les poids (ns.Priorities). Charger après Profiles/Priorities.lua, ProfilePresenter.lua et
--- StatPicker.lua.
+-- déduit les poids (ns.Priorities). Charger après Profiles/Priorities.lua, ProfilePresenter.lua,
+-- StatPicker.lua et PriorityRows.lua (lignes, plafonds HIT et SPELL_HIT saisis en %).
 --   ns.PriorityList.HEIGHT -> hauteur de la section (pixels)
 --   ns.PriorityList.create(parent) -> frame ; refresh() redessine (sans effet avant create)
 -- Brouillon local : ordre du profil actif (order s'il vient des priorités, sinon poids décroissants)
@@ -16,13 +16,9 @@ local L = ns.L
 local PriorityList = {}
 ns.PriorityList = PriorityList
 
-local ROW_HEIGHT = 18
-local SMALL_BUTTON = 22
+local ROW_HEIGHT = ns.PriorityRows.ROW_HEIGHT
 local BUTTON_HEIGHT = 22
-local ARROW_SIZE = 10
-local ARROW_TEXTURE = "Interface\\ChatFrame\\ChatFrameExpandArrow"
-local ARROW_UP = { 1, 0, 0, 0, 1, 1, 0, 1 }
-local ARROW_DOWN = { 0, 1, 1, 1, 0, 0, 1, 0 }
+local ARROW_SIZE = ns.PriorityRows.ARROW_SIZE
 
 PriorityList.HEIGHT = 14 + ns.Priorities.MAX * ROW_HEIGHT + 2 * BUTTON_HEIGHT + 14 + 5 * 6
 
@@ -42,9 +38,13 @@ local function startDraft(profile, dirty)
     for i, key in ipairs(profile and (profile.order or ns.Priorities.fromWeights(profile.weights)) or {}) do
         order[i] = key
     end
+    local caps = {}
+    for key, value in pairs(profile and profile.caps or {}) do
+        caps[key] = value
+    end
     draft = {
         order = order,
-        caps = profile and profile.caps or {},
+        caps = caps,
         source = ns.Profiles.active(),
         dirty = dirty,
     }
@@ -57,25 +57,31 @@ local function edit(order)
     PriorityList.refresh()
 end
 
-local function smallButton(parent, text, onClick)
-    local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-    button:SetSize(SMALL_BUTTON, ROW_HEIGHT)
-    button:SetText(text)
-    button:SetScript("OnClick", onClick)
-    return button
+local function onCap(index, text)
+    local key = draft.order[index]
+    if not key then
+        return
+    end
+    local cap, code = ns.Priorities.parseCap(text)
+    if not cap and code ~= "EMPTY" then
+        setStatus(L.PRIORITY_CAP_INVALID, ns.Theme.colors.loss)
+    elseif draft.caps[key] ~= cap then
+        draft.caps[key] = cap
+        draft.dirty = true
+        setStatus("")
+    end
+    PriorityList.refresh()
 end
 
--- Bouton à flèche dessinée (les glyphes ^ et v ne sont pas centrés dans la police du jeu) :
--- texture de flèche vers la droite tournée d'un quart de tour par SetTexCoord.
-local function arrowButton(parent, coords, onClick)
-    local button = smallButton(parent, "", onClick)
-    local arrow = button:CreateTexture(nil, "ARTWORK")
-    arrow:SetSize(ARROW_SIZE, ARROW_SIZE)
-    arrow:SetPoint("CENTER")
-    arrow:SetTexture(ARROW_TEXTURE)
-    arrow:SetTexCoord(unpack(coords))
-    return button
-end
+local handlers = {
+    move = function(index, delta)
+        edit(ns.Priorities.move(draft.order, index, delta))
+    end,
+    remove = function(index)
+        edit(ns.Priorities.remove(draft.order, index))
+    end,
+    cap = onCap,
+}
 
 local function button(parent, text, onClick)
     local result = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
@@ -87,33 +93,11 @@ end
 
 local function row(index)
     local line = rows[index]
-    if line then
-        return line
+    if not line then
+        line = ns.PriorityRows.create(section, index, handlers)
+        line:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -ns.Theme.spacing.gap - (index - 1) * ROW_HEIGHT)
+        rows[index] = line
     end
-    local theme = ns.Theme
-    line = CreateFrame("Frame", nil, section)
-    line:SetSize(420, ROW_HEIGHT)
-    line:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -theme.spacing.gap - (index - 1) * ROW_HEIGHT)
-    line.label = line:CreateFontString(nil, "OVERLAY", theme.fonts.body)
-    line.label:SetPoint("LEFT")
-    line.label:SetWidth(220)
-    line.label:SetJustifyH("LEFT")
-    line.weight = line:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    line.weight:SetPoint("LEFT", 225, 0)
-    line.weight:SetTextColor(theme.colors.muted.r, theme.colors.muted.g, theme.colors.muted.b)
-    line.up = arrowButton(line, ARROW_UP, function()
-        edit(ns.Priorities.move(draft.order, index, -1))
-    end)
-    line.up:SetPoint("LEFT", 280, 0)
-    line.down = arrowButton(line, ARROW_DOWN, function()
-        edit(ns.Priorities.move(draft.order, index, 1))
-    end)
-    line.down:SetPoint("LEFT", line.up, "RIGHT", 2, 0)
-    line.remove = smallButton(line, "x", function()
-        edit(ns.Priorities.remove(draft.order, index))
-    end)
-    line.remove:SetPoint("LEFT", line.down, "RIGHT", 2, 0)
-    rows[index] = line
     return line
 end
 
@@ -157,17 +141,10 @@ function PriorityList.refresh()
         startDraft(active, false)
     end
     local order = draft.order
-    local presented = ns.ProfilePresenter.priorityRows(order, ns.Priorities.toWeights(order))
+    local presented = ns.ProfilePresenter.priorityRows(order, ns.Priorities.toWeights(order), draft.caps,
+        ns.Priorities.CAPPABLE)
     for i = 1, ns.Priorities.MAX do
-        local data = presented[i]
-        local line = row(i)
-        if data then
-            line.label:SetText(data.label)
-            line.weight:SetText(data.weightText)
-            line.up:SetEnabled(i > 1)
-            line.down:SetEnabled(i < #order)
-        end
-        line:SetShown(data ~= nil)
+        ns.PriorityRows.render(row(i), presented[i], #order)
     end
     renderAdd()
 end
@@ -188,8 +165,8 @@ function PriorityList.create(parent)
     local addArrow = addButton:CreateTexture(nil, "ARTWORK")
     addArrow:SetSize(ARROW_SIZE, ARROW_SIZE)
     addArrow:SetPoint("RIGHT", -8, 0)
-    addArrow:SetTexture(ARROW_TEXTURE)
-    addArrow:SetTexCoord(unpack(ARROW_DOWN))
+    addArrow:SetTexture(ns.PriorityRows.ARROW_TEXTURE)
+    addArrow:SetTexCoord(unpack(ns.PriorityRows.ARROW_DOWN))
     addButton:SetPoint("TOPLEFT", 0, rowsBottom)
     local fromSpec = button(section, L.PRIORITY_FROM_SPEC, onFromSpec)
     fromSpec:SetPoint("TOPLEFT", addButton, "BOTTOMLEFT", 0, -theme.spacing.gap)

@@ -127,6 +127,8 @@
   "PRIORITY_GROUP_SPELL": "Zauber",
   "PRIORITY_GROUP_DEFENSE": "Verteidigung",
   "PRIORITY_GROUP_RESIST": "Widerstände",
+  "PRIORITY_CAP_HINT": "Obergrenze in %: Darüber zählt der Gewinn nicht mehr. Leer: keine Obergrenze.",
+  "PRIORITY_CAP_INVALID": "Obergrenze: Zahl von 0 bis 100 eingeben oder leer lassen.",
   "PROFILE_ADVANCED": "Erweiterte Einstellungen",
   "PROFILE_SOURCE": "Quelle: %s",
   "PROFILE_EXPORT": "Exportieren",

@@ -11,8 +11,8 @@
 --   weightRows(profile) -> {{key, label, valueText, capText, fraction}, …} : poids décroissant puis
 --     clé ; fraction = poids / plus fort poids (0-1, 0 si négatif ou sans poids positif) ;
 --     clés plafonnées sans poids incluses (poids 0) ; vide sans profil
---   priorityRows(order, weights?) -> {{key, label = "<rang>. <stat>", weightText}, …} ; weightText vide
---     sans poids pour la clé
+--   priorityRows(order, weights?, caps?, cappable?) -> {{key, label = "<rang>. <stat>", weightText,
+--     capText?}, …} ; weightText vide sans poids ; capText (plafond, "" sans) pour les clés de cappable
 --   tooltip(profile?, auto?) -> {title, lines = {{label, valueText, capText}, …}, more} | nil :
 --     TOOLTIP_LINES (5) premières stats à poids positif de weightRows, more = stats restantes ;
 --     auto : titre L.PROFILE_TOOLTIP_AUTO (profil automatique résolu) ; nil sans profil
@@ -227,14 +227,17 @@ function ProfilePresenter.statGroups(order)
     return groups
 end
 
-function ProfilePresenter.priorityRows(order, weights)
+function ProfilePresenter.priorityRows(order, weights, caps, cappable)
     local rows = {}
     for rank, key in ipairs(order or {}) do
         local weight = weights and weights[key]
+        local cap = caps and caps[key]
         rows[rank] = {
             key = key,
             label = rank .. ". " .. statLabel(key),
             weightText = weight and ns.Format.number(weight, nil, 2) or "",
+            capText = cappable and cappable[key] and (cap and ns.Format.number(cap, nil, cap % 1 == 0 and 0 or 1)
+                or "") or nil,
         }
     end
     return rows

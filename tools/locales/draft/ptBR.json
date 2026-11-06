@@ -126,6 +126,8 @@
   "PRIORITY_GROUP_SPELL": "Feitiços",
   "PRIORITY_GROUP_DEFENSE": "Defesa",
   "PRIORITY_GROUP_RESIST": "Resistências",
+  "PRIORITY_CAP_HINT": "Limite em %: acima dele, o ganho não conta mais. Vazio: sem limite.",
+  "PRIORITY_CAP_INVALID": "Limite: digite um número de 0 a 100 ou deixe vazio.",
   "PROFILE_ADVANCED": "Configurações avançadas",
   "PROFILE_SOURCE": "Fonte: %s",
   "PROFILE_EXPORT": "Exportar",

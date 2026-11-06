@@ -9,6 +9,9 @@
 --   remove(order, index) -> copie sans ce rang ; add(order, key) -> copie avec key en dernier
 --     (doublon, clé inconnue ou liste pleine : copie inchangée)
 --   candidates(order) -> clés absentes de order, dans l'ordre de ns.StatKeyList
+--   CAPPABLE = {HIT = true, SPELL_HIT = true} : seuls plafonds gérés par le moteur (en %)
+--   parseCap(text) -> plafond (0 à 100, arrondi au dixième) | nil, code ; virgule décimale admise ;
+--     codes : EMPTY (texte vide : pas de plafond), VALUE (illisible), RANGE (hors bornes)
 
 local _, ns = ...
 
@@ -17,6 +20,27 @@ ns.Priorities = Priorities
 
 Priorities.MAX = 10
 Priorities.DECAY = 0.7
+Priorities.CAPPABLE = { HIT = true, SPELL_HIT = true }
+
+local MAX_CAP = 100
+
+function Priorities.parseCap(text)
+    local trimmed = type(text) == "string" and text:match("^%s*(.-)%s*$") or ""
+    if trimmed == "" then
+        return nil, "EMPTY"
+    end
+    if not trimmed:match("^%-?%d+[.,]?%d*$") then
+        return nil, "VALUE"
+    end
+    local value = tonumber((trimmed:gsub(",", ".")))
+    if not value then
+        return nil, "VALUE"
+    end
+    if value < 0 or value > MAX_CAP then
+        return nil, "RANGE"
+    end
+    return math.floor(value * 10 + 0.5) / 10
+end
 
 local function known(key)
     return type(key) == "string" and rawget(ns.StatKeys, key) ~= nil

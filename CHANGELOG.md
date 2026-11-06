@@ -12,6 +12,8 @@
 - Profile tab: summary of the active profile at the top (main stats, caps, source) with an "Edit" button that
   opens "My stats".
 - My stats: the "Add" button opens a menu of the remaining stats grouped by category, instead of the < > selector.
+- My stats: hit and spell hit caps (in %) can be edited on their rows; editing no longer risks changing the spec
+  profile's own caps.
 
 ## 1.2.0 — 2026-11-05
 
