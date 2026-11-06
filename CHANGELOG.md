@@ -9,6 +9,8 @@
   (level, state, zone, giver, rewards with gain).
 - Profile tab: hovering a cell of the profile grid shows its top stats, weights and caps; "Automatic choice"
   shows the profile it resolves to.
+- Profile tab: summary of the active profile at the top (main stats, caps, source) with an "Edit" button that
+  opens "My stats".
 
 ## 1.2.0 — 2026-11-05
 

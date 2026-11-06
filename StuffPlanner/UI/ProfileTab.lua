@@ -1,10 +1,11 @@
 -- CONTRAT
 -- Onglet « Profil », contenu défilant (UIPanelScrollFrameTemplate, barre cachée quand tout tient) :
--- profil actif, puis trois sections à en-tête repliable (flèche) : choix du profil (ns.ProfileGrid,
--- ouverte par défaut), « Mes stats » (ns.PriorityList), réglages avancés (source, poids du profil
--- actif en barres ns.WeightBars, import/export d'une chaîne ProfileIO). Sections indépendantes.
+-- résumé du profil actif (ns.ProfileSummary ; « Modifier » ouvre « Mes stats » et y défile), puis
+-- trois sections à en-tête repliable (flèche) : choix du profil (ns.ProfileGrid, ouverte par défaut),
+-- « Mes stats » (ns.PriorityList), réglages avancés (poids du profil actif en barres ns.WeightBars,
+-- import/export d'une chaîne ProfileIO). Sections indépendantes.
 -- Charger après MainFrame.lua, Profiles/Manager.lua, ProfileIO.lua, ProfilePresenter.lua,
--- PriorityList.lua, ProfileGrid.lua et WeightBars.lua.
+-- PriorityList.lua, ProfileGrid.lua, ProfileSummary.lua et WeightBars.lua.
 -- S'inscrit par ns.MainFrame.addTab("profile", …) ; rafraîchi par ns.MainFrame.refresh
 -- (SP_PROFILE_CHANGED abonné par ZoneTab). Repli sauvegardé dans StuffPlannerDB.ui.profileGrid
 -- (false = replié), profileStats et profileAdvanced (true = ouvert).
@@ -20,9 +21,9 @@ local ARROW_TEXTURE = "Interface\\ChatFrame\\ChatFrameExpandArrow"
 local SCROLLBAR_SPACE = 24
 local IO_HEIGHT = 140 -- consigne, champ, boutons et message sous les barres
 
-local content, activeText
+local scroll, content, summaryFrame
 local sections = {}
-local gridFrame, statsSection, advanced, sourceText, barsFrame, ioBox, statusText, deleteButton
+local gridFrame, statsSection, advanced, barsFrame, ioBox, statusText, deleteButton
 
 local function settings()
     StuffPlannerDB = StuffPlannerDB or {}
@@ -83,22 +84,19 @@ end
 
 local function renderAdvanced()
     local profile = ns.Profiles.active()
-    sourceText:SetText(profile and profile.source and L.PROFILE_SOURCE:format(profile.source) or "")
     local barsHeight = ns.WeightBars.render(ns.ProfilePresenter.weightRows(profile))
     deleteButton:SetShown(ns.Profiles.get(ns.Profiles.CUSTOM) ~= nil)
-    local height = sourceText:GetStringHeight() + 2 * ns.Theme.spacing.gap + barsHeight + IO_HEIGHT
+    local height = ns.Theme.spacing.gap + barsHeight + IO_HEIGHT
     advanced:SetHeight(height)
     return height
 end
 
 local function refresh()
     local theme = ns.Theme
-    local activeID = ns.Profiles.activeID()
-    local options = ns.ProfilePresenter.options(activeID and { activeID } or {}, ns.Profiles.get, activeID)
-    activeText:SetText(options[1] and L.PROFILE_ACTIVE:format(options[1].label) or L.BEST_NO_PROFILE)
-    local y = -(activeText:GetStringHeight() + theme.spacing.gap)
+    local y = -(ns.ProfileSummary.render(ns.ProfilePresenter.summary(ns.Profiles.active())) + theme.spacing.gap)
     for _, section in ipairs(sections) do
         local open = isOpen(section)
+        section.top = -y
         section.header:ClearAllPoints()
         section.header:SetPoint("TOPLEFT", content, "TOPLEFT", 0, y)
         setArrow(section.arrow, open)
@@ -133,6 +131,18 @@ local function addSection(key, title, body, render)
         refresh()
     end)
     sections[#sections + 1] = section
+end
+
+-- « Modifier » du résumé : ouvre « Mes stats » et fait défiler jusqu'à son en-tête.
+local function editStats()
+    settings().profileStats = true
+    refresh()
+    for _, section in ipairs(sections) do
+        if section.key == "profileStats" then
+            scroll:UpdateScrollChildRect()
+            scroll:SetVerticalScroll(math.min(section.top, scroll:GetVerticalScrollRange()))
+        end
+    end
 end
 
 local function onImport()
@@ -177,13 +187,8 @@ local function createAdvanced()
     local theme = ns.Theme
     advanced = CreateFrame("Frame", nil, content)
     advanced:SetWidth(content:GetWidth())
-    sourceText = advanced:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    sourceText:SetPoint("TOPLEFT")
-    sourceText:SetPoint("RIGHT")
-    sourceText:SetJustifyH("LEFT")
-    setColor(sourceText, theme.colors.muted)
     barsFrame = ns.WeightBars.create(advanced)
-    barsFrame:SetPoint("TOPLEFT", sourceText, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    barsFrame:SetPoint("TOPLEFT")
     local hint = advanced:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     hint:SetPoint("TOPLEFT", barsFrame, "BOTTOMLEFT", 0, -theme.spacing.gap)
     hint:SetPoint("RIGHT")
@@ -209,19 +214,16 @@ local function createAdvanced()
 end
 
 local function create(parent)
-    local theme = ns.Theme
     local panel = CreateFrame("Frame", nil, parent)
-    local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
+    scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
     scroll:SetPoint("TOPLEFT")
     scroll:SetPoint("BOTTOMRIGHT", -SCROLLBAR_SPACE, 0)
     scroll.scrollBarHideable = true
     content = CreateFrame("Frame", nil, scroll)
     content:SetSize(ns.WeightBars.WIDTH, 1)
     scroll:SetScrollChild(content)
-    activeText = content:CreateFontString(nil, "OVERLAY", theme.fonts.body)
-    activeText:SetPoint("TOPLEFT")
-    activeText:SetPoint("RIGHT")
-    activeText:SetJustifyH("LEFT")
+    summaryFrame = ns.ProfileSummary.create(content, editStats)
+    summaryFrame:SetPoint("TOPLEFT")
     gridFrame = ns.ProfileGrid.create(content)
     addSection("profileGrid", L.PROFILE_HEADER, gridFrame, renderGrid)
     statsSection = ns.PriorityList.create(content)

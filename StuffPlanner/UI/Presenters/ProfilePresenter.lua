@@ -16,6 +16,9 @@
 --   tooltip(profile?, auto?) -> {title, lines = {{label, valueText, capText}, …}, more} | nil :
 --     TOOLTIP_LINES (5) premières stats à poids positif de weightRows, more = stats restantes ;
 --     auto : titre L.PROFILE_TOOLTIP_AUTO (profil automatique résolu) ; nil sans profil
+--   summary(profile?) -> {title, topText, capsText, sourceText, editable} : L.PROFILE_ACTIVE, SUMMARY_TOP
+--     (3 premières stats de order, sinon des poids positifs), SUMMARY_CAPS (plafonds par clé), source ;
+--     textes vides s'il n'y a rien ; sans profil : L.BEST_NO_PROFILE, editable false
 --   importError(code, detail?) -> message localisé (L.IMPORT_ERR_<code>, FORMAT si inconnu)
 
 local _, ns = ...
@@ -144,6 +147,52 @@ function ProfilePresenter.tooltip(profile, auto)
         end
     end
     return tip
+end
+
+local SUMMARY_STATS = 3
+
+local function topKeys(profile)
+    local keys = {}
+    if profile.order then
+        for i = 1, math.min(SUMMARY_STATS, #profile.order) do
+            keys[i] = profile.order[i]
+        end
+        return keys
+    end
+    for _, row in ipairs(ProfilePresenter.weightRows(profile)) do
+        if #keys < SUMMARY_STATS and ((profile.weights or {})[row.key] or 0) > 0 then
+            keys[#keys + 1] = row.key
+        end
+    end
+    return keys
+end
+
+function ProfilePresenter.summary(profile)
+    if not profile then
+        return { title = L.BEST_NO_PROFILE, topText = "", capsText = "", sourceText = "", editable = false }
+    end
+    local stats = {}
+    for i, key in ipairs(topKeys(profile)) do
+        stats[i] = statLabel(key)
+    end
+    local capKeys = {}
+    for key in pairs(profile.caps or {}) do
+        capKeys[#capKeys + 1] = key
+    end
+    table.sort(capKeys)
+    local caps = {}
+    for i, key in ipairs(capKeys) do
+        local cap = profile.caps[key]
+        caps[i] = L.PROFILE_SUMMARY_CAP_ITEM:format(statLabel(key),
+            ns.Format.number(cap, nil, cap % 1 == 0 and 0 or 1))
+    end
+    return {
+        title = L.PROFILE_ACTIVE:format(label(profile)),
+        topText = #stats > 0 and L.PROFILE_SUMMARY_TOP:format(table.concat(stats, " > ")) or "",
+        capsText = #caps > 0 and L.PROFILE_SUMMARY_CAPS:format(table.concat(caps, ", ")) or "",
+        sourceText = profile.source and L.PROFILE_SOURCE:format(profile.source) or "",
+        editable = true,
+    }
 end
 
 function ProfilePresenter.priorityRows(order, weights)
