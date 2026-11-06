@@ -13,6 +13,9 @@
 --     clés plafonnées sans poids incluses (poids 0) ; vide sans profil
 --   priorityRows(order, weights?) -> {{key, label = "<rang>. <stat>", weightText}, …} ; weightText vide
 --     sans poids pour la clé
+--   tooltip(profile?, auto?) -> {title, lines = {{label, valueText, capText}, …}, more} | nil :
+--     TOOLTIP_LINES (5) premières stats à poids positif de weightRows, more = stats restantes ;
+--     auto : titre L.PROFILE_TOOLTIP_AUTO (profil automatique résolu) ; nil sans profil
 --   importError(code, detail?) -> message localisé (L.IMPORT_ERR_<code>, FORMAT si inconnu)
 
 local _, ns = ...
@@ -121,6 +124,26 @@ function ProfilePresenter.weightRows(profile)
         }
     end
     return rows
+end
+
+local TOOLTIP_LINES = 5
+
+function ProfilePresenter.tooltip(profile, auto)
+    if not profile then
+        return nil
+    end
+    local name = label(profile)
+    local tip = { title = auto and L.PROFILE_TOOLTIP_AUTO:format(name) or name, lines = {}, more = 0 }
+    for _, row in ipairs(ProfilePresenter.weightRows(profile)) do
+        if ((profile.weights or {})[row.key] or 0) > 0 then
+            if #tip.lines < TOOLTIP_LINES then
+                tip.lines[#tip.lines + 1] = { label = row.label, valueText = row.valueText, capText = row.capText }
+            else
+                tip.more = tip.more + 1
+            end
+        end
+    end
+    return tip
 end
 
 function ProfilePresenter.priorityRows(order, weights)

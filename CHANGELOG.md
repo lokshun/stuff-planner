@@ -7,6 +7,8 @@
   the Current zone list scrolls to it.
 - Quest sheet: hovering a step of the quest chain (or a prerequisite) shows that quest's details
   (level, state, zone, giver, rewards with gain).
+- Profile tab: hovering a cell of the profile grid shows its top stats, weights and caps; "Automatic choice"
+  shows the profile it resolves to.
 
 ## 1.2.0 — 2026-11-05
 

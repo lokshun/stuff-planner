@@ -116,6 +116,8 @@
   "PROFILE_AUTO": "自動選擇",
   "PROFILE_ACTIVE": "目前設定檔：%s",
   "PROFILE_CAP": "上限 %s",
+  "PROFILE_TOOLTIP_AUTO": "自動選擇：%s",
+  "PROFILE_TOOLTIP_MORE": "另有 %d 項屬性",
   "PROFILE_ADVANCED": "進階設定",
   "PROFILE_SOURCE": "來源：%s",
   "PROFILE_EXPORT": "匯出",

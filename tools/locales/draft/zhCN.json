@@ -115,6 +115,8 @@
   "PROFILE_AUTO": "自动选择",
   "PROFILE_ACTIVE": "当前方案：%s",
   "PROFILE_CAP": "上限 %s",
+  "PROFILE_TOOLTIP_AUTO": "自动选择：%s",
+  "PROFILE_TOOLTIP_MORE": "另有 %d 项属性",
   "PROFILE_ADVANCED": "高级设置",
   "PROFILE_SOURCE": "来源：%s",
   "PROFILE_EXPORT": "导出",

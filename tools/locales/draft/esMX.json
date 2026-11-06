@@ -115,6 +115,8 @@
   "PROFILE_AUTO": "Elección automática",
   "PROFILE_ACTIVE": "Perfil activo: %s",
   "PROFILE_CAP": "tope %s",
+  "PROFILE_TOOLTIP_AUTO": "Elección automática: %s",
+  "PROFILE_TOOLTIP_MORE": "+%d estadísticas más",
   "PROFILE_ADVANCED": "Ajustes avanzados",
   "PROFILE_SOURCE": "Fuente: %s",
   "PROFILE_EXPORT": "Exportar",

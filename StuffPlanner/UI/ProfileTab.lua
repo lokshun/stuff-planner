@@ -63,10 +63,17 @@ local function selectProfile(id)
     ns.MainFrame.refresh()
 end
 
+-- Info-bulle d'une case : nil = « Choix automatique », montré par le profil qu'il résout.
+local function describeProfile(id)
+    local auto = id == nil
+    local profileID = auto and ns.Profiles.automaticID() or id
+    return ns.ProfilePresenter.tooltip(profileID and ns.Profiles.get(profileID), auto)
+end
+
 local function renderGrid()
     local grid = ns.ProfilePresenter.grid(ns.Profiles.available(), ns.Profiles.get,
         ns.Profiles.activeID(), ns.Profiles.manualID())
-    return ns.ProfileGrid.render(grid, selectProfile)
+    return ns.ProfileGrid.render(grid, selectProfile, describeProfile)
 end
 
 local function renderStats()

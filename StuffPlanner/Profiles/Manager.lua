@@ -3,6 +3,7 @@
 --   ns.Profiles.active() -> profil de ns.ProfileDefaults ({weights, caps, ...}) | nil ; table partagée
 --   ns.Profiles.activeID() -> profileID | nil (classe sans profil)
 --   ns.Profiles.available() -> profileIDs de la classe du joueur, triés ; get(id) -> profil | nil
+--   ns.Profiles.automaticID() -> profileID que donnerait le choix automatique | nil (classe sans profil)
 --   ns.Profiles.manualID() -> profileID choisi à la main et encore valable | nil (automatique)
 --   ns.Profiles.set(profileID | nil) -> bool ; choix manuel gardé dans StuffPlannerCharDB.profiles.manual,
 --     conservé au niveau 60 et au rechargement ; nil revient au choix automatique ; false si inconnu
@@ -155,6 +156,10 @@ function Profiles.baseID()
         return manual
     end
     return automatic(ids)
+end
+
+function Profiles.automaticID()
+    return automatic(Profiles.available())
 end
 
 function Profiles.get(id)

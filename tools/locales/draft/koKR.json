@@ -115,6 +115,8 @@
   "PROFILE_AUTO": "자동 선택",
   "PROFILE_ACTIVE": "사용 중인 프로필: %s",
   "PROFILE_CAP": "상한 %s",
+  "PROFILE_TOOLTIP_AUTO": "자동 선택: %s",
+  "PROFILE_TOOLTIP_MORE": "능력치 %d개 더",
   "PROFILE_ADVANCED": "고급 설정",
   "PROFILE_SOURCE": "출처: %s",
   "PROFILE_EXPORT": "내보내기",

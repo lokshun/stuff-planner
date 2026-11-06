@@ -115,6 +115,8 @@
   "PROFILE_AUTO": "Escolha automática",
   "PROFILE_ACTIVE": "Perfil ativo: %s",
   "PROFILE_CAP": "limite %s",
+  "PROFILE_TOOLTIP_AUTO": "Escolha automática: %s",
+  "PROFILE_TOOLTIP_MORE": "+%d atributos",
   "PROFILE_ADVANCED": "Configurações avançadas",
   "PROFILE_SOURCE": "Fonte: %s",
   "PROFILE_EXPORT": "Exportar",

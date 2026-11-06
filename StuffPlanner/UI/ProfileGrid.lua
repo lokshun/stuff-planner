@@ -3,11 +3,14 @@
 -- (colonnes montée de niveau et 60), puis les profils personnalisés. Cadres seulement (vérifiés en jeu).
 -- Charger après Theme.lua et ProfilePresenter.lua.
 --   ns.ProfileGrid.create(parent) -> frame
---   ns.ProfileGrid.render(grid, onSelect) -> hauteur (pixels) ; grid = ProfilePresenter.grid ;
---     onSelect(id | nil) au clic (nil = automatique)
+--   ns.ProfileGrid.render(grid, onSelect, describe?) -> hauteur (pixels) ; grid = ProfilePresenter.grid ;
+--     onSelect(id | nil) au clic (nil = automatique) ; describe(id | nil) -> ProfilePresenter.tooltip | nil,
+--     affiché dans GameTooltip au survol d'une case
 -- Case active : fond et texte verts. Aucune case n'est désactivée (cliquer l'active ne change rien).
 
 local _, ns = ...
+
+local L = ns.L
 
 local ProfileGrid = {}
 ns.ProfileGrid = ProfileGrid
@@ -21,6 +24,25 @@ local used
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
+end
+
+local function showTooltip(cell)
+    local tip = cell.describe and cell.describe(cell.profileID)
+    if not tip then
+        return
+    end
+    local colors = ns.Theme.colors
+    GameTooltip:SetOwner(cell, "ANCHOR_RIGHT")
+    GameTooltip:AddLine(tip.title, colors.title.r, colors.title.g, colors.title.b)
+    for _, line in ipairs(tip.lines) do
+        local right = line.capText ~= "" and line.valueText .. "  (" .. line.capText .. ")" or line.valueText
+        GameTooltip:AddDoubleLine(line.label, right, colors.text.r, colors.text.g, colors.text.b,
+            colors.muted.r, colors.muted.g, colors.muted.b)
+    end
+    if tip.more > 0 then
+        GameTooltip:AddLine(L.PROFILE_TOOLTIP_MORE:format(tip.more), colors.muted.r, colors.muted.g, colors.muted.b)
+    end
+    GameTooltip:Show()
 end
 
 local function newCell()
@@ -40,11 +62,15 @@ local function newCell()
     cell:SetScript("OnClick", function(self)
         self.onSelect(self.profileID)
     end)
+    cell:SetScript("OnEnter", showTooltip)
+    cell:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
     return cell
 end
 
 -- Case suivante, placée en (x, y) depuis le haut à gauche du tableau.
-local function placeCell(x, y, width, text, active, id, onSelect)
+local function placeCell(x, y, width, text, active, id, onSelect, describe)
     used = used + 1
     local cell = cells[used] or newCell()
     cells[used] = cell
@@ -56,7 +82,7 @@ local function placeCell(x, y, width, text, active, id, onSelect)
     local tint = active and theme.colors.gain or theme.colors.border
     cell.bg:SetColorTexture(tint.r, tint.g, tint.b, active and 0.35 or 0.1)
     setColor(cell.text, active and theme.colors.gain or theme.colors.text)
-    cell.profileID, cell.onSelect = id, onSelect
+    cell.profileID, cell.onSelect, cell.describe = id, onSelect, describe
     cell:Show()
 end
 
@@ -78,11 +104,12 @@ function ProfileGrid.create(parent)
     return frame
 end
 
-function ProfileGrid.render(grid, onSelect)
+function ProfileGrid.render(grid, onSelect, describe)
     local theme = ns.Theme
     local gap = theme.spacing.gap / 2
     used = 0
-    placeCell(0, 0, LABEL_WIDTH + 2 * CELL_WIDTH + gap, grid.auto.label, grid.auto.active, nil, onSelect)
+    placeCell(0, 0, LABEL_WIDTH + 2 * CELL_WIDTH + gap, grid.auto.label, grid.auto.active, nil, onSelect,
+        describe)
     local y = -(CELL_HEIGHT + theme.spacing.gap)
     for index, phase in ipairs(grid.phases) do
         local column = fontString(columns, index, theme.fonts.small)
@@ -105,7 +132,7 @@ function ProfileGrid.render(grid, onSelect)
             local cell = spec.cells[phase.key]
             if cell then
                 placeCell(LABEL_WIDTH + (index - 1) * (CELL_WIDTH + gap), y, CELL_WIDTH, phase.label,
-                    cell.active, cell.id, onSelect)
+                    cell.active, cell.id, onSelect, describe)
             end
         end
         y = y - CELL_HEIGHT - gap
@@ -115,7 +142,8 @@ function ProfileGrid.render(grid, onSelect)
     end
     for _, extra in ipairs(grid.extras) do
         y = y - gap
-        placeCell(0, y, LABEL_WIDTH + 2 * CELL_WIDTH + gap, extra.label, extra.active, extra.id, onSelect)
+        placeCell(0, y, LABEL_WIDTH + 2 * CELL_WIDTH + gap, extra.label, extra.active, extra.id, onSelect,
+            describe)
         y = y - CELL_HEIGHT
     end
     for index = used + 1, #cells do

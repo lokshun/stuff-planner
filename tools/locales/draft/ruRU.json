@@ -119,6 +119,8 @@
   "PROFILE_AUTO": "Автоматический выбор",
   "PROFILE_ACTIVE": "Активный профиль: %s",
   "PROFILE_CAP": "предел %s",
+  "PROFILE_TOOLTIP_AUTO": "Автоматический выбор: %s",
+  "PROFILE_TOOLTIP_MORE": "ещё характеристик: %d",
   "PROFILE_ADVANCED": "Дополнительные настройки",
   "PROFILE_SOURCE": "Источник: %s",
   "PROFILE_EXPORT": "Экспорт",
