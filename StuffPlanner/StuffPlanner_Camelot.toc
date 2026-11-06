@@ -62,6 +62,7 @@ Engine\Tiers.lua
 Engine\Recompute.lua
 Engine\Bearing.lua
 Profiles\Defaults.lua
+Profiles\Customs.lua
 Profiles\Manager.lua
 Profiles\ProfileIO.lua
 Profiles\Priorities.lua

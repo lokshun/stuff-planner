@@ -7,8 +7,10 @@
 --   ns.PriorityList.create(parent) -> frame ; refresh() redessine (sans effet avant create)
 -- Brouillon local : ordre du profil actif (order s'il vient des priorités, sinon poids décroissants)
 -- et plafonds de ce profil ; repris tant qu'il n'a pas été modifié. Ajouter (menu ns.StatPicker, groupé),
--- flèches haut/bas, x, « Partir du profil de la spé » (Profiles.baseID), « Appliquer » -> Profiles.setCustom({weights,
--- caps, order}), qui émet SP_PROFILE_CHANGED (onglet Zone, mini-suivi).
+-- flèches haut/bas, x, « Partir du profil de la spé » (Profiles.baseID), « Appliquer » -> Profiles.saveCustom :
+-- écrase le profil personnalisé actif, sinon en crée un (ProfilePresenter.newName « Mes stats ») ; « Nouveau
+-- profil » (visible si le profil actif est personnalisé) en crée toujours un ; plein : L.PROFILE_ERR_FULL.
+-- saveCustom émet SP_PROFILE_CHANGED (onglet Zone, mini-suivi).
 
 local _, ns = ...
 
@@ -23,7 +25,7 @@ local ARROW_SIZE = ns.PriorityRows.ARROW_SIZE
 
 PriorityList.HEIGHT = 14 + ns.Priorities.MAX * ROW_HEIGHT + 2 * BUTTON_HEIGHT + 14 + 5 * 6
 
-local section, hint, addButton, statusText
+local section, hint, addButton, saveNewButton, statusText
 local rows = {}
 local draft -- {order, caps, source, dirty}
 
@@ -131,17 +133,36 @@ local function onFromSpec()
     PriorityList.refresh()
 end
 
-local function onApply()
+-- id nil : nouveau profil personnalisé, nommé « Mes stats » (numéroté si le nom est pris).
+local function save(id)
     local weights, code, detail = ns.Priorities.toWeights(draft.order)
     if not weights then
         local message = code == "EMPTY" and L.PRIORITY_EMPTY or ns.ProfilePresenter.importError(code, detail)
         setStatus(message, ns.Theme.colors.loss)
         return
     end
-    ns.Profiles.setCustom({ weights = weights, caps = draft.caps, order = draft.order })
+    local name = not id and ns.ProfilePresenter.newName(L.PROFILE_MY_STATS, ns.Profiles.available(),
+        ns.Profiles.get) or nil
+    if not ns.Profiles.saveCustom(id, name, { weights = weights, caps = draft.caps, order = draft.order }) then
+        setStatus(L.PROFILE_ERR_FULL, ns.Theme.colors.loss)
+        return
+    end
     startDraft(ns.Profiles.active(), false)
     setStatus(L.PRIORITY_APPLIED, ns.Theme.colors.gain)
     ns.MainFrame.refresh()
+end
+
+local function activeCustomID()
+    local id = ns.Profiles.activeID()
+    return id and ns.Profiles.isCustom(id) and id or nil
+end
+
+local function onApply()
+    save(activeCustomID())
+end
+
+local function onSaveNew()
+    save(nil)
 end
 
 function PriorityList.refresh()
@@ -149,6 +170,7 @@ function PriorityList.refresh()
         return
     end
     local active = ns.Profiles.active()
+    saveNewButton:SetShown(activeCustomID() ~= nil)
     if not draft or (not draft.dirty and draft.source ~= active) then
         startDraft(active, false)
     end
@@ -184,6 +206,8 @@ function PriorityList.create(parent)
     fromSpec:SetPoint("TOPLEFT", addButton, "BOTTOMLEFT", 0, -theme.spacing.gap)
     local apply = button(section, L.PRIORITY_APPLY, onApply)
     apply:SetPoint("LEFT", fromSpec, "RIGHT", theme.spacing.gap, 0)
+    saveNewButton = button(section, L.PRIORITY_SAVE_NEW, onSaveNew)
+    saveNewButton:SetPoint("LEFT", apply, "RIGHT", theme.spacing.gap, 0)
     statusText = section:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     statusText:SetPoint("TOPLEFT", fromSpec, "BOTTOMLEFT", 0, -theme.spacing.gap)
     statusText:SetPoint("RIGHT")

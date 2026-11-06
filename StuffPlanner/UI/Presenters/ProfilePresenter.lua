@@ -2,7 +2,7 @@
 -- Textes de l'onglet Profil. Pur : aucun appel d'API. Charger après Format.lua.
 --   ns.ProfilePresenter.options(ids, get, activeID?) -> {{id, label, active}, …} dans l'ordre de ids ;
 --     get(id) -> profil ; label = L.PROFILE_OPTION (spé, phase), L.PROFILE_CUSTOM pour le profil importé,
---     L.PROFILE_MY_STATS s'il vient des priorités (champ order) ;
+--     L.PROFILE_MY_STATS s'il vient des priorités (champ order) ; profil personnalisé nommé : son nom ;
 --     spé sans libellé SPEC_<jeton> : jeton en casse de titre
 --   grid(ids, get, activeID?, manualID?) -> {auto = {label, active = pas de choix manuel},
 --     phases = {{key = "leveling" | "60", label}, …}, specs = {{spec, label, cells = {[phase] =
@@ -21,6 +21,8 @@
 --     textes vides s'il n'y a rien ; sans profil : L.BEST_NO_PROFILE, editable false
 --   statGroups(order?) -> {{label, stats = {{key, label}, …}}, …} : Primaires, Physique, Sorts, Défense,
 --     Résistances (toutes les clés de ns.StatKeyList) ; clés de order exclues, groupe vide retiré
+--   newName(base, ids, get) -> base si aucun profil personnalisé de ids n'a ce libellé, sinon
+--     L.PROFILE_NAME_NUMBERED (base, premier numéro libre à partir de 2)
 --   importError(code, detail?) -> message localisé (L.IMPORT_ERR_<code>, FORMAT si inconnu)
 
 local _, ns = ...
@@ -50,7 +52,7 @@ end
 
 local function label(profile)
     if profile.spec == CUSTOM_SPEC then
-        return profile.order and L.PROFILE_MY_STATS or L.PROFILE_CUSTOM
+        return profile.name or (profile.order and L.PROFILE_MY_STATS or L.PROFILE_CUSTOM)
     end
     return L.PROFILE_OPTION:format(specName(profile.spec), phaseName(profile.phase))
 end
@@ -225,6 +227,24 @@ function ProfilePresenter.statGroups(order)
         end
     end
     return groups
+end
+
+function ProfilePresenter.newName(base, ids, get)
+    local used = {}
+    for _, id in ipairs(ids) do
+        local profile = get(id)
+        if profile and profile.spec == CUSTOM_SPEC then
+            used[label(profile)] = true
+        end
+    end
+    if not used[base] then
+        return base
+    end
+    local number = 2
+    while used[L.PROFILE_NAME_NUMBERED:format(base, number)] do
+        number = number + 1
+    end
+    return L.PROFILE_NAME_NUMBERED:format(base, number)
 end
 
 function ProfilePresenter.priorityRows(order, weights, caps, cappable)

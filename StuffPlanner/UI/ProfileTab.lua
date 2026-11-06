@@ -23,7 +23,7 @@ local IO_HEIGHT = 140 -- consigne, champ, boutons et message sous les barres
 
 local scroll, content, summaryFrame
 local sections = {}
-local gridFrame, statsSection, advanced, barsFrame, ioBox, statusText, deleteButton
+local gridFrame, statsSection, advanced, barsFrame, ioBox, statusText
 
 local function settings()
     StuffPlannerDB = StuffPlannerDB or {}
@@ -71,10 +71,25 @@ local function describeProfile(id)
     return ns.ProfilePresenter.tooltip(profileID and ns.Profiles.get(profileID), auto)
 end
 
+-- Renommer / Supprimer du profil personnalisé actif, dans la grille.
+local gridActions = {
+    rename = function(id, text)
+        local renamed = ns.Profiles.renameCustom(id, text)
+        if renamed then
+            ns.MainFrame.refresh()
+        end
+        return renamed
+    end,
+    delete = function(id)
+        ns.Profiles.deleteCustom(id)
+        ns.MainFrame.refresh()
+    end,
+}
+
 local function renderGrid()
     local grid = ns.ProfilePresenter.grid(ns.Profiles.available(), ns.Profiles.get,
         ns.Profiles.activeID(), ns.Profiles.manualID())
-    return ns.ProfileGrid.render(grid, selectProfile, describeProfile)
+    return ns.ProfileGrid.render(grid, selectProfile, describeProfile, gridActions)
 end
 
 local function renderStats()
@@ -85,7 +100,6 @@ end
 local function renderAdvanced()
     local profile = ns.Profiles.active()
     local barsHeight = ns.WeightBars.render(ns.ProfilePresenter.weightRows(profile))
-    deleteButton:SetShown(ns.Profiles.get(ns.Profiles.CUSTOM) ~= nil)
     local height = ns.Theme.spacing.gap + barsHeight + IO_HEIGHT
     advanced:SetHeight(height)
     return height
@@ -151,7 +165,11 @@ local function onImport()
         setStatus(ns.ProfilePresenter.importError(code, detail), ns.Theme.colors.loss)
         return
     end
-    ns.Profiles.setCustom(profile)
+    local name = ns.ProfilePresenter.newName(L.PROFILE_CUSTOM, ns.Profiles.available(), ns.Profiles.get)
+    if not ns.Profiles.saveCustom(nil, name, profile) then
+        setStatus(L.PROFILE_ERR_FULL, ns.Theme.colors.loss)
+        return
+    end
     ioBox:ClearFocus()
     setStatus(L.PROFILE_IMPORTED, ns.Theme.colors.gain)
     ns.MainFrame.refresh()
@@ -167,12 +185,6 @@ local function onExport()
     ioBox:SetFocus()
     ioBox:HighlightText()
     setStatus("")
-end
-
-local function onDelete()
-    ns.Profiles.clearCustom()
-    setStatus("")
-    ns.MainFrame.refresh()
 end
 
 local function button(parent, text, onClick)
@@ -205,8 +217,6 @@ local function createAdvanced()
     import:SetPoint("TOPLEFT", ioBox, "BOTTOMLEFT", -6, -theme.spacing.gap)
     local export = button(advanced, L.PROFILE_EXPORT, onExport)
     export:SetPoint("LEFT", import, "RIGHT", theme.spacing.gap, 0)
-    deleteButton = button(advanced, L.PROFILE_DELETE_CUSTOM, onDelete)
-    deleteButton:SetPoint("LEFT", export, "RIGHT", theme.spacing.gap, 0)
     statusText = advanced:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     statusText:SetPoint("TOPLEFT", import, "BOTTOMLEFT", 0, -theme.spacing.gap)
     statusText:SetPoint("RIGHT")

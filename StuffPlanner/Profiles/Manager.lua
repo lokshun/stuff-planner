@@ -1,39 +1,46 @@
 -- CONTRAT
--- Profil de poids actif du personnage. Charger après Core.lua et Profiles/Defaults.lua.
---   ns.Profiles.active() -> profil de ns.ProfileDefaults ({weights, caps, ...}) | nil ; table partagée
+-- Profil de poids actif du personnage. Charger après Core.lua, Profiles/Defaults.lua et Profiles/Customs.lua.
+--   ns.Profiles.active() -> profil ({weights, caps, ...}) | nil ; table partagée, ne pas modifier
 --   ns.Profiles.activeID() -> profileID | nil (classe sans profil)
---   ns.Profiles.available() -> profileIDs de la classe du joueur, triés ; get(id) -> profil | nil
+--   ns.Profiles.available() -> profileIDs de la classe du joueur, triés, puis profils personnalisés dans
+--     leur ordre de création ; get(id) -> profil | nil
 --   ns.Profiles.automaticID() -> profileID que donnerait le choix automatique | nil (classe sans profil)
 --   ns.Profiles.manualID() -> profileID choisi à la main et encore valable | nil (automatique)
 --   ns.Profiles.set(profileID | nil) -> bool ; choix manuel gardé dans StuffPlannerCharDB.profiles.manual,
 --     conservé au niveau 60 et au rechargement ; nil revient au choix automatique ; false si inconnu
 --     ou d'une autre classe (rien ne change)
 -- Choix automatique : première spé de la classe (ordre alphabétique), phase « 60 » dès le niveau 60,
--- « leveling » avant ; l'autre phase si celle-ci manque. Manuel disparu des défauts : automatique.
---   ns.Profiles.CUSTOM = "CUSTOM" ; setCustom({weights, caps, order?}) : copie gardée dans
---     StuffPlannerCharDB.profiles.custom, activée en manuel, émet même si déjà active ; order (liste de
---     clés, priorités de stats) gardé tel quel, source « priorities », sinon source « import » ;
---     clearCustom() l'efface (retour à l'automatique s'il était actif) ; listé en dernier par available()
---   ns.Profiles.baseID() -> profil par défaut de départ : choix manuel s'il n'est pas CUSTOM, sinon
+-- « leveling » avant ; l'autre phase si celle-ci manque. Manuel disparu : automatique.
+-- Profils personnalisés (ns.Customs, StuffPlannerCharDB.profiles.customs ; ancien `custom` repris) :
+--   isCustom(id) ; profil construit {id, spec = "CUSTOM", name?, source = « priorities » (order) | « import »,
+--     weights, caps, order?, class}
+--   saveCustom(id | nil, name?, {weights, caps, order?}) -> id | nil, code (FULL, UNKNOWN) : enregistre (nil =
+--     nouveau), active en manuel, émet même s'il était déjà actif
+--   renameCustom(id, text) -> bool, code (NAME, UNKNOWN), sans message ; deleteCustom(id) -> bool, retour à
+--     l'automatique s'il était actif
+--   ns.Profiles.baseID() -> profil par défaut de départ : choix manuel s'il n'est pas personnalisé, sinon
 --     automatique ; nil si la classe n'en a pas
--- SP_PROFILE_CHANGED(profileID) émis une fois par changement réel (set, ou SP_PLAYER_CHANGED qui
--- franchit le niveau 60) ; le premier calcul est silencieux. Abonné : ns.Scoring.invalidate().
+-- SP_PROFILE_CHANGED(profileID) émis une fois par changement réel (set, saveCustom, deleteCustom, ou
+-- SP_PLAYER_CHANGED qui franchit le niveau 60) ; le premier calcul est silencieux. Abonné : Scoring.invalidate().
 
 local _, ns = ...
 
 local Profiles = {}
 ns.Profiles = Profiles
 
-Profiles.CUSTOM = "CUSTOM"
-
+local CUSTOM_SPEC = "CUSTOM"
 local MAX_LEVEL = 60
 local current
-local customProfile, customSource
+local built = setmetatable({}, { __mode = "k" }) -- entrée sauvegardée -> profil construit
+
+Profiles.isCustom = ns.Customs.isCustom
 
 local function store()
     StuffPlannerCharDB = StuffPlannerCharDB or {}
     StuffPlannerCharDB.profiles = StuffPlannerCharDB.profiles or {}
-    return StuffPlannerCharDB.profiles
+    local saved = StuffPlannerCharDB.profiles
+    ns.Customs.migrate(saved)
+    return saved
 end
 
 local function defaults()
@@ -47,52 +54,39 @@ end
 
 local function copy(values)
     local result = {}
-    for key, value in pairs(type(values) == "table" and values or {}) do
-        if type(value) == "number" then
-            result[key] = value
-        end
+    for key, value in pairs(values or {}) do
+        result[key] = value
     end
     return result
 end
 
-local function copyOrder(order)
-    if type(order) ~= "table" then
+-- Profil construit une fois par entrée (save remplace l'entrée, rename ne change que le nom).
+local function custom(id)
+    local entry = ns.Customs.find(store(), id)
+    if not entry then
         return nil
     end
-    local result = {}
-    for i, key in ipairs(order) do
-        if type(key) ~= "string" then
-            return nil
-        end
-        result[i] = key
-    end
-    return #result > 0 and result or nil
-end
-
--- Profil importé, reconstruit seulement quand la sauvegarde change de table.
-local function custom()
-    local saved = store().custom
-    if type(saved) ~= "table" or type(saved.weights) ~= "table" then
-        return nil
-    end
-    if saved ~= customSource then
-        customSource = saved
-        local order = copyOrder(saved.order)
-        customProfile = {
-            spec = Profiles.CUSTOM,
+    local profile = built[entry]
+    if not profile then
+        local order = entry.order and copy(entry.order)
+        profile = {
+            id = id,
+            spec = CUSTOM_SPEC,
             source = order and "priorities" or "import",
-            weights = copy(saved.weights),
-            caps = copy(saved.caps),
+            weights = copy(entry.weights),
+            caps = copy(entry.caps),
             order = order,
         }
+        built[entry] = profile
     end
-    customProfile.class = playerClass()
-    return customProfile
+    profile.name = entry.name
+    profile.class = playerClass()
+    return profile
 end
 
 local function lookup(id)
-    if id == Profiles.CUSTOM then
-        return custom()
+    if Profiles.isCustom(id) then
+        return custom(id)
     end
     return defaults()[id]
 end
@@ -106,8 +100,8 @@ function Profiles.available()
         end
     end
     table.sort(ids)
-    if custom() then
-        ids[#ids + 1] = Profiles.CUSTOM
+    for _, entry in ipairs(ns.Customs.list(store())) do
+        ids[#ids + 1] = entry.id
     end
     return ids
 end
@@ -121,7 +115,7 @@ local function automatic(ids)
     local fallback
     for _, id in ipairs(ids) do
         local profile = defaults()[id]
-        if profile.spec == first.spec then
+        if profile and profile.spec == first.spec then
             if profile.phase == wanted then
                 return id
             end
@@ -152,7 +146,7 @@ end
 function Profiles.baseID()
     local ids = Profiles.available()
     local manual = store().manual
-    if manual and manual ~= Profiles.CUSTOM and contains(ids, manual) then
+    if manual and not Profiles.isCustom(manual) and contains(ids, manual) then
         return manual
     end
     return automatic(ids)
@@ -206,30 +200,37 @@ function Profiles.set(profileID)
     return true
 end
 
-function Profiles.setCustom(profile)
+function Profiles.saveCustom(id, name, profile)
     Profiles.activeID()
-    local wasActive = current == Profiles.CUSTOM
     local saved = store()
-    saved.custom = {
-        weights = copy(profile.weights),
-        caps = copy(profile.caps),
-        order = copyOrder(profile.order),
-    }
-    saved.manual = Profiles.CUSTOM
+    local savedID, code = ns.Customs.save(saved, id, name, profile)
+    if not savedID then
+        return nil, code
+    end
+    local wasActive = current == savedID
+    saved.manual = savedID
     refresh()
     if wasActive then
-        ns:Send("SP_PROFILE_CHANGED", Profiles.CUSTOM)
+        ns:Send("SP_PROFILE_CHANGED", savedID)
     end
+    return savedID
 end
 
-function Profiles.clearCustom()
+function Profiles.renameCustom(id, text)
+    return ns.Customs.rename(store(), id, text)
+end
+
+function Profiles.deleteCustom(id)
     Profiles.activeID()
     local saved = store()
-    saved.custom = nil
-    if saved.manual == Profiles.CUSTOM then
+    if not ns.Customs.remove(saved, id) then
+        return false
+    end
+    if saved.manual == id then
         saved.manual = nil
     end
     refresh()
+    return true
 end
 
 ns:On("SP_PLAYER_CHANGED", refresh)
