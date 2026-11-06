@@ -14,6 +14,7 @@
 - My stats: the "Add" button opens a menu of the remaining stats grouped by category, instead of the < > selector.
 - My stats: hit and spell hit caps (in %) can be edited on their rows; editing no longer risks changing the spec
   profile's own caps. Adding hit or spell hit fills in the known cap (spec profile's, else 8 % / 17 % at 60).
+- Leveling caster profiles: hit cap raised from 3 % to 4 % (same-level spell hit cap on Forever).
 
 ## 1.2.0 — 2026-11-05
 

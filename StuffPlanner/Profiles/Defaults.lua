@@ -55,8 +55,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     DRUID_FERAL_60 = {
@@ -144,8 +144,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     HUNTER_BEASTMASTERY_60 = {
@@ -339,8 +339,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     MAGE_FIRE_60 = {
@@ -391,8 +391,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     MAGE_FROST_60 = {
@@ -443,8 +443,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     PALADIN_HOLY_60 = {
@@ -639,8 +639,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     PRIEST_HOLY_60 = {
@@ -687,8 +687,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     PRIEST_SHADOW_60 = {
@@ -737,8 +737,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     ROGUE_ASSASSINATION_60 = {
@@ -923,8 +923,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     SHAMAN_ENHANCEMENT_60 = {
@@ -1070,8 +1070,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     WARLOCK_DEMONOLOGY_60 = {
@@ -1122,8 +1122,8 @@ ns.ProfileDefaults = {
             STA = 0.6,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     WARLOCK_DESTRUCTION_60 = {
@@ -1176,8 +1176,8 @@ ns.ProfileDefaults = {
             STA = 0.5,
         },
         caps = {
-            HIT = 3,
-            SPELL_HIT = 3,
+            HIT = 4,
+            SPELL_HIT = 4,
         },
     },
     WARRIOR_ARMS_60 = {

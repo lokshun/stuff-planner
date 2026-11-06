@@ -12,7 +12,7 @@
 --   CAPPABLE = {HIT = true, SPELL_HIT = true} : seuls plafonds gérés par le moteur (en %)
 --   parseCap(text) -> plafond (0 à 100, arrondi au dixième) | nil, code ; virgule décimale admise ;
 --     codes : EMPTY (texte vide : pas de plafond), VALUE (illisible), RANGE (hors bornes)
---   KNOWN_CAPS[phase][key] : plafonds connus (Forever, ceux de Profiles/Defaults.lua) ; defaultCap(key, phase?,
+--   KNOWN_CAPS[phase][key] : plafonds connus de Forever (API_NOTES.md) ; defaultCap(key, phase?,
 --     baseCaps?) -> baseCaps[key] (profil de spé), sinon KNOWN_CAPS (phase « 60 » par défaut) ; nil hors CAPPABLE
 
 local _, ns = ...
@@ -26,10 +26,10 @@ Priorities.CAPPABLE = { HIT = true, SPELL_HIT = true }
 
 local MAX_CAP = 100
 
--- Toucher mêlée (statCaps de WoWSims Forever) et sorts (17 %, Icy Veins) au 60 ; montée de niveau :
--- valeurs des profils « leveling » (DECISIONS.md, T1.8 et T4.5b).
+-- Plafonds de Forever (API_NOTES.md) : 60 = cible de raid (+3 niveaux), mêlée et distance 8 %, sorts 17 % ;
+-- montée de niveau = cible de même niveau, 5 % et 4 %. Arme dans chaque main ignorée (coups blancs).
 Priorities.KNOWN_CAPS = {
-    leveling = { HIT = 5, SPELL_HIT = 3 },
+    leveling = { HIT = 5, SPELL_HIT = 4 },
     ["60"] = { HIT = 8, SPELL_HIT = 17 },
 }
 

@@ -21,7 +21,7 @@
         "StatFrostPower": 1.0
     },
     "caps": {
-        "HIT": 3,
-        "SPELL_HIT": 3
+        "HIT": 4,
+        "SPELL_HIT": 4
     }
 }
