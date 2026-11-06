@@ -22,7 +22,7 @@ PriorityRows.ARROW_TEXTURE = "Interface\\ChatFrame\\ChatFrameExpandArrow"
 PriorityRows.ARROW_DOWN = { 0, 1, 1, 1, 0, 0, 1, 0 }
 
 local SMALL_BUTTON = 22
-local CAP_WIDTH = 34
+local CAP_WIDTH = 40
 local ARROW_UP = { 1, 0, 0, 0, 1, 1, 0, 1 }
 
 function PriorityRows.smallButton(parent, text, onClick)
@@ -50,7 +50,8 @@ local function capBox(line, index, handlers)
     box:SetSize(CAP_WIDTH, PriorityRows.ROW_HEIGHT)
     box:SetAutoFocus(false)
     box:SetMaxLetters(5)
-    box:SetJustifyH("RIGHT")
+    box:SetJustifyH("CENTER")
+    box:SetTextInsets(0, 6, 0, 0) -- bord droit du cadre de InputBoxTemplate
     box:SetScript("OnEnterPressed", box.ClearFocus)
     box:SetScript("OnEscapePressed", function(self)
         self:SetText(line.capText or "")
