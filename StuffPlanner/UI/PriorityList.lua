@@ -1,7 +1,8 @@
 -- CONTRAT
 -- Section « Mes stats » de l'onglet Profil : l'utilisateur classe jusqu'à 10 stats, l'addon en
 -- déduit les poids (ns.Priorities). Charger après Profiles/Priorities.lua, ProfilePresenter.lua,
--- StatPicker.lua et PriorityRows.lua (lignes, plafonds HIT et SPELL_HIT saisis en %).
+-- StatPicker.lua et PriorityRows.lua (lignes, plafonds HIT et SPELL_HIT saisis en %, préremplis à l'ajout
+-- par Priorities.defaultCap).
 --   ns.PriorityList.HEIGHT -> hauteur de la section (pixels)
 --   ns.PriorityList.create(parent) -> frame ; refresh() redessine (sans effet avant create)
 -- Brouillon local : ordre du profil actif (order s'il vient des priorités, sinon poids décroissants)
@@ -106,8 +107,19 @@ local function renderAdd()
     addButton:SetEnabled(not full and #ns.Priorities.candidates(draft.order) > 0)
 end
 
+-- Stat plafonnable ajoutée sans plafond : celui du profil de spé, sinon la valeur connue de sa phase.
+local function fillCap(key)
+    if draft.caps[key] ~= nil then
+        return
+    end
+    local baseID = ns.Profiles.baseID()
+    local base = baseID and ns.Profiles.get(baseID)
+    draft.caps[key] = ns.Priorities.defaultCap(key, base and base.phase, base and base.caps)
+end
+
 local function onAdd()
     ns.StatPicker.open(addButton, ns.ProfilePresenter.statGroups(draft.order), function(key)
+        fillCap(key)
         edit(ns.Priorities.add(draft.order, key))
     end)
 end

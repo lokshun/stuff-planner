@@ -12,6 +12,8 @@
 --   CAPPABLE = {HIT = true, SPELL_HIT = true} : seuls plafonds gérés par le moteur (en %)
 --   parseCap(text) -> plafond (0 à 100, arrondi au dixième) | nil, code ; virgule décimale admise ;
 --     codes : EMPTY (texte vide : pas de plafond), VALUE (illisible), RANGE (hors bornes)
+--   KNOWN_CAPS[phase][key] : plafonds connus (Forever, ceux de Profiles/Defaults.lua) ; defaultCap(key, phase?,
+--     baseCaps?) -> baseCaps[key] (profil de spé), sinon KNOWN_CAPS (phase « 60 » par défaut) ; nil hors CAPPABLE
 
 local _, ns = ...
 
@@ -23,6 +25,23 @@ Priorities.DECAY = 0.7
 Priorities.CAPPABLE = { HIT = true, SPELL_HIT = true }
 
 local MAX_CAP = 100
+
+-- Toucher mêlée (statCaps de WoWSims Forever) et sorts (17 %, Icy Veins) au 60 ; montée de niveau :
+-- valeurs des profils « leveling » (DECISIONS.md, T1.8 et T4.5b).
+Priorities.KNOWN_CAPS = {
+    leveling = { HIT = 5, SPELL_HIT = 3 },
+    ["60"] = { HIT = 8, SPELL_HIT = 17 },
+}
+
+function Priorities.defaultCap(key, phase, baseCaps)
+    if not Priorities.CAPPABLE[key] then
+        return nil
+    end
+    if baseCaps and baseCaps[key] then
+        return baseCaps[key]
+    end
+    return (Priorities.KNOWN_CAPS[phase] or Priorities.KNOWN_CAPS["60"])[key]
+end
 
 function Priorities.parseCap(text)
     local trimmed = type(text) == "string" and text:match("^%s*(.-)%s*$") or ""
