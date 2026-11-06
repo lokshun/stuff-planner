@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 — 2026-11-06
 
 ### Changes
 - Quest rewards: fixed rewards and choices now come from CMaNGOS classic-db; quests with an
