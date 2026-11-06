@@ -6,8 +6,8 @@
 --   ns.ProfileGrid.render(grid, onSelect, describe?) -> hauteur (pixels) ; grid = ProfilePresenter.grid ;
 --     onSelect(id | nil) au clic (nil = automatique) ; describe(id | nil) -> ProfilePresenter.tooltip | nil,
 --     affiché dans GameTooltip au survol d'une case ; actions? = {rename(id, text) -> bool, delete(id)} :
---     boutons Renommer (champ sur la case, Entrée garde, Échap annule) et Supprimer (second clic sur
---     « Confirmer ? ») à droite du profil personnalisé actif
+--     boutons Renommer (champ sur la case ; Entrée, perte du focus ou nouveau clic sur Renommer gardent le
+--     nom, Échap annule) et Supprimer (second clic sur « Confirmer ? ») à droite de chaque profil personnalisé
 -- Case active : fond et texte verts. Aucune case n'est désactivée (cliquer l'active ne change rien).
 
 local _, ns = ...
@@ -25,8 +25,12 @@ local ACTION_WIDTH = 86
 local frame
 local cells, labels, columns = {}, {}, {}
 local used
-local renameButton, deleteButton, nameBox
+local REOPEN_DELAY = 0.3 -- s : le clic sur Renommer qui a ôté le focus (nom gardé) ne rouvre pas le champ
+
+local actionRows = {} -- {rename, delete} par ligne de profil personnalisé
+local nameBox, nameActions
 local editingID, armedID -- profil en cours de renommage ; profil dont la suppression attend confirmation
+local committedID, committedAt -- dernier nom gardé par perte du focus
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
@@ -112,15 +116,42 @@ local function actionButton(text, onClick)
     return button
 end
 
+local function disarm()
+    armedID = nil
+    for _, row in ipairs(actionRows) do
+        row.delete:SetText(L.PROFILE_DELETE)
+    end
+end
+
 local function closeNameBox()
     editingID = nil
     nameBox:ClearFocus()
     nameBox:Hide()
 end
 
+-- Garde le nom saisi ; false (champ laissé ouvert) si le nom est refusé.
+local function commitName()
+    if not editingID then
+        return true
+    end
+    if nameActions.rename(editingID, nameBox:GetText()) then
+        closeNameBox()
+        return true
+    end
+    return false
+end
+
 local function onRename(self)
-    editingID, armedID = self.profileID, nil
-    deleteButton:SetText(L.PROFILE_DELETE)
+    if editingID == self.profileID then
+        commitName()
+        return
+    end
+    if committedID == self.profileID and GetTime() - committedAt < REOPEN_DELAY then
+        committedID = nil
+        return
+    end
+    disarm()
+    editingID = self.profileID
     nameBox:ClearAllPoints()
     nameBox:SetPoint("TOPLEFT", self.cell, "TOPLEFT", 6, 0)
     nameBox:SetPoint("BOTTOMRIGHT", self.cell, "BOTTOMRIGHT", -2, 0)
@@ -133,28 +164,34 @@ end
 
 local function onDelete(self)
     if armedID == self.profileID then
-        armedID = nil
-        self:SetText(L.PROFILE_DELETE)
+        disarm()
         self.actions.delete(self.profileID)
+        return
+    end
+    disarm()
+    armedID = self.profileID
+    self:SetText(L.PROFILE_DELETE_CONFIRM)
+end
+
+local function onNameFocusLost()
+    local id = editingID
+    if not id then
+        return
+    end
+    if commitName() then
+        committedID, committedAt = id, GetTime()
     else
-        armedID = self.profileID
-        self:SetText(L.PROFILE_DELETE_CONFIRM)
+        closeNameBox()
     end
 end
 
-local function createActions()
-    renameButton = actionButton(L.PROFILE_RENAME, onRename)
-    deleteButton = actionButton(L.PROFILE_DELETE, onDelete)
+local function createNameBox()
     nameBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
     nameBox:SetAutoFocus(false)
     nameBox:SetMaxLetters(ns.Customs.NAME_MAX)
-    nameBox:SetScript("OnEnterPressed", function(self)
-        if renameButton.actions.rename(editingID, self:GetText()) then
-            closeNameBox()
-        end
-    end)
+    nameBox:SetScript("OnEnterPressed", commitName)
     nameBox:SetScript("OnEscapePressed", closeNameBox)
-    nameBox:SetScript("OnEditFocusLost", closeNameBox)
+    nameBox:SetScript("OnEditFocusLost", onNameFocusLost)
     nameBox:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:AddLine(L.PROFILE_RENAME_HINT, 1, 1, 1, true)
@@ -166,31 +203,29 @@ local function createActions()
     nameBox:Hide()
 end
 
--- Boutons Renommer / Supprimer à droite de la case du profil personnalisé actif.
-local function placeActions(x, y, extra, actions)
-    local cell = cells[used]
+-- Boutons Renommer / Supprimer à droite de la case qui vient d'être placée (cells[used]).
+local function placeActions(index, x, y, extra, actions)
+    local row = actionRows[index]
+    if not row then
+        row = { rename = actionButton(L.PROFILE_RENAME, onRename), delete = actionButton(L.PROFILE_DELETE, onDelete) }
+        actionRows[index] = row
+    end
     local gap = ns.Theme.spacing.gap / 2
-    renameButton:ClearAllPoints()
-    renameButton:SetPoint("TOPLEFT", frame, "TOPLEFT", x + gap, y)
-    deleteButton:ClearAllPoints()
-    deleteButton:SetPoint("LEFT", renameButton, "RIGHT", gap, 0)
-    for _, button in ipairs({ renameButton, deleteButton }) do
-        button.profileID, button.label, button.cell, button.actions = extra.id, extra.label, cell, actions
+    row.rename:ClearAllPoints()
+    row.rename:SetPoint("TOPLEFT", frame, "TOPLEFT", x + gap, y)
+    row.delete:ClearAllPoints()
+    row.delete:SetPoint("LEFT", row.rename, "RIGHT", gap, 0)
+    for _, button in ipairs({ row.rename, row.delete }) do
+        button.profileID, button.label, button.cell, button.actions = extra.id, extra.label, cells[used], actions
         button:Show()
     end
-    if armedID ~= extra.id then
-        armedID = nil
-        deleteButton:SetText(L.PROFILE_DELETE)
-    end
-    if editingID ~= extra.id and editingID ~= nil then
-        closeNameBox()
-    end
+    row.delete:SetText(armedID == extra.id and L.PROFILE_DELETE_CONFIRM or L.PROFILE_DELETE)
 end
 
 function ProfileGrid.create(parent)
     frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(LABEL_WIDTH + 2 * CELL_WIDTH, 1)
-    createActions()
+    createNameBox()
     return frame
 end
 
@@ -230,28 +265,31 @@ function ProfileGrid.render(grid, onSelect, describe, actions)
     for row = #grid.specs + 1, #labels do
         labels[row]:Hide()
     end
-    local withActions = false
+    nameActions = actions
+    local shown, placed = {}, 0
     for _, extra in ipairs(grid.extras) do
         y = y - gap
         local width = LABEL_WIDTH + 2 * CELL_WIDTH + gap
-        local editable = extra.active and actions ~= nil
-        if editable then
+        if actions then
             width = width - 2 * (ACTION_WIDTH + gap)
         end
         placeCell(0, y, width, extra.label, extra.active, extra.id, onSelect, describe)
-        if editable then
-            placeActions(width, y, extra, actions)
-            withActions = true
+        if actions then
+            placed = placed + 1
+            placeActions(placed, width, y, extra, actions)
+            shown[extra.id] = true
         end
         y = y - CELL_HEIGHT
     end
-    if not withActions then
-        renameButton:Hide()
-        deleteButton:Hide()
+    for index = placed + 1, #actionRows do
+        actionRows[index].rename:Hide()
+        actionRows[index].delete:Hide()
+    end
+    if armedID and not shown[armedID] then
         armedID = nil
-        if editingID then
-            closeNameBox()
-        end
+    end
+    if editingID and not shown[editingID] then
+        closeNameBox()
     end
     for index = used + 1, #cells do
         cells[index]:Hide()

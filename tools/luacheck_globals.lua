@@ -41,6 +41,7 @@ return {
     "GetQuestItemLink",
     "GetSpellHitModifier",
     "InCombatLockdown",
+    "GetTime",
     "IsShiftKeyDown",
     "GetInventorySlotInfo",
     "IsControlKeyDown",
