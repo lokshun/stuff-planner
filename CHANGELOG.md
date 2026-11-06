@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Changes
+- Gains in lists show only the arrow and the value ("▲ 2.5"): no more + sign or ~ mark (the unconfirmed badge
+  already says it); texts without an arrow (chat, tooltips) keep the + / - sign.
 - Clicking an item (mini tracker, Current zone or Route list) frames its row in the list; from the mini tracker,
   the Current zone list scrolls to it.
 - Quest sheet: hovering a step of the quest chain (or a prerequisite) shows that quest's details

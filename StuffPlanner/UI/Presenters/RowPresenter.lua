@@ -14,7 +14,9 @@
 --            stateColor,
 --            unavailable (bool : "level" ou "prereq"),
 --            slot (entry.delta.slot : emplacement comparé, nil sans delta),
---            gainLabel (« ▲ +2.5 », « ▲ ~+2.5 » si non confirmé, "" sans delta),
+--            gainLabel (flèche puis valeur sans signe : « ▲ 2.5 », « ▼ 0.50 » ; gain nul : valeur seule ;
+--              "" sans delta ; non confirmé : rien de plus, le badge le dit), gainText garde le signe
+--              pour les textes sans flèche,
 --            detailText (états colorés — état de quête puis badge — séparés par « · », puis
 --              sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
 --   gain(delta) -> arrow, gainText, gainColor ; mêmes règles que les champs de present
@@ -108,8 +110,10 @@ local function gainLabel(row)
     if row.gainText == "" then
         return ""
     end
-    local text = (row.unconfirmed and "~" or "") .. row.gainText
-    return row.arrow ~= "" and (row.arrow .. " " .. text) or text
+    if row.arrow == "" then
+        return row.gainText
+    end
+    return row.arrow .. " " .. row.gainText:gsub("^[+-]", "")
 end
 
 function RowPresenter.instanceTag(quest, data)
