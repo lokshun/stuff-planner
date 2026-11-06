@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Changes
+- Quest rewards: fixed rewards and choices now come from CMaNGOS classic-db; quests with an
+  unconfirmed reward split drop from 870 to 138 (the rest are Forever additions). Data rebuilt with
+  QuestieDB 21be340 and WoW-Spyglass 20292cf.
 - Gains in lists show only the arrow and the value ("▲ 2.5"): no more + sign or ~ mark (the unconfirmed badge
   already says it); texts without an arrow (chat, tooltips) keep the + / - sign.
 - Clicking an item (mini tracker, Current zone or Route list) frames its row in the list; from the mini tracker,

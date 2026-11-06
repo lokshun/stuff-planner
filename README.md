@@ -156,6 +156,7 @@ Each Lua module starts with a short `CONTRAT` header describing its interface.
 The database is built from:
 
 - [QuestieDB](https://github.com/Questie/QuestieDB) — quests, rewards, maps (GPLv3)
+- [CMaNGOS classic-db](https://github.com/cmangos/classic-db) — fixed vs choice quest rewards (GPLv3)
 - [NorgannonDB](https://github.com/zmarotrix/NorgannonDB) by Maro — Classic instance boss loot (GPLv3)
 - [pfQuest](https://github.com/shagu/pfQuest) by Shagu — drop rates, via NorgannonDB (MIT)
 - [WoW-Spyglass](https://github.com/Karl-HeinzSchneider/WoW-Spyglass) — encounter loot and Forever item stats (MIT)

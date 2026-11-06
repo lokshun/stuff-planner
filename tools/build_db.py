@@ -13,7 +13,8 @@ Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
     dans EraItems.lua ; `memory` : estimation en jeu (lua_memory) hors EraItems, `eraMemory` : EraItems seul ; report(ligne) reçoit le rapport
     de validation ; ValueError sans rien écrire si une erreur bloquante est trouvée
   read_interfaces(addon_dir) -> {"Camelot": 16001, ...}, lu dans les TOC de l'addon principal
-Sources (cache dans tools/cache) : QuestieDB, wago.tools (Forever et Classic Era), NorgannonDB, Spyglass.
+Sources (cache dans tools/cache) : QuestieDB, wago.tools (Forever et Classic Era), NorgannonDB, Spyglass,
+CMaNGOS classic-db (répartition fixes / choix des récompenses de quête).
 Quêtes absentes de la base Classic de QuestieDB et objets absents d'ItemSparse Classic Era : forever = 1.
 Usage : python tools/build_db.py ; affiche les comptes en une ligne.
 """
@@ -29,7 +30,7 @@ import merge_exports
 import precompute
 import schema
 import validate_db
-from sources import norgannon, questie, spyglass, wago, wago_era
+from sources import cmangos, norgannon, questie, spyglass, wago, wago_era
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCES = ROOT / "tools" / "tests" / "fixtures"
@@ -120,6 +121,7 @@ def build(
     counts = {table: len(records) for table, records in tables.items()}
     counts["eraItems"] = len(era)
     counts["instanceQuests"] = sum(1 for quest in tables["quests"] if quest.get("instance"))
+    counts["guessedQuests"] = sum(1 for quest in tables["quests"] if quest.get("confidence") == 2)
     counts["eraMemory"] = lua_memory.estimate({"eraItems": era})
     counts["npcNames"] = len(names.get("enUS", {}))
     counts["questNames"] = len(quest_names.get("enUS", {}))
@@ -131,6 +133,7 @@ def build(
 def load_sources():
     questie_dir = questie.fetch(CACHE_DIR / "questie")
     quests = questie.load_quests(questie_dir)
+    quests = precompute.split_rewards(quests, cmangos.load_quest_rewards(cmangos.fetch(CACHE_DIR / "cmangos")))
     npcs = questie.load_npcs(questie_dir, {quest["starter"] for quest in quests} - {None})
     wago_dir = wago.fetch(CACHE_DIR / "wago")
     era_dir = wago_era.fetch(CACHE_DIR / "wago_era")
@@ -185,6 +188,7 @@ def main():
         f"{counts['origins']} objets avec origine, {counts['instances']} instances, "
         f"{counts['npcs']} donneurs placés, {counts['eraItems']} objets différents sur Classic Era, "
         f"{counts['instanceQuests']} quêtes de donjon ou de raid, "
+        f"{counts['guessedQuests']} quêtes aux récompenses devinées, "
         f"noms de base : {counts['questNames']} quêtes, {counts['itemNames']} objets"
     )
     print(f"Mémoire estimée en jeu : {counts['memory'] // 1024} Ko (Lua 5.1, 64 bits), EraItems {counts['eraMemory'] // 1024} Ko")

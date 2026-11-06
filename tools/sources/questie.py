@@ -35,7 +35,7 @@ from pathlib import Path
 
 from sources import cache, lua_table
 
-COMMIT = "4ab64311b6f0be1a96b38a5b95bfa27fa95416af"
+COMMIT = "21be34023b72cf2ec3027cb9a61a8b72a1910857"
 RAW_URL = "https://raw.githubusercontent.com/Questie/QuestieDB/{commit}/{path}"
 
 QUEST_DB = "data/Forever/foreverQuestDB.lua"

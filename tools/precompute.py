@@ -20,6 +20,9 @@ Précalculs à partir des enregistrements importés.
     areas[questID] si area_instances la connaît (et si instances, {instanceID: enregistrement} émis, la contient) ;
     "mapID" = zone de l'entrée (instances[id]["mapID"]) si connue : la carte du donjon n'existe pas sur Classic Era
   mark_forever(records, classic_ids) -> copie ; "forever": 1 sur les enregistrements absents de classic_ids
+  split_rewards(quests, split) -> copies ; split = cmangos.load_quest_rewards ; quête confidence 2 (répartition
+    devinée) dont choices + rewards est exactement l'ensemble de split[id] : sa répartition, confidence 3 ;
+    sinon inchangée (objet ajouté par Forever, quête absente de CMaNGOS)
 """
 
 import schema
@@ -136,6 +139,20 @@ def hidden_items(ids, bases, scan, era):
             }
         )
     return records
+
+
+GUESSED_SPLIT = 2
+CONFIRMED = 3
+
+
+def split_rewards(quests, split):
+    result = []
+    for quest in quests:
+        known = split.get(quest["id"]) if quest.get("confidence") == GUESSED_SPLIT else None
+        if known and set(known[0]) | set(known[1]) == set(quest["choices"]) | set(quest["rewards"]):
+            quest = {**quest, "choices": list(known[0]), "rewards": list(known[1]), "confidence": CONFIRMED}
+        result.append(quest)
+    return result
 
 
 def mark_forever(records, classic_ids):
