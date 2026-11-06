@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+- Clicking an item (mini tracker, Current zone or Route list) frames its row in the list; from the mini tracker,
+  the Current zone list scrolls to it.
+- Quest sheet: hovering a step of the quest chain (or a prerequisite) shows that quest's details
+  (level, state, zone, giver, rewards with gain).
+
 ## 1.2.0 — 2026-11-05
 
 ### Fixes

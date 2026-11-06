@@ -61,6 +61,7 @@ return {
     "hooksecurefunc",
     "LibStub",
     "ScrollUtil",
+    "ScrollBoxConstants",
     "SetPortraitToTexture",
     "ToggleWorldMap",
     "ShowUIPanel",

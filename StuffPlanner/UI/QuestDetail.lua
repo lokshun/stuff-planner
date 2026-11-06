@@ -1,12 +1,13 @@
 -- CONTRAT
 -- Fiche d'une quête (DetailPresenter.build) : panneau accolé à droite de la fenêtre principale,
 -- contenu défilant (DetailWidgets). Charger après DetailWidgets.lua, DetailPresenter.lua et
--- Integrations/TomTom.lua.
+-- Integrations/TomTom.lua, QuestTooltip.lua.
 --   ns.QuestDetail.show(questID) -> ouvre la fenêtre principale (onglet gardé) puis la fiche ; hors combat
 --   ns.QuestDetail.hide(), isShown(), refresh()
 --   ns.QuestDetail.waypoint(questID) -> bool : repère vers le donneur (ns.Waypoint, clé questID) ou, si une
 --     suite de quêtes reste à faire, vers celui de sa première quête disponible (clé = cette quête) ;
 --     false sans position
+-- Survol d'une quête de la suite ou des prérequis : ns.QuestTooltip (détails de cette quête).
 -- Contenu : titre, niveau, état (journal, niveau requis, prérequis), zone, badge, donneur, bouton
 --   Repère (« Retirer le repère » tant que celui de la quête existe), bouton Carte
 --   (Compat.OpenWorldMap, puis fenêtre principale cachée), récompenses, choix (meilleur signalé),
@@ -27,6 +28,7 @@ ns.QuestDetail = QuestDetail
 local panel, content, texts, waypointButton, mapButton
 local itemRows, prereqLines = {}, {}
 local currentID, currentView
+local buildView
 local askName = W.nameAsker(function()
     QuestDetail.refresh()
 end)
@@ -53,9 +55,32 @@ local function fillItemRow(row, data)
     row.tag:SetText(table.concat(tags, " · "))
 end
 
+local function showQuestTooltip(hover)
+    local views = {}
+    for _, id in ipairs(hover.questIDs or {}) do
+        views[#views + 1] = buildView(id, true)
+    end
+    ns.QuestTooltip.show(hover, views)
+end
+
+-- Ligne de la suite ou des prérequis ; line.hover (survol) la recouvre.
 local function prereqLine(index)
-    prereqLines[index] = prereqLines[index] or W.fontString(content, ns.Theme.fonts.small)
-    return prereqLines[index]
+    local line = prereqLines[index]
+    if not line then
+        line = W.fontString(content, ns.Theme.fonts.small)
+        line.hover = CreateFrame("Frame", nil, content)
+        line.hover:SetAllPoints(line)
+        line.hover:EnableMouse(true)
+        line.hover:SetScript("OnEnter", showQuestTooltip)
+        line.hover:SetScript("OnLeave", ns.QuestTooltip.hide)
+        prereqLines[index] = line
+    end
+    return line
+end
+
+local function hideLine(line)
+    line:Hide()
+    line.hover:Hide()
 end
 
 -- Clé du repère : la quête qui commence la suite (view.waypoint.questID), sinon la quête elle-même.
@@ -156,7 +181,9 @@ local function placePrereqs(place, view)
         line:SetText(entry.done and (entry.text .. " (" .. L.DETAIL_DONE .. ")") or entry.text)
         W.setColor(line, entry.color)
         place(line, nil, 2)
-        for _, id in ipairs(entry.questIDs or { entry.questID }) do
+        line.hover.questIDs = entry.questIDs or { entry.questID }
+        line.hover:Show()
+        for _, id in ipairs(line.hover.questIDs) do
             askName("quest", id)
         end
     end
@@ -191,13 +218,13 @@ local function render(view)
         itemRows[index]:Hide()
     end
     for index = placePrereqs(place, view), #prereqLines do
-        prereqLines[index]:Hide()
+        hideLine(prereqLines[index])
     end
     finish()
     askName("quest", view.questID)
 end
 
-local function buildView(questID, withScores)
+function buildView(questID, withScores)
     local data = ns.Data
     if not data.ready() then
         return nil

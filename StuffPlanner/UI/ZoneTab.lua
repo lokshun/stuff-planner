@@ -8,8 +8,9 @@
 -- Messages d'état (chargement, sans profil, zone inconnue, rien trouvé) au centre de la liste.
 -- Clic sur une ligne : fiche de la quête (QuestDetail) ou de l'instance (SourceDetail) ;
 -- Maj+clic : repère vers le donneur (quêtes) ;
--- Ctrl+clic : essayage (Compat.DressUpItem). Survol : info-bulle de l'objet (gain ajouté par
--- Tooltip.lua), états de la ligne et aide des clics.
+-- Ctrl+clic : essayage (Compat.DressUpItem). Objet sélectionné (RowActions.select, mini-suivi compris) :
+-- cadre de sélection, liste défilée jusqu'à lui si reveal (SP_SELECTION_CHANGED).
+-- Survol : info-bulle de l'objet (gain ajouté par Tooltip.lua), états de la ligne et aide des clics.
 -- Ligne : icône ; nom de l'objet puis emplacement · detailText (états colorés, quête) ; gainLabel seul à droite,
 -- colonne de largeur fixe centrée en hauteur ; ligne grisée si dimmed.
 
@@ -113,6 +114,7 @@ local function initRow(button, row)
         button:SetScript("OnLeave", hideTooltip)
     end
     button.questID, button.itemID, button.row = row.questID, row.itemID, row
+    ns.RowActions.mark(button, row.questID, row.itemID)
     button:SetAlpha(row.dimmed and DIMMED_ALPHA or 1)
     button.icon:SetTexture(row.icon or UNKNOWN_ICON)
     button.name:SetText(row.name)
@@ -188,3 +190,28 @@ end
 ns.MainFrame.addTab("zone", { create = create, refresh = refresh })
 
 ns:On("SP_RESULTS_UPDATED", ns.MainFrame.refresh)
+
+local function isSelectedRow(row)
+    return ns.RowActions.isSelected(row.questID, row.itemID)
+end
+
+local function revealSelection()
+    if scrollBox and scrollBox.ScrollToElementDataByPredicate then
+        scrollBox:ScrollToElementDataByPredicate(isSelectedRow, ScrollBoxConstants.AlignCenter,
+            ScrollBoxConstants.NoScrollInterpolation)
+    end
+end
+
+ns:On("SP_SELECTION_CHANGED", function(reveal)
+    if not scrollBox then
+        return
+    end
+    scrollBox:ForEachFrame(function(button)
+        ns.RowActions.mark(button, button.questID, button.itemID)
+    end)
+    if reveal then
+        revealSelection()
+        -- Fenêtre tout juste ouverte : la liste n'a peut-être pas encore sa taille.
+        C_Timer.After(0, revealSelection)
+    end
+end)

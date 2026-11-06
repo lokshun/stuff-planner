@@ -4,7 +4,8 @@
 -- Créé à PLAYER_LOGIN (variables sauvegardées lues) ; rafraîchi sur SP_RESULTS_UPDATED
 -- (Results) et à l'arrivée des noms ; jamais en combat (reporté à la sortie).
 -- Déplaçable à la souris (clic gauche maintenu) ; clic sur une ligne : fiche de la quête
--- (QuestDetail, sur l'onglet Zone actuelle) ; Maj+clic : repère vers le donneur ;
+-- (QuestDetail, sur l'onglet Zone actuelle, ligne de l'objet encadrée et amenée en vue : RowActions.select) ;
+-- tout clic sélectionne l'objet ; Maj+clic : repère vers le donneur ;
 -- Ctrl+clic : essayage (Compat.DressUpItem) ; survol : info-bulle de l'objet (stats, gain), quête,
 -- état (journal, niveau, prérequis), badge « non confirmé ». /splan tracker affiche ou masque.
 -- Sauvegarde : StuffPlannerDB.ui.tracker = {point, relativePoint, x, y} ; réglages par ns.Options :
@@ -83,18 +84,23 @@ local function hideTooltip()
 end
 
 local function onLineClick(button)
-    local questID = button.row and button.row.questID
-    if IsControlKeyDown() then
-        ns.Compat.DressUpItem(button.row.itemID)
+    local row = button.row
+    if not row then
         return
     end
-    if IsShiftKeyDown() then
-        ns.QuestDetail.waypoint(questID)
+    if IsControlKeyDown() or IsShiftKeyDown() then
+        ns.RowActions.select(row.questID, row.itemID)
+        if IsControlKeyDown() then
+            ns.Compat.DressUpItem(row.itemID)
+        else
+            ns.QuestDetail.waypoint(row.questID)
+        end
         return
     end
     ns:RunOutOfCombat(function()
         ns.MainFrame.show("zone")
-        ns.QuestDetail.show(questID)
+        ns.QuestDetail.show(row.questID)
+        ns.RowActions.select(row.questID, row.itemID, true)
     end)
 end
 

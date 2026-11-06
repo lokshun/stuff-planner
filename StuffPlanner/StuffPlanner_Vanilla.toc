@@ -96,6 +96,7 @@ UI\MiniTracker.lua
 UI\Tooltip.lua
 UI\QuestFrameHint.lua
 UI\DetailWidgets.lua
+UI\QuestTooltip.lua
 UI\QuestDetail.lua
 UI\SourceDetail.lua
 UI\MapPins.lua

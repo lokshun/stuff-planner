@@ -8,7 +8,7 @@
 -- noms reçus du client : nouvelle présentation regroupée (NAME_DELAY s), sans recalcul ; noms
 -- encore inconnus : nouvelle présentation toutes les RETRY_DELAY s, RETRY_MAX fois au plus.
 -- Raids exclus. Clic sur une ligne de quête : fiche (QuestDetail) ; Maj+clic : repère ;
--- donjon, artisanat : fiche de la source (SourceDetail).
+-- donjon, artisanat : fiche de la source (SourceDetail). Objet sélectionné : cadre (RowActions.mark).
 
 local _, ns = ...
 
@@ -126,6 +126,7 @@ local function initRow(button, row)
     end
     showParts(button, row.header == true)
     button.questID, button.itemID, button.itemSource = row.questID, row.itemID, row.source
+    ns.RowActions.mark(button, row.questID, row.itemID)
     if row.header then
         button.title:SetText(row.text)
         return
@@ -196,3 +197,11 @@ ns:On("SP_ROUTE_UPDATED", ns.MainFrame.refresh)
 ns:On("SP_PLAYER_CHANGED", ns.MainFrame.refresh)
 ns:On("SP_DATA_READY", ns.MainFrame.refresh)
 ns:On("SP_PROFILE_CHANGED", ns.MainFrame.refresh)
+
+ns:On("SP_SELECTION_CHANGED", function()
+    if scrollBox then
+        scrollBox:ForEachFrame(function(button)
+            ns.RowActions.mark(button, button.questID, button.itemID)
+        end)
+    end
+end)
