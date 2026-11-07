@@ -219,6 +219,8 @@
   "OPTION_TRACKER_ALPHA": "미니 추적기 배경 불투명도",
   "OPTION_PINS_WORLD": "세계 지도에 퀘스트 제공자 표시",
   "OPTION_PINS_MINIMAP": "미니맵에 퀘스트 제공자 표시",
+  "OPTION_PINS_WORLDSCALE": "세계 지도 아이콘 크기",
+  "OPTION_PINS_MINIMAPSCALE": "미니맵 아이콘 크기",
   "OPTION_ARROW_ENABLED": "웨이포인트 화살표 표시",
   "OPTION_ARROW_LOCKED": "화살표 고정",
   "OPTION_WAYPOINT_PREFERTOMTOM": "TomTom을 불러왔으면 사용",

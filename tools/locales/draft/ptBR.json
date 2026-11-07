@@ -220,6 +220,8 @@
   "OPTION_TRACKER_ALPHA": "Opacidade do fundo do minirrastreador",
   "OPTION_PINS_WORLD": "Mostrar quem dá missões no mapa-múndi",
   "OPTION_PINS_MINIMAP": "Mostrar quem dá missões no minimapa",
+  "OPTION_PINS_WORLDSCALE": "Tamanho dos ícones no mapa-múndi",
+  "OPTION_PINS_MINIMAPSCALE": "Tamanho dos ícones no minimapa",
   "OPTION_ARROW_ENABLED": "Mostrar a seta do ponto de referência",
   "OPTION_ARROW_LOCKED": "Travar a seta",
   "OPTION_WAYPOINT_PREFERTOMTOM": "Usar o TomTom quando estiver carregado",

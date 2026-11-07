@@ -223,6 +223,8 @@
   "OPTION_TRACKER_ALPHA": "Непрозрачность фона мини-списка",
   "OPTION_PINS_WORLD": "Показывать выдающих задания на карте мира",
   "OPTION_PINS_MINIMAP": "Показывать выдающих задания на мини-карте",
+  "OPTION_PINS_WORLDSCALE": "Размер значков на карте мира",
+  "OPTION_PINS_MINIMAPSCALE": "Размер значков на миникарте",
   "OPTION_ARROW_ENABLED": "Показывать стрелку маршрута",
   "OPTION_ARROW_LOCKED": "Закрепить стрелку",
   "OPTION_WAYPOINT_PREFERTOMTOM": "Использовать TomTom, если он загружен",

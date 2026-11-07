@@ -69,6 +69,8 @@ local function layout()
         W.header(nil, L.OPTIONS_SECTION_MAP),
         W.checkbox(nil, "pins.world", labelOf("pins.world")),
         W.checkbox(nil, "pins.minimap", labelOf("pins.minimap")),
+        W.slider(nil, "pins.worldScale", labelOf("pins.worldScale"), percent),
+        W.slider(nil, "pins.minimapScale", labelOf("pins.minimapScale"), percent),
         W.header(nil, L.OPTIONS_SECTION_ARROW),
         W.checkbox(nil, "arrow.enabled", labelOf("arrow.enabled")),
         W.checkbox(nil, "arrow.locked", labelOf("arrow.locked")),

@@ -220,6 +220,8 @@
   "OPTION_TRACKER_ALPHA": "Opacidad del fondo del minirrastreador",
   "OPTION_PINS_WORLD": "Mostrar los instigadores en el mapa del mundo",
   "OPTION_PINS_MINIMAP": "Mostrar los instigadores en el minimapa",
+  "OPTION_PINS_WORLDSCALE": "Tamaño de los iconos en el mapa del mundo",
+  "OPTION_PINS_MINIMAPSCALE": "Tamaño de los iconos en el minimapa",
   "OPTION_ARROW_ENABLED": "Mostrar la flecha del marcador",
   "OPTION_ARROW_LOCKED": "Bloquear la flecha",
   "OPTION_WAYPOINT_PREFERTOMTOM": "Usar TomTom cuando esté cargado",

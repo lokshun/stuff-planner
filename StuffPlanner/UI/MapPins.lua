@@ -13,6 +13,8 @@
 --   retiré à la fermeture de la carte ; false sans HereBeDragons.
 -- /splan pins affiche ou masque (carte du monde et minicarte) ; réglages ns.Options pins.world et
 -- pins.minimap, appliqués sur SP_OPTION_CHANGED. Sans la bibliothèque : rien.
+-- Taille : PIN_SIZE × pins.worldScale (carte), MINIMAP_SIZE × pins.minimapScale (minicarte), appliquée
+--   aux épingles existantes sur SP_OPTION_CHANGED ; le ping de MapPins.focus garde sa taille.
 
 local _, ns = ...
 
@@ -91,10 +93,24 @@ local function outline(pin, thickness, color)
     return lines
 end
 
+local function sizeOf(kind)
+    if kind == "world" then
+        return math.floor(PIN_SIZE * ns.Options.get("pins.worldScale") + 0.5)
+    end
+    return math.floor(MINIMAP_SIZE * ns.Options.get("pins.minimapScale") + 0.5)
+end
+
+local function resize(kind)
+    local size = sizeOf(kind)
+    for _, pin in ipairs(pool[kind]) do
+        pin:SetSize(size, size)
+    end
+end
+
 local function pinFrame(kind, index)
     local list = pool[kind]
     if not list[index] then
-        local size = kind == "world" and PIN_SIZE or MINIMAP_SIZE
+        local size = sizeOf(kind)
         local pin = CreateFrame("Button", nil, UIParent)
         pin:SetSize(size, size)
         local frameColor = ns.Theme.colors.gain
@@ -252,6 +268,11 @@ end
 ns:On("SP_OPTION_CHANGED", function(key)
     if key == "pins.world" or key == "pins.minimap" then
         MapPins.refresh()
+    elseif key == "pins.worldScale" or key == "pins.minimapScale" then
+        local kind = key == "pins.worldScale" and "world" or "minimap"
+        ns:RunOutOfCombat(function()
+            resize(kind)
+        end)
     end
 end)
 

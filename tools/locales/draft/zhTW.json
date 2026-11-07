@@ -220,6 +220,8 @@
   "OPTION_TRACKER_ALPHA": "迷你追蹤器背景不透明度",
   "OPTION_PINS_WORLD": "在世界地圖上顯示任務給予者",
   "OPTION_PINS_MINIMAP": "在小地圖上顯示任務給予者",
+  "OPTION_PINS_WORLDSCALE": "世界地圖圖示大小",
+  "OPTION_PINS_MINIMAPSCALE": "小地圖圖示大小",
   "OPTION_ARROW_ENABLED": "顯示導航箭頭",
   "OPTION_ARROW_LOCKED": "鎖定箭頭",
   "OPTION_WAYPOINT_PREFERTOMTOM": "已載入 TomTom 時使用 TomTom",

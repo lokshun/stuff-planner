@@ -27,6 +27,8 @@ local CATALOG = {
     { key = "tracker.alpha", default = 0.75, min = 0, max = 1, step = 0.05, path = { "ui", "tracker", "alpha" } },
     { key = "pins.world", default = true, invert = true, path = { "ui", "pinsHidden" } },
     { key = "pins.minimap", default = true, invert = true, path = { "ui", "pinsMinimapHidden" } },
+    { key = "pins.worldScale", default = 1, min = 0.5, max = 2, step = 0.05, path = { "ui", "pinsWorldScale" } },
+    { key = "pins.minimapScale", default = 1, min = 0.5, max = 2, step = 0.05, path = { "ui", "pinsMinimapScale" } },
     { key = "arrow.enabled", default = true, invert = true, path = { "ui", "arrow", "disabled" } },
     { key = "arrow.scale", default = 1, min = 0.5, max = 2, step = 0.05, path = { "ui", "arrow", "scale" } },
     { key = "arrow.arrival", default = 10, min = 5, max = 30, step = 1, path = { "ui", "arrow", "arrival" } },
