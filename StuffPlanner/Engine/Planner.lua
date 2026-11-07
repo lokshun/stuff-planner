@@ -14,7 +14,8 @@
 --   les récompenses de quête de Classic n'ont souvent pas de niveau requis (reqLevel 1).
 -- Durée de vie : min(LIFESPAN, 60 - L) / LIFESPAN, L = max(niveau du joueur, level) ; 1 si L >= 60.
 -- Effort : quête = étapes restantes (Chains.steps) × QUEST_STEP + TRAVEL si sa carte n'est pas
---   celle du joueur ; écartée si faite, en cycle, inconnue ou d'une autre classe (classMask).
+--   celle du joueur ; écartée si faite, en cycle, inconnue, d'une autre classe ou race (Scoring.allows) ;
+--   alternative de prérequis d'une autre race écartée (Chains, isAllowed).
 --   Donjon, raid = DUNGEON_RUN, RAID_RUN × 100 / chance (DEFAULT_CHANCE sans taux, MIN_CHANCE au
 --   moins) ; artisanat = CRAFT si player.professions[skillLine], CRAFT_UNKNOWN sinon.
 -- XP : quêtes seulement, nombre d'étapes restantes non grises ; 0 au niveau 60.
@@ -100,10 +101,13 @@ end
 -- Renvoie effort, xp ; nil si la source est écartée.
 local function questEffort(source, player, data, opts, tuning)
     local quest = data.quest(source.id)
-    if not quest or not ns.Scoring.hasClass(quest.classMask, player.class) then
+    if not quest or not ns.Scoring.allows(quest, player) then
         return nil
     end
-    local steps = ns.Chains.remaining(source.id, data, opts.isDone)
+    local steps = ns.Chains.remaining(source.id, data, opts.isDone, function(id)
+        local step = data.quest(id)
+        return not step or ns.Scoring.allows(step, player)
+    end)
     if not steps or #steps == 0 then
         return nil
     end

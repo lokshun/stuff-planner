@@ -7,7 +7,8 @@
 --             waypoint = {questID, mapID, x, y, title, giver, npcID} | nil (donneur placé par data.npc(quest.starter),
 --               giver = son nom ; suite à faire : donneur de sa première quête disponible, questID = elle),
 --             chain = {{questID, text, color, start}...} | nil : étapes restantes (Chains.remaining, quête
---               exclue), état de chacune ; start = première sans prérequis manquant ;
+--               exclue ; alternatives d'une autre race écartées si player), état de chacune ;
+--               start = première sans prérequis manquant ;
 --             startText = « Commence par » + quête et donneur de start | nil,
 --             instanceText, instanceColor : « Donjon : nom » / « Raid : nom » | nil (quest.instance) ;
 --               étapes de la suite marquées de même (RowPresenter.instanceTag),
@@ -103,7 +104,11 @@ end
 
 -- Étapes restantes avant questID, dans l'ordre ; nil sans étape ou sur un cycle.
 local function chainRows(questID, data, player, opts)
-    local steps = ns.Chains.remaining(questID, data, opts.isDone)
+    local isAllowed = player and function(id)
+        local step = data.quest(id)
+        return not step or ns.Scoring.allows(step, player)
+    end
+    local steps = ns.Chains.remaining(questID, data, opts.isDone, isAllowed or nil)
     if not steps or #steps < 2 then
         return nil
     end

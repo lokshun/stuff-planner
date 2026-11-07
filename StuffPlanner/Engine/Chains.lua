@@ -1,12 +1,13 @@
 -- CONTRAT
 -- Chaînes de quêtes : prérequis (`quest.prereq`, schéma de tools/schema.py : nombre = requis,
 -- table = « l'une de celles-ci »). Pur : aucun appel à l'API WoW.
---   remaining(questID, data, isDone?) -> {questID...} | nil, "CYCLE", {questID...}
+--   remaining(questID, data, isDone?, isAllowed?) -> {questID...} | nil, "CYCLE", {questID...}
 --     quêtes à faire, prérequis d'abord, questID en dernier ; vide si questID est faite.
 --     Une quête faite couvre ses propres prérequis. Alternative : faite si l'une l'est, sinon
 --     celle au moins d'étapes (puis au plus petit identifiant), en évitant les cycles.
+--     isAllowed(questID) faux : alternative écartée (autre faction), sauf si aucune n'est permise.
 --     Prérequis absent de la base : une étape sans prérequis. Cycle : les quêtes qui le forment.
---   steps(questID, data, isDone?) -> nombre d'étapes (#remaining) | nil, "CYCLE", {questID...}
+--   steps(questID, data, isDone?, isAllowed?) -> nombre d'étapes (#remaining) | nil, "CYCLE", {questID...}
 --   order(questIDs, data) -> {questID...} | nil, "CYCLE", {questID...}
 --     tri topologique de l'ensemble (doublons retirés) : arêtes de prereq et alternatives
 --     internes à l'ensemble, à égalité le plus petit identifiant ; cycle : quêtes non triées.
@@ -23,6 +24,10 @@ local CYCLE = "CYCLE"
 
 local function notDone()
     return false
+end
+
+local function anyAllowed()
+    return true
 end
 
 -- Ajoute à `into` les éléments de `list` absents de `seen` (l'ordre topologique est gardé).
@@ -50,7 +55,13 @@ local function resolveAlternative(ctx, ids)
             return {}, nil, false
         end
     end
+    local permitted = {}
     for _, id in ipairs(ids) do
+        if ctx.isAllowed(id) then
+            permitted[#permitted + 1] = id
+        end
+    end
+    for _, id in ipairs(#permitted > 0 and permitted or ids) do
         local list, loop, dirty = resolve(ctx, id)
         tainted = tainted or dirty
         if list then
@@ -120,8 +131,11 @@ local function copy(list)
     return out
 end
 
-function Chains.remaining(questID, data, isDone)
-    local ctx = { data = data, isDone = isDone or notDone, memo = {}, stack = {}, position = {} }
+function Chains.remaining(questID, data, isDone, isAllowed)
+    local ctx = {
+        data = data, isDone = isDone or notDone, isAllowed = isAllowed or anyAllowed,
+        memo = {}, stack = {}, position = {},
+    }
     local list, cycle = resolve(ctx, questID)
     if not list then
         return nil, CYCLE, cycle
@@ -129,8 +143,8 @@ function Chains.remaining(questID, data, isDone)
     return copy(list)
 end
 
-function Chains.steps(questID, data, isDone)
-    local list, code, cycle = Chains.remaining(questID, data, isDone)
+function Chains.steps(questID, data, isDone, isAllowed)
+    local list, code, cycle = Chains.remaining(questID, data, isDone, isAllowed)
     if not list then
         return nil, code, cycle
     end

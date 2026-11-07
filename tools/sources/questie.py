@@ -27,6 +27,9 @@ Les corrections de faction et par personnage sont ignorées.
   Position d'un PNJ : premier point valide (0–100) de sa zone, sinon de la plus petite zone connue
     de areaIdToUiMapId ; convertie en fraction 0–1 à 4 décimales. Points négatifs (instances) ignorés.
   classMask, raceMask : nil si aucune restriction ; constantes reprises de enum/expansions.lua.
+    raceMask sans requiredRaces : ALL_ALLIANCE ou ALL_HORDE si tous les PNJ donneurs (créatures) sont
+    amicaux envers cette seule faction (friendlyToFaction "A" ou "H") ; donneur "AH", inconnu ou
+    factions mêlées : nil.
   confidence : 3 sûr, 2 répartition devinée, 1 niveau absent de la source.
 """
 
@@ -310,6 +313,19 @@ def _mask(value):
     return mask if mask else None
 
 
+FACTION_RACES = {"A": ALLIANCE_RACES, "H": HORDE_RACES}
+
+
+def _race_mask(row, npcs):
+    mask = _mask(row.get("requiredRaces"))
+    if mask:
+        return mask
+    factions = {npcs.get(npc, {}).get("friendlyToFaction") for npc in _creatures(row)}
+    if len(factions) == 1:
+        return FACTION_RACES.get(factions.pop())
+    return None
+
+
 def _record(quest_id, row, items, npcs, areas):
     required = _int(row.get("requiredLevel"))
     required = required if required and required > 0 else 1
@@ -327,7 +343,7 @@ def _record(quest_id, row, items, npcs, areas):
         "source": "questie",
         "confidence": 1 if not known_level else 3 if single else 2,
         "classMask": _mask(row.get("requiredClasses")),
-        "raceMask": _mask(row.get("requiredRaces")),
+        "raceMask": _race_mask(row, npcs),
         "starter": _starter(row, npcs, areas),
     }
 
@@ -351,7 +367,7 @@ def load_npcs(source_dir, ids):
 def load_quests(source_dir):
     resolve = _resolver(source_dir)
     quests = _entities(source_dir, QUEST_DB, QUEST_LAYERS, QUEST_FIELDS, resolve)
-    npcs = _entities(source_dir, NPC_DB, NPC_LAYERS, ("zoneID", "spawns"), resolve)
+    npcs = _entities(source_dir, NPC_DB, NPC_LAYERS, ("zoneID", "spawns", "friendlyToFaction"), resolve)
     rewards = _rewards_by_quest(source_dir, resolve)
     areas = _area_map(source_dir)
     return [
