@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.1 — 2026-11-07
+
+### Changes
+- Options: icon size sliders for quest givers on the world map and on the minimap (50 % to 200 %).
+
+### Fixes
+- Quests of the other faction (or restricted to other races) are no longer suggested, nor offered as
+  prerequisites; quests without race data take the faction of their quest givers.
+
 ## 1.3.0 — 2026-11-06
 
 ### Changes
