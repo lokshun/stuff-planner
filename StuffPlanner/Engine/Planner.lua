@@ -10,6 +10,10 @@
 --     remplace les constantes de Planner.TUNING ; opts.step() appelé après chaque candidat
 --     (coroutine.yield pour étaler le calcul sur plusieurs images) ; opts.pause() appelé une fois avant
 --     le tri final (yield sans condition : le tri ne partage pas son image).
+--   opts.reference = true : paliers passés du Parcours, « comme si on y était ». Gain = score de l'objet
+--     (Scoring.score, poids du profil), durée de vie 1, sans XP ; objets sans delta (non équipables)
+--     écartés, score <= 0 écarté, level > opts.maxLevel écarté avant tout calcul d'effort ; quêtes
+--     faites gardées (chaîne entière) ; lignes + done (opts.isDone de la quête), beaten (delta.abs <= 0).
 -- level = niveau d'obtention : max(reqLevel de l'objet, niveau de la quête | minLevel de l'instance) ;
 --   les récompenses de quête de Classic n'ont souvent pas de niveau requis (reqLevel 1).
 -- Durée de vie : min(LIFESPAN, 60 - L) / LIFESPAN, L = max(niveau du joueur, level) ; 1 si L >= 60.
@@ -170,9 +174,51 @@ local function tuningOf(opts)
     return tuning
 end
 
+local function neverDone()
+    return false
+end
+
+-- Ligne d'un candidat en parcours normal ; nil si écarté.
+local function evaluate(candidate, delta, player, data, opts, tuning)
+    if not delta or delta.abs <= 0 then
+        return nil
+    end
+    local effort, xp, hops = effortOf(candidate.source, player, data, opts, tuning)
+    if not effort or effort <= 0 then
+        return nil
+    end
+    local level = obtainLevel(data.item(candidate.itemID), candidate.source, data)
+    local gain = delta.abs * lifetime(level, player, tuning)
+    return { effort = effort, xp = xp, hops = hops, level = level, priority = (gain + tuning.ALPHA * xp) / effort }
+end
+
+-- Ligne d'un candidat en mode référence ; nil si écarté.
+local function evaluateReference(candidate, delta, player, profile, data, opts, tuning)
+    local item = delta and data.item(candidate.itemID)
+    local level = item and obtainLevel(item, candidate.source, data)
+    if not level or (opts.maxLevel and level > opts.maxLevel) then
+        return nil
+    end
+    local score = ns.Scoring.score(item.stats, profile.weights)
+    if score <= 0 then
+        return nil
+    end
+    local effort, _, hops = effortOf(candidate.source, player, data, opts.effortOpts, tuning)
+    if not effort or effort <= 0 then
+        return nil
+    end
+    local source = candidate.source
+    local done = source.type == "quest" and opts.isDone ~= nil and opts.isDone(source.id) == true
+    return { effort = effort, xp = 0, hops = hops, level = level, priority = score / effort,
+        done = done, beaten = delta.abs <= 0 }
+end
+
 function Planner.rank(candidates, player, profile, data, opts)
     opts = opts or {}
     local tuning = tuningOf(opts)
+    if opts.reference then
+        opts.effortOpts = { isDone = neverDone, includeRaids = opts.includeRaids }
+    end
     local best, deltas = {}, {}
     for _, candidate in ipairs(candidates) do
         local itemID = candidate.itemID
@@ -180,26 +226,16 @@ function Planner.rank(candidates, player, profile, data, opts)
             deltas[itemID] = ns.Scoring.delta(itemID, player, profile, data) or false
         end
         local delta = deltas[itemID]
-        if delta and delta.abs > 0 then
-            local effort, xp, hops = effortOf(candidate.source, player, data, opts, tuning)
-            if effort and effort > 0 then
-                local level = obtainLevel(data.item(itemID), candidate.source, data)
-                local gain = delta.abs * lifetime(level, player, tuning)
-                local priority = (gain + tuning.ALPHA * xp) / effort
-                local current = best[itemID]
-                if not current or priority > current.priority then
-                    best[itemID] = {
-                        itemID = itemID,
-                        source = candidate.source,
-                        delta = delta,
-                        effort = effort,
-                        xp = xp,
-                        level = level,
-                        hops = hops,
-                        priority = priority,
-                    }
-                end
-            end
+        local row
+        if opts.reference then
+            row = evaluateReference(candidate, delta, player, profile, data, opts, tuning)
+        else
+            row = evaluate(candidate, delta, player, data, opts, tuning)
+        end
+        local current = best[itemID]
+        if row and (not current or row.priority > current.priority) then
+            row.itemID, row.source, row.delta = itemID, candidate.source, delta
+            best[itemID] = row
         end
         if opts.step then
             opts.step()

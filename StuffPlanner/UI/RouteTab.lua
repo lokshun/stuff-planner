@@ -7,6 +7,8 @@
 -- « calcul en cours » d'ici là ; rafraîchi sur SP_ROUTE_UPDATED ;
 -- noms reçus du client : nouvelle présentation regroupée (NAME_DELAY s), sans recalcul ; noms
 -- encore inconnus : nouvelle présentation toutes les RETRY_DELAY s, RETRY_MAX fois au plus.
+-- Paliers passés (référence, grisés) repliés par défaut : clic sur l'en-tête, état gardé dans
+-- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}.
 -- Raids exclus. Clic sur une ligne de quête : fiche (QuestDetail) ; Maj+clic : repère ;
 -- donjon, artisanat : fiche de la source (SourceDetail). Objet sélectionné : cadre (RowActions.mark).
 
@@ -89,17 +91,33 @@ local function buildRow(button)
     button.highlight:SetColorTexture(1, 1, 1, 0.08)
 end
 
+local function pastOpen()
+    StuffPlannerDB = StuffPlannerDB or {}
+    StuffPlannerDB.ui = StuffPlannerDB.ui or {}
+    StuffPlannerDB.ui.routePastOpen = StuffPlannerDB.ui.routePastOpen or {}
+    return StuffPlannerDB.ui.routePastOpen
+end
+
 local function onRowClick(button)
+    if button.toggle then
+        local open = pastOpen()
+        open[button.toggle] = not open[button.toggle] or nil
+        ns.MainFrame.refresh()
+        return
+    end
+    if button.isHeader then
+        return
+    end
     ns.RowActions.click(button.questID, button.itemID, button.itemSource)
 end
 
-local function showParts(button, isHeader)
+local function showParts(button, isHeader, toggle)
     button.title:SetShown(isHeader)
     button.icon:SetShown(not isHeader)
     button.name:SetShown(not isHeader)
     button.source:SetShown(not isHeader)
     button.gain:SetShown(not isHeader)
-    button.highlight:SetShown(not isHeader)
+    button.highlight:SetShown(not isHeader or toggle)
 end
 
 local function sourceLine(row)
@@ -116,6 +134,9 @@ local function sourceLine(row)
     if row.badge then
         text = text .. " · " .. ns.Theme.colorize(row.badge, row.badgeColor)
     end
+    if row.noteText then
+        text = text .. " · " .. row.noteText
+    end
     return text
 end
 
@@ -124,23 +145,28 @@ local function initRow(button, row)
         buildRow(button)
         button:SetScript("OnClick", onRowClick)
     end
-    showParts(button, row.header == true)
+    showParts(button, row.header == true, row.toggle ~= nil)
     button.questID, button.itemID, button.itemSource = row.questID, row.itemID, row.source
+    button.isHeader, button.toggle = row.header == true, row.toggle
     ns.RowActions.mark(button, row.questID, row.itemID)
+    local muted = ns.Theme.colors.muted
     if row.header then
         button.title:SetText(row.text)
+        setColor(button.title, row.toggle and muted or ns.Theme.colors.title)
         return
     end
     button.icon:SetTexture(row.icon or UNKNOWN_ICON)
+    button.icon:SetDesaturated(row.muted == true)
+    button.icon:SetAlpha(row.muted and 0.6 or 1)
     button.name:SetText(row.name)
-    setColor(button.name, row.nameColor)
+    setColor(button.name, row.muted and muted or row.nameColor)
     button.gain:SetText(row.gainLabel)
-    setColor(button.gain, row.gainColor)
+    setColor(button.gain, row.muted and muted or row.gainColor)
     button.source:SetText(sourceLine(row))
 end
 
 local function presentRows(result)
-    local rows = ns.RoutePresenter.build(result, ns.Data)
+    local rows = ns.RoutePresenter.build(result, ns.Data, pastOpen())
     local missing = false
     for _, row in ipairs(rows) do
         if row.itemID and not askName("item", row.itemID) then
