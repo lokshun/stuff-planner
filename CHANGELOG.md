@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.0 — 2026-11-08
+
+### Changes
+- Easier alternatives: on the Route and Gear tabs, a "[+N]" button next to a suggestion unfolds up to three
+  other items for the same slot that are cheaper to get (closer zone, shorter quest chain, no dungeon run),
+  with their gain and effort ("Nearby", "2 zones away", "Far", "3 quests").
+- Route tab: past level ranges are back, folded under "Levels 1-10 · for reference": the best item of each
+  slot as if you were that level, greyed, marked "Already better equipped" or "Quest done".
+- Effort now counts the distance to the quest's zone or the dungeon entrance (zones crossed, boats and
+  zeppelins included), so a nearby quest wins over a far one with a similar gain.
+- Zone neighbours are shipped with the data: the Current zone list, mini tracker and map pins now also cover
+  the zones around you, as intended.
+
 ## 1.3.1 — 2026-11-07
 
 ### Changes
