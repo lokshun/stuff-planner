@@ -3,7 +3,7 @@
 -- Charger après Engine/Scoring.lua, Engine/Chains.lua et Engine/Distance.lua.
 --   candidates(itemIDs, data, step?) -> {{itemID, source}...}, une entrée par source de data.sourcesOf ;
 --     step() appelé après chaque objet (sourcesOf décode la base : à étaler)
---   rank(candidates, player, profile, data, opts?) -> {{itemID, source, delta, effort, xp, level, hops,
+--   rank(candidates, player, profile, data, opts?) -> {{itemID, source, delta, effort, xp, level, hops, steps,
 --     priority}...} : un objet une fois (sa meilleure source), tri par priorité décroissante
 --     puis itemID ; delta = Scoring.delta ({abs, pct, slot}), objets à gain abs <= 0 écartés.
 --     opts.isDone(questID) ; opts.includeRaids (raids écartés sinon) ; opts.tuning = {clé=valeur}
@@ -24,6 +24,7 @@
 --   alternative de prérequis d'une autre race écartée (Chains, isAllowed).
 --   Donjon, raid = DUNGEON_RUN, RAID_RUN × 100 / chance (DEFAULT_CHANCE sans taux, MIN_CHANCE au
 --   moins) + trajet ; artisanat = CRAFT si player.professions[skillLine], CRAFT_UNKNOWN sinon.
+-- steps : étapes restantes de la quête (nil hors quête).
 -- XP : quêtes seulement, nombre d'étapes restantes non grises ; 0 au niveau 60.
 
 local _, ns = ...
@@ -131,7 +132,7 @@ local function questEffort(source, player, data, opts, tuning)
         return nil
     end
     local hops = hopsTo(quest.mapID, player, data, tuning)
-    return #steps * tuning.QUEST_STEP + travel(hops, tuning), questXP(steps, player, data), hops
+    return #steps * tuning.QUEST_STEP + travel(hops, tuning), questXP(steps, player, data), hops, #steps
 end
 
 local function runs(source, tuning)
@@ -183,13 +184,14 @@ local function evaluate(candidate, delta, player, data, opts, tuning)
     if not delta or delta.abs <= 0 then
         return nil
     end
-    local effort, xp, hops = effortOf(candidate.source, player, data, opts, tuning)
+    local effort, xp, hops, steps = effortOf(candidate.source, player, data, opts, tuning)
     if not effort or effort <= 0 then
         return nil
     end
     local level = obtainLevel(data.item(candidate.itemID), candidate.source, data)
     local gain = delta.abs * lifetime(level, player, tuning)
-    return { effort = effort, xp = xp, hops = hops, level = level, priority = (gain + tuning.ALPHA * xp) / effort }
+    return { effort = effort, xp = xp, hops = hops, steps = steps, level = level,
+        priority = (gain + tuning.ALPHA * xp) / effort }
 end
 
 -- Ligne d'un candidat en mode référence ; nil si écarté.
@@ -203,13 +205,13 @@ local function evaluateReference(candidate, delta, player, profile, data, opts, 
     if score <= 0 then
         return nil
     end
-    local effort, _, hops = effortOf(candidate.source, player, data, opts.effortOpts, tuning)
+    local effort, _, hops, steps = effortOf(candidate.source, player, data, opts.effortOpts, tuning)
     if not effort or effort <= 0 then
         return nil
     end
     local source = candidate.source
     local done = source.type == "quest" and opts.isDone ~= nil and opts.isDone(source.id) == true
-    return { effort = effort, xp = 0, hops = hops, level = level, priority = score / effort,
+    return { effort = effort, xp = 0, hops = hops, steps = steps, level = level, priority = score / effort,
         done = done, beaten = delta.abs <= 0 }
 end
 

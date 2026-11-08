@@ -2,7 +2,7 @@
 -- Paliers du parcours 1-60 : meilleur objet par emplacement et par palier. Pur : aucun appel d'API.
 --   BOUNDS = {{min, max}...} : 1-10, 11-20, 21-30, 31-40, 41-50, 51-59, 60
 --   indexOf(level) -> indice du palier (niveau nil ou < 1 : 1 ; > 60 : dernier)
---   build(rows, player, reference?) -> {{min, max, past?, entries = {row...}}...}
+--   build(rows, player, reference?) -> {{min, max, past?, entries = {row...}, alternatives}...}
 --     rows = Planner.rank (priority, delta.slot, level) ; palier de l'objet = celui de
 --     max(row.level, player.level) : rien avant le palier du joueur, paliers vides omis.
 --     Par palier et emplacement : la plus forte priorité ; anneaux (11, 12) et bijoux (13, 14)
@@ -10,6 +10,9 @@
 --     Ligne sans delta.slot : ignorée ; sans level : niveau 1.
 --     reference = Planner.rank en mode référence : paliers sous celui du joueur (past = true), objet
 --     rangé dans le palier de son level, même choix par emplacement ; lignes des autres paliers ignorées.
+--     alternatives = {[itemID d'une entrée] = {row...}} : jusqu'à ALTERNATIVES autres lignes du même
+--     groupe, gain > 0, effort plus faible que l'entrée ; effort croissant, puis gain, puis itemID ;
+--     vide si past.
 --   current(tiers, level) -> palier de build contenant level | nil (absent, vide ou tiers nil) ;
 --     un palier passé ne contient jamais le niveau du joueur
 
@@ -17,6 +20,8 @@ local _, ns = ...
 
 local Tiers = {}
 ns.Tiers = Tiers
+
+Tiers.ALTERNATIVES = 3
 
 Tiers.BOUNDS = { { 1, 10 }, { 11, 20 }, { 21, 30 }, { 31, 40 }, { 41, 50 }, { 51, 59 }, { 60, 60 } }
 
@@ -70,21 +75,52 @@ local function group(rows, first, past, buckets)
     end
 end
 
-local function entriesOf(slots)
+local function byEffort(a, b)
+    if a.effort ~= b.effort then
+        return a.effort < b.effort
+    end
+    if a.delta.abs ~= b.delta.abs then
+        return a.delta.abs > b.delta.abs
+    end
+    return a.itemID < b.itemID
+end
+
+-- Lignes plus faciles que list[index], hors des count premières (choisies).
+local function easier(list, index, count)
+    local chosen, out = list[index], {}
+    for i = count + 1, #list do
+        local row = list[i]
+        if row.delta.abs > 0 and row.effort and chosen.effort and row.effort < chosen.effort then
+            out[#out + 1] = row
+        end
+    end
+    table.sort(out, byEffort)
+    for i = #out, Tiers.ALTERNATIVES + 1, -1 do
+        out[i] = nil
+    end
+    return out
+end
+
+local function entriesOf(slots, past)
     local keys = {}
     for key in pairs(slots) do
         keys[#keys + 1] = key
     end
     table.sort(keys, bySlot)
-    local entries = {}
+    local entries, alternatives = {}, {}
     for _, key in ipairs(keys) do
         local list = slots[key]
         table.sort(list, byPriority)
-        for i = 1, math.min(#list, GROUP_SIZE[key] or 1) do
+        local count = math.min(#list, GROUP_SIZE[key] or 1)
+        for i = 1, count do
             entries[#entries + 1] = list[i]
+            local found = not past and easier(list, i, count) or {}
+            if #found > 0 then
+                alternatives[list[i].itemID] = found
+            end
         end
     end
-    return entries
+    return entries, alternatives
 end
 
 function Tiers.build(rows, player, reference)
@@ -99,8 +135,8 @@ function Tiers.build(rows, player, reference)
                 min = bounds[1],
                 max = bounds[2],
                 past = index < first or nil,
-                entries = entriesOf(buckets[index]),
             }
+            tiers[#tiers].entries, tiers[#tiers].alternatives = entriesOf(buckets[index], index < first)
         end
     end
     return tiers

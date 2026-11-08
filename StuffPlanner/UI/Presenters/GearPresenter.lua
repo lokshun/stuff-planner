@@ -2,7 +2,8 @@
 -- Lignes de l'onglet Équipement : objet porté, son score, meilleure amélioration de la zone,
 -- à défaut celle du palier courant du Parcours.
 -- Pur : aucun appel d'API. Charger après Theme.lua, Format.lua, Scoring.lua et RowPresenter.lua.
---   ns.GearPresenter.build(player, profile, data, entries?, worn?, route?) -> {row, …} (17 emplacements,
+--   ns.GearPresenter.build(player, profile, data, entries?, worn?, route?, routeAlternatives?, expanded?)
+--     -> {row, …} (17 emplacements,
 --     ordre de la fiche de personnage, sans chemise ni tabard)
 --     player = Player.snapshot() ; profile = {weights, caps} | nil ; entries = Chat.bestInZone
 --     (triées par gain, delta.slot renseigné) ; worn = {[slot] = {stats, quality, icon}} lu en jeu,
@@ -19,6 +20,10 @@
 --            raid = RowPresenter.present + itemSource, gain | nil : meilleur objet de raid (zone ou palier)
 --              s'il fait mieux que upgrade (raids jamais en upgrade) ; raidGain, raidGainLabel, raidGainColor,
 --              raidText (nom · detailText, « Raid » compris)}
+--            alternatives = {RowPresenter.alternative…} | nil : autres objets de l'emplacement (gain > 0, hors
+--              raid et objet proposé), MAX_ALTERNATIVES au plus : zone d'abord (L.EFFORT_NEAR, par gain),
+--              puis palier courant et ses alternatives (routeAlternatives = Tiers alternatives), par effort ;
+--              expandKey = slot, expanded = expanded[slot] == true
 --   ns.GearPresenter.summary(rows) -> {count, total, text} (L.GEAR_SUMMARY | L.GEAR_NONE)
 --   ns.GearPresenter.filter(rows, onlyUpgrades) -> lignes avec upgrade ou raid (toutes si faux), ordre gardé
 --   ns.GearPresenter.slotName(slot) -> nom de chaîne globale de l'emplacement ("BACKSLOT") | nil
@@ -31,6 +36,7 @@ local GearPresenter = {}
 ns.GearPresenter = GearPresenter
 
 local ESTIMATED_ITEM = 1
+local MAX_ALTERNATIVES = 3
 
 local SLOTS = {
     { 1, "HEADSLOT" }, { 2, "NECKSLOT" }, { 3, "SHOULDERSLOT" }, { 15, "BACKSLOT" },
@@ -94,6 +100,48 @@ local function raidUpgrades(entries, route, data)
     return best
 end
 
+local function usable(entry, slot, seen)
+    return entry.delta and entry.delta.slot == slot and entry.delta.abs > 0 and not isRaid(entry)
+        and not seen[entry.itemID]
+end
+
+local function byEase(a, b)
+    if a.ease ~= b.ease then
+        return a.ease < b.ease
+    end
+    if a.gain ~= b.gain then
+        return a.gain > b.gain
+    end
+    return a.itemID < b.itemID
+end
+
+-- Autres objets de l'emplacement, du plus facile au plus difficile.
+local function alternativesOf(slot, chosen, entries, route, routeAlternatives, data)
+    local seen, found = { [chosen.itemID] = true }, {}
+    local function add(entry, ease, effortText)
+        if usable(entry, slot, seen) then
+            seen[entry.itemID] = true
+            local row = ns.RowPresenter.alternative(entry, data, effortText)
+            row.ease, row.gain = ease, entry.delta.abs
+            found[#found + 1] = row
+        end
+    end
+    for _, entry in ipairs(entries or {}) do
+        add(entry, -1, L.EFFORT_NEAR)
+    end
+    for _, entry in ipairs(route or {}) do
+        add(entry, entry.effort or math.huge)
+        for _, other in ipairs(routeAlternatives and routeAlternatives[entry.itemID] or {}) do
+            add(other, other.effort or math.huge)
+        end
+    end
+    table.sort(found, byEase)
+    for i = #found, MAX_ALTERNATIVES + 1, -1 do
+        found[i] = nil
+    end
+    return #found > 0 and found or nil
+end
+
 local function scoreText(stats, profile)
     if not profile then
         return ""
@@ -151,7 +199,7 @@ local function describeRaid(row, raid)
     row.raidText = raid.detailText ~= "" and (name .. SEPARATOR .. raid.detailText) or name
 end
 
-function GearPresenter.build(player, profile, data, entries, worn, route)
+function GearPresenter.build(player, profile, data, entries, worn, route, routeAlternatives, expanded)
     local upgrades = bestUpgrades(entries, data)
     routeUpgrades(upgrades, route, data)
     local raids = raidUpgrades(entries, route, data)
@@ -159,6 +207,11 @@ function GearPresenter.build(player, profile, data, entries, worn, route)
     for i, slot in ipairs(SLOTS) do
         local row = present(slot[1], slot[2], player, profile, data, worn and worn[slot[1]])
         row.upgrade = upgrades[slot[1]]
+        if row.upgrade then
+            row.alternatives = alternativesOf(slot[1], row.upgrade, entries, route, routeAlternatives, data)
+            row.expandKey = slot[1]
+            row.expanded = expanded ~= nil and expanded[slot[1]] == true
+        end
         describe(row)
         describeRaid(row, raids[slot[1]])
         rows[i] = row

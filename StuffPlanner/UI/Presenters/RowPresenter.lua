@@ -30,6 +30,10 @@
 --   instanceTag(quest, data) -> text, color | nil : « Donjon » ou « Raid » si quest.instance (raid lu dans
 --     data.instance) ; lignes de quête et de butin d'instance (source dungeon, raid) : row.tagText,
 --     row.tagColor, placés après l'état dans detailText
+--   effortText(entry) -> « Proche · 3 quêtes » (Distance.label de entry.hops, L.EFFORT_CHAIN si
+--     entry.steps > 1) | nil ; entry = ligne de Planner.rank
+--   alternative(entry, data, effortText?) -> present + questID (source quête), itemSource,
+--     effortText (donné, sinon effortText(entry)), lineText (effortText · detailText)
 --   Non confirmé : objet confidence 1 (stats estimées) ou quête confidence 2 (récompenses devinées).
 --   Donjon, raid : « Instance #id » tant que Names ne nomme pas les instances ; taux s'il est connu.
 
@@ -203,6 +207,34 @@ function RowPresenter.resultRow(entry, data)
     end
     local row = RowPresenter.present(entry, data)
     row.itemSource = entry.source
+    return row
+end
+
+local DISTANCE_TEXT = { near = "EFFORT_NEAR", mid = "EFFORT_MID", far = "EFFORT_FAR" }
+
+function RowPresenter.effortText(entry)
+    local parts = {}
+    if entry.hops ~= nil then
+        parts[#parts + 1] = L[DISTANCE_TEXT[ns.Distance.label(entry.hops)]]
+    end
+    if entry.steps and entry.steps > 1 then
+        parts[#parts + 1] = L.EFFORT_CHAIN:format(entry.steps)
+    end
+    return #parts > 0 and table.concat(parts, " · ") or nil
+end
+
+function RowPresenter.alternative(entry, data, effortText)
+    local row = entry.questID and RowPresenter.questRow(entry, data) or RowPresenter.present(entry, data)
+    local source = entry.source or (entry.questID and { type = "quest", id = entry.questID }) or nil
+    row.questID = entry.questID or (source and source.type == "quest" and source.id) or nil
+    row.itemSource = source
+    row.effortText = effortText or RowPresenter.effortText(entry)
+    local parts = {}
+    parts[#parts + 1] = row.effortText
+    if row.detailText ~= "" then
+        parts[#parts + 1] = row.detailText
+    end
+    row.lineText = table.concat(parts, " · ")
     return row
 end
 

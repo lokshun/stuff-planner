@@ -6,7 +6,8 @@
 -- SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED, SP_ROUTE_UPDATED passent par ns.MainFrame.refresh.
 -- En-tête : profil actif, résumé (GearPresenter.summary), puces Tous / Améliorations
 --   (StuffPlannerDB.ui.gearOnlyUpgrades).
--- Lignes : UI/GearRows.lua (40 px, 56 avec une ligne raid).
+-- Lignes : UI/GearRows.lua (40 px, 56 avec une ligne raid, + alternatives dépliées : AltLines) ; état
+-- déplié local (non gardé), par emplacement.
 -- Objets portés absents de la base : stats lues par Compat.GetItemStats + StatParser.fromApi.
 
 local _, ns = ...
@@ -15,8 +16,7 @@ local L = ns.L
 
 local MAX_ZONE_ENTRIES = 100
 local NAME_DELAY = 0.2
-local ROW_HEIGHT = 40
-local RAID_ROW_HEIGHT = 56
+local expanded = {}
 
 local profileText, summaryText, chipBar, footer, scrollBox
 local asked, refreshPending = {}, false
@@ -83,6 +83,12 @@ local function askNames(rows)
         if row.raid then
             askName("item", row.raid.itemID)
         end
+        for _, alt in ipairs(row.expanded and row.alternatives or {}) do
+            askName("item", alt.itemID)
+            if alt.questID then
+                askName("quest", alt.questID)
+            end
+        end
     end
 end
 
@@ -97,8 +103,9 @@ local function refresh()
     local profile = ns.Profiles.active()
     local entries = ns.Chat.currentZone(MAX_ZONE_ENTRIES)
     ns.RouteResults.get()
-    local route = ns.RouteResults.current(player.level)
-    local rows = ns.GearPresenter.build(player, profile, ns.Data, entries, readWorn(player), route)
+    local route, alternatives = ns.RouteResults.current(player.level)
+    local rows = ns.GearPresenter.build(player, profile, ns.Data, entries, readWorn(player), route, alternatives,
+        expanded)
     askNames(rows)
     local summary = ns.GearPresenter.summary(rows)
     profileText:SetText(profile and profileLabel() or L.BEST_NO_PROFILE)
@@ -145,7 +152,11 @@ local function create(parent)
     scrollBar:SetPoint("BOTTOMLEFT", scrollBox, "BOTTOMRIGHT", 6, 0)
     local view = CreateScrollBoxListLinearView()
     view:SetElementExtentCalculator(function(_, row)
-        return row.raid and RAID_ROW_HEIGHT or ROW_HEIGHT
+        return ns.GearRows.baseHeight(row) + ns.AltLines.extra(row)
+    end)
+    ns.GearRows.onToggle(function(key)
+        expanded[key] = not expanded[key] or nil
+        ns.MainFrame.refresh()
     end)
     view:SetElementInitializer("Button", ns.GearRows.init)
     ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view)

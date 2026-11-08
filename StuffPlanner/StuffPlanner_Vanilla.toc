@@ -86,6 +86,7 @@ UI\MainFrame.lua
 UI\Chips.lua
 UI\RowActions.lua
 UI\ZoneTab.lua
+UI\AltLines.lua
 UI\RouteTab.lua
 UI\GearRows.lua
 UI\GearTab.lua

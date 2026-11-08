@@ -1,6 +1,9 @@
 -- CONTRAT
--- Lignes de l'onglet Équipement (GearPresenter.build). Charger après Theme.lua, Chips.lua, RowActions.lua.
+-- Lignes de l'onglet Équipement (GearPresenter.build). Charger après Theme.lua, Chips.lua, RowActions.lua,
+-- AltLines.lua.
 --   ns.GearRows.init(button, row) -> initialiseur de ScrollBox (construit la ligne au premier appel)
+--   ns.GearRows.onToggle(fn) : fn(expandKey) au clic sur « [+N] » (alternatives, AltLines)
+--   ns.GearRows.baseHeight(row) -> hauteur sans les alternatives (BASE_HEIGHT, RAID_HEIGHT avec raid)
 -- Ligne : liseré vert si amélioration ; icône portée (sinon icône d'emplacement vide du jeu, grisée) ;
 --   emplacement, nom ; gain ▲ à droite ; 2e ligne detailText ; 3e ligne si un raid fait mieux : raidText et
 --   son gain, cliquable à part (fiche de la source, Ctrl : essayage) ; la hauteur est fixée par GearTab.
@@ -20,6 +23,16 @@ local LINE_HEIGHT = 14
 local ICON_SIZE = 30
 local ACCENT_WIDTH = 2
 local HINT = { r = 0.6, g = 0.6, b = 0.6 }
+local BASE_HEIGHT, RAID_HEIGHT = 40, 56
+local toggleHandler = function() end
+
+function GearRows.onToggle(fn)
+    toggleHandler = fn
+end
+
+function GearRows.baseHeight(row)
+    return row.raid and RAID_HEIGHT or BASE_HEIGHT
+end
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
@@ -136,8 +149,12 @@ local function buildRow(button)
     button.name:SetJustifyH("LEFT")
     button.name:SetWordWrap(false)
     button.detail = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
+    ns.AltLines.build(button, function(key)
+        toggleHandler(key)
+    end)
+    button.altToggle:SetPoint("TOPRIGHT", -4, -20)
     button.detail:SetPoint("TOPLEFT", button.slotText, "BOTTOMLEFT", 0, -4)
-    button.detail:SetPoint("RIGHT", -4, 0)
+    button.detail:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
     button.detail:SetJustifyH("LEFT")
     button.detail:SetWordWrap(false)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
@@ -169,6 +186,7 @@ function GearRows.init(button, row)
     setColor(button.gain, row.gainColor)
     button.detail:SetText(row.detailText)
     setColor(button.detail, row.detailColor)
+    ns.AltLines.render(button, row, GearRows.baseHeight(row), ACCENT_WIDTH + 4 + ICON_SIZE + ns.Theme.spacing.gap)
     button.raidLine:SetShown(row.raid ~= nil)
     if row.raid then
         button.raidLine.text:SetText(row.raidText)

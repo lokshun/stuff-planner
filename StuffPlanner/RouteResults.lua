@@ -3,7 +3,8 @@
 -- Charger après Engine/Planner.lua, Engine/Tiers.lua, Data/Loader.lua et Profiles/Manager.lua.
 --   ns.RouteResults.get() -> tiers (Tiers.build, paliers passés compris), evaluated (objets évalués) | nil, message
 --     (L.ROUTE_COMPUTING | BEST_NOT_READY | BEST_NO_PROFILE) ; lance le calcul s'il manque
---   ns.RouteResults.current(level) -> entrées du palier contenant level (Tiers.current) | nil ;
+--   ns.RouteResults.current(level) -> entrées, alternatives du palier contenant level (Tiers.current)
+--     | nil ;
 --     ne lance pas le calcul
 --   ns.RouteResults.busy() -> vrai pendant le calcul
 -- Calcul par coroutine (Loader.SLICE_MS par image, en pause en combat), raids compris ; second
@@ -108,7 +109,10 @@ end
 
 function RouteResults.current(level)
     local tier = not dirty and ns.Tiers.current(tiers, level)
-    return tier and tier.entries or nil
+    if not tier then
+        return nil
+    end
+    return tier.entries, tier.alternatives
 end
 
 function RouteResults.busy()

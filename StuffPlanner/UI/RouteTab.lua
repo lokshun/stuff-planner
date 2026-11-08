@@ -1,7 +1,7 @@
 -- CONTRAT
 -- Onglet « Parcours 1-60 » : meilleur objet par emplacement et par palier de niveau
 -- (RouteResults, RoutePresenter), ScrollBox avec en-têtes de palier. Charger après MainFrame.lua,
--- RouteResults.lua et RoutePresenter.lua.
+-- RouteResults.lua, RoutePresenter.lua et AltLines.lua.
 -- S'inscrit par ns.MainFrame.addTab("route", …). Classement partagé (RouteResults), recalculé
 -- à l'affichage de l'onglet après SP_PLAYER_CHANGED, SP_DATA_READY ou SP_PROFILE_CHANGED :
 -- « calcul en cours » d'ici là ; rafraîchi sur SP_ROUTE_UPDATED ;
@@ -11,6 +11,8 @@
 -- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}.
 -- Raids exclus. Clic sur une ligne de quête : fiche (QuestDetail) ; Maj+clic : repère ;
 -- donjon, artisanat : fiche de la source (SourceDetail). Objet sélectionné : cadre (RowActions.mark).
+-- Alternatives plus faciles (AltLines) : « [+N] » à gauche du gain, sous-lignes sous la ligne ; état
+-- déplié local (non gardé), par clé RoutePresenter expandKey.
 
 local _, ns = ...
 
@@ -22,6 +24,7 @@ local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
 
 local panel, header, footer, scrollBox, emptyText
 local asked, refreshPending = {}, false
+local expanded = {}
 local retries, retryPending = 0, false
 
 local function scheduleRefresh()
@@ -64,22 +67,30 @@ local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
 end
 
+local function onToggle(key)
+    expanded[key] = not expanded[key] or nil
+    ns.MainFrame.refresh()
+end
+
+-- Parties ancrées en haut : la ligne grandit vers le bas quand ses alternatives sont dépliées.
 local function buildRow(button)
     local theme = ns.Theme
-    local size = theme.spacing.iconSize
+    local size, height = theme.spacing.iconSize, theme.spacing.rowHeight
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(size, size)
-    button.icon:SetPoint("LEFT", 2, 0)
+    button.icon:SetPoint("TOPLEFT", 2, -(height - size) / 2)
     button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-    button.gain:SetPoint("RIGHT", -4, 0)
+    button.gain:SetPoint("RIGHT", button, "TOPRIGHT", -4, -height / 2)
+    ns.AltLines.build(button, onToggle)
+    button.altToggle:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
     button.name = button:CreateFontString(nil, "OVERLAY", theme.fonts.body)
     button.name:SetPoint("TOPLEFT", button.icon, "TOPRIGHT", theme.spacing.gap, 1)
-    button.name:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
+    button.name:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
     button.name:SetJustifyH("LEFT")
     button.name:SetWordWrap(false)
     button.source = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     button.source:SetPoint("BOTTOMLEFT", button.icon, "BOTTOMRIGHT", theme.spacing.gap, -1)
-    button.source:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
+    button.source:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
     button.source:SetJustifyH("LEFT")
     button.source:SetWordWrap(false)
     setColor(button.source, theme.colors.muted)
@@ -137,6 +148,9 @@ local function sourceLine(row)
     if row.noteText then
         text = text .. " · " .. row.noteText
     end
+    if row.effortText then
+        text = text .. " · " .. row.effortText
+    end
     return text
 end
 
@@ -150,6 +164,8 @@ local function initRow(button, row)
     button.isHeader, button.toggle = row.header == true, row.toggle
     ns.RowActions.mark(button, row.questID, row.itemID)
     local muted = ns.Theme.colors.muted
+    ns.AltLines.render(button, row.header and {} or row, ns.Theme.spacing.rowHeight,
+        ns.Theme.spacing.iconSize + ns.Theme.spacing.gap + 2)
     if row.header then
         button.title:SetText(row.text)
         setColor(button.title, row.toggle and muted or ns.Theme.colors.title)
@@ -166,14 +182,20 @@ local function initRow(button, row)
 end
 
 local function presentRows(result)
-    local rows = ns.RoutePresenter.build(result, ns.Data, pastOpen())
+    local rows = ns.RoutePresenter.build(result, ns.Data, pastOpen(), expanded)
     local missing = false
-    for _, row in ipairs(rows) do
+    local function ask(row)
         if row.itemID and not askName("item", row.itemID) then
             missing = true
         end
         if row.questID and not askName("quest", row.questID) then
             missing = true
+        end
+    end
+    for _, row in ipairs(rows) do
+        ask(row)
+        for _, alt in ipairs(row.expanded and row.alternatives or {}) do
+            ask(alt)
         end
     end
     scheduleRetry(missing)
@@ -208,7 +230,9 @@ local function create(parent)
     scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, 0)
     scrollBar:SetPoint("BOTTOMLEFT", scrollBox, "BOTTOMRIGHT", 6, 0)
     local view = CreateScrollBoxListLinearView()
-    view:SetElementExtent(theme.spacing.rowHeight)
+    view:SetElementExtentCalculator(function(_, row)
+        return theme.spacing.rowHeight + ns.AltLines.extra(row)
+    end)
     view:SetElementInitializer("Button", initRow)
     ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view)
     emptyText = panel:CreateFontString(nil, "OVERLAY", theme.fonts.body)
