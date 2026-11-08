@@ -19,9 +19,10 @@
     aucune autre ne l'a rempli. emit_npc_names(locale, names, fallback) = emit_names("NpcNames", ...)
   emit_overlay(overlay) -> Overlay.lua : ns.Overlay = {quests={[id]={champ=valeur}}} en tables Lua (lues par
     Data, peu nombreuses) ; ValueError si table ou champ absent de schema.FIELDS
-  write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None)
-    -> écrit tous les fichiers, mentions de licence comprises ; EraItems.lua toujours écrit (vide sans
-    tables["eraItems"]) ; *_names = {langue: {id: nom}}, "enUS" en repli ; overlay vide par défaut
+  emit_neighbors(neighbors) -> Neighbors.lua : ns.Neighbors = {[uiMapID]={uiMapID...}} (Data.neighbors)
+  write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None,
+    neighbors=None) -> écrit tous les fichiers, mentions de licence comprises ; EraItems.lua et Neighbors.lua
+    toujours écrits (vides sans données) ; *_names = {langue: {id: nom}}, "enUS" en repli ; overlay vide par défaut
 """
 
 import math
@@ -45,6 +46,7 @@ TOC_FILES = (
     "Origins.lua",
     "Instances.lua",
     "Npcs.lua",
+    "Neighbors.lua",
     "Overlay.lua",
     "Register.lua",
 )
@@ -222,6 +224,14 @@ def emit_overlay(overlay):
     return "".join(lines)
 
 
+def emit_neighbors(neighbors):
+    lines = [HEADER, "local _, ns = ...\n\n", "ns.Neighbors = {\n"]
+    for map_id in sorted(neighbors):
+        lines.append(f"    [{int(map_id)}]={lua_value(sorted(neighbors[map_id]))},\n")
+    lines.append("}\n")
+    return "".join(lines)
+
+
 def _name_files(var, by_locale):
     locales = sorted(locale for locale in (by_locale or {}) if locale != "enUS")
     if by_locale and "enUS" in by_locale:
@@ -247,13 +257,16 @@ def emit_toc(interface, name_files=(), flavor=None):
     return "\n".join(lines) + "\n"
 
 
-def write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None):
+def write_addon(
+    out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None, neighbors=None
+):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     files = {
         "Schema.lua": emit_schema(),
         "Register.lua": emit_register(),
         "Overlay.lua": emit_overlay(overlay or {}),
+        "Neighbors.lua": emit_neighbors(neighbors or {}),
         ERA_FILE: emit_table("eraItems", []),
     }
     for table, records in tables.items():

@@ -9,6 +9,7 @@ Importe les quêtes Forever de QuestieDB (github.com/Questie/QuestieDB), sans ex
     position, triés par id, sans réseau
   load_quest_areas(source_dir) -> {questID: zoneOrSort} des zones positives (donjons compris ; négatif =
     catégorie, ignoré), sans réseau ; lu par precompute.mark_instances
+  area_map(source_dir) -> {areaID: uiMapID} (areaIdToUiMapId, surcharges prioritaires), sans réseau
   load_classic_quest_ids(source_dir) -> {questID} de Classic Era (base Classic + classicQuestFixes), sans réseau
   load_names(source_dir, kind) -> {"enUS": {id: nom}, langue: {...}}, kind "npc" | "quest" | "item" :
     anglais de la base (couches comprises), traductions l10n/Forever/lookup<Npcs|Quests|Items> puis traces
@@ -215,6 +216,10 @@ def _entities(source_dir, raw_path, layers, fields, resolve):
             if isinstance(entity_id, int) and isinstance(fix, dict):
                 _apply_fix(entities.setdefault(entity_id, {}), fix, fields)
     return entities
+
+
+def area_map(source_dir):
+    return _area_map(source_dir)
 
 
 def _area_map(source_dir):

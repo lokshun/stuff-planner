@@ -1,7 +1,8 @@
 """CONTRAT
 Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
   build(source_dir, out_dir, interfaces, quests=None, items=None, recipes=None, crafts=None, drops=(), instances=(),
-        npcs=(), npc_names=None, report=None, overlay=None, era_items=(), quest_names=None, item_names=None)
+        npcs=(), npc_names=None, report=None, overlay=None, era_items=(), quest_names=None, item_names=None,
+        neighbors=None)
     -> {"quests": n, "items": n, "origins": n, "instances": n, "npcNames": n, "questNames": n, "itemNames": n, "eraItems": n,
         "instanceQuests": n, "memory": octets,
         "eraMemory": octets} ;
@@ -10,7 +11,7 @@ Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
     remplacent les fichiers de source_dir ; overlay ({"quests": {id: champs}}, tools/overlay.json
     de merge_exports.py) devient Overlay.lua ; `origins` est précalculé ; seuls les objets ayant une
     origine sont émis ; era_items (precompute.era_differences) réduit aux objets émis sans `forever`, écrit
-    dans EraItems.lua ; `memory` : estimation en jeu (lua_memory) hors EraItems, `eraMemory` : EraItems seul ; report(ligne) reçoit le rapport
+    dans EraItems.lua ; neighbors ({uiMapID: [uiMapID...]}, sources/zones.py) devient Neighbors.lua ; `memory` : estimation en jeu (lua_memory) hors EraItems, `eraMemory` : EraItems seul ; report(ligne) reçoit le rapport
     de validation ; ValueError sans rien écrire si une erreur bloquante est trouvée
   read_interfaces(addon_dir) -> {"Camelot": 16001, ...}, lu dans les TOC de l'addon principal
 Sources (cache dans tools/cache) : QuestieDB, wago.tools (Forever et Classic Era), NorgannonDB, Spyglass,
@@ -30,7 +31,7 @@ import merge_exports
 import precompute
 import schema
 import validate_db
-from sources import cmangos, norgannon, questie, spyglass, wago, wago_era
+from sources import cmangos, norgannon, questie, spyglass, wago, wago_era, zones
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCES = ROOT / "tools" / "tests" / "fixtures"
@@ -87,6 +88,7 @@ def build(
     era_items=(),
     quest_names=None,
     item_names=None,
+    neighbors=None,
 ):
     tables = {}
     for table in TABLES:
@@ -117,7 +119,7 @@ def build(
     names = _wanted_names(npc_names, starters | _bosses(tables["origins"]))
     quest_names = _wanted_names(quest_names, {quest["id"] for quest in tables["quests"]})
     item_names = _wanted_names(item_names, {item["id"] for item in tables["items"]})
-    emit_lua.write_addon(out_dir, {**tables, "eraItems": era}, interfaces, names, overlay, quest_names, item_names)
+    emit_lua.write_addon(out_dir, {**tables, "eraItems": era}, interfaces, names, overlay, quest_names, item_names, neighbors)
     counts = {table: len(records) for table, records in tables.items()}
     counts["eraItems"] = len(era)
     counts["instanceQuests"] = sum(1 for quest in tables["quests"] if quest.get("instance"))
@@ -169,6 +171,7 @@ def load_sources():
         "npc_names": questie.load_npc_names(questie_dir),
         "quest_names": questie.load_names(questie_dir, "quest"),
         "item_names": questie.load_names(questie_dir, "item"),
+        "neighbors": zones.neighbors(questie.area_map(questie_dir)),
         "era_items": precompute.era_differences(forever_items, era_items, scan),
     }
 

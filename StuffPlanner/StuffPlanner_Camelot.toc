@@ -57,6 +57,7 @@ Data\ItemProbe.lua
 Engine\Proficiency.lua
 Engine\Scoring.lua
 Engine\Chains.lua
+Engine\Distance.lua
 Engine\Planner.lua
 Engine\Tiers.lua
 Engine\Recompute.lua

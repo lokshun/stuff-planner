@@ -1,9 +1,9 @@
 -- CONTRAT
 -- Priorité de parcours : (gain × durée de vie + ALPHA × XP) / effort. Pur : aucun appel à l'API WoW.
--- Charger après Engine/Scoring.lua et Engine/Chains.lua.
+-- Charger après Engine/Scoring.lua, Engine/Chains.lua et Engine/Distance.lua.
 --   candidates(itemIDs, data, step?) -> {{itemID, source}...}, une entrée par source de data.sourcesOf ;
 --     step() appelé après chaque objet (sourcesOf décode la base : à étaler)
---   rank(candidates, player, profile, data, opts?) -> {{itemID, source, delta, effort, xp, level,
+--   rank(candidates, player, profile, data, opts?) -> {{itemID, source, delta, effort, xp, level, hops,
 --     priority}...} : un objet une fois (sa meilleure source), tri par priorité décroissante
 --     puis itemID ; delta = Scoring.delta ({abs, pct, slot}), objets à gain abs <= 0 écartés.
 --     opts.isDone(questID) ; opts.includeRaids (raids écartés sinon) ; opts.tuning = {clé=valeur}
@@ -13,11 +13,13 @@
 -- level = niveau d'obtention : max(reqLevel de l'objet, niveau de la quête | minLevel de l'instance) ;
 --   les récompenses de quête de Classic n'ont souvent pas de niveau requis (reqLevel 1).
 -- Durée de vie : min(LIFESPAN, 60 - L) / LIFESPAN, L = max(niveau du joueur, level) ; 1 si L >= 60.
--- Effort : quête = étapes restantes (Chains.steps) × QUEST_STEP + TRAVEL si sa carte n'est pas
---   celle du joueur ; écartée si faite, en cycle, inconnue, d'une autre classe ou race (Scoring.allows) ;
+-- Trajet : TRAVEL × hops, hops = Distance.hops(carte du joueur, carte de la source, MAX_HOPS) ; carte de la
+--   quête, entrée de l'instance (donjon, raid) ; 0 et hops nil si l'une est inconnue ou pour l'artisanat.
+-- Effort : quête = étapes restantes (Chains.steps) × QUEST_STEP + trajet ; écartée si faite, en cycle,
+--   inconnue, d'une autre classe ou race (Scoring.allows) ;
 --   alternative de prérequis d'une autre race écartée (Chains, isAllowed).
 --   Donjon, raid = DUNGEON_RUN, RAID_RUN × 100 / chance (DEFAULT_CHANCE sans taux, MIN_CHANCE au
---   moins) ; artisanat = CRAFT si player.professions[skillLine], CRAFT_UNKNOWN sinon.
+--   moins) + trajet ; artisanat = CRAFT si player.professions[skillLine], CRAFT_UNKNOWN sinon.
 -- XP : quêtes seulement, nombre d'étapes restantes non grises ; 0 au niveau 60.
 
 local _, ns = ...
@@ -32,6 +34,7 @@ Planner.TUNING = {
     ALPHA = 0.1,
     QUEST_STEP = 1,
     TRAVEL = 1,
+    MAX_HOPS = 3,
     DUNGEON_RUN = 4,
     RAID_RUN = 20,
     DEFAULT_CHANCE = 5,
@@ -98,7 +101,19 @@ local function questXP(steps, player, data)
     return xp
 end
 
--- Renvoie effort, xp ; nil si la source est écartée.
+-- Zones entre le joueur et mapID ; nil si l'une des cartes est inconnue.
+local function hopsTo(mapID, player, data, tuning)
+    if not mapID or not player.mapID then
+        return nil
+    end
+    return ns.Distance.hops(player.mapID, mapID, data, tuning.MAX_HOPS)
+end
+
+local function travel(hops, tuning)
+    return (hops or 0) * tuning.TRAVEL
+end
+
+-- Renvoie effort, xp, hops ; nil si la source est écartée.
 local function questEffort(source, player, data, opts, tuning)
     local quest = data.quest(source.id)
     if not quest or not ns.Scoring.allows(quest, player) then
@@ -111,11 +126,8 @@ local function questEffort(source, player, data, opts, tuning)
     if not steps or #steps == 0 then
         return nil
     end
-    local effort = #steps * tuning.QUEST_STEP
-    if quest.mapID and player.mapID and quest.mapID ~= player.mapID then
-        effort = effort + tuning.TRAVEL
-    end
-    return effort, questXP(steps, player, data)
+    local hops = hopsTo(quest.mapID, player, data, tuning)
+    return #steps * tuning.QUEST_STEP + travel(hops, tuning), questXP(steps, player, data), hops
 end
 
 local function runs(source, tuning)
@@ -123,17 +135,23 @@ local function runs(source, tuning)
     return 100 / chance
 end
 
+local function instanceEffort(source, player, data, tuning, perRun)
+    local instance = data.instance and data.instance(source.id)
+    local hops = hopsTo(instance and instance.mapID, player, data, tuning)
+    return perRun * runs(source, tuning) + travel(hops, tuning), 0, hops
+end
+
 local function effortOf(source, player, data, opts, tuning)
     local kind = source.type
     if kind == "quest" then
         return questEffort(source, player, data, opts, tuning)
     elseif kind == "dungeon" then
-        return tuning.DUNGEON_RUN * runs(source, tuning), 0
+        return instanceEffort(source, player, data, tuning, tuning.DUNGEON_RUN)
     elseif kind == "raid" then
         if not opts.includeRaids then
             return nil
         end
-        return tuning.RAID_RUN * runs(source, tuning), 0
+        return instanceEffort(source, player, data, tuning, tuning.RAID_RUN)
     elseif kind == "craft" then
         local known = player.professions and player.professions[source.skillLine]
         return known and tuning.CRAFT or tuning.CRAFT_UNKNOWN, 0
@@ -163,7 +181,7 @@ function Planner.rank(candidates, player, profile, data, opts)
         end
         local delta = deltas[itemID]
         if delta and delta.abs > 0 then
-            local effort, xp = effortOf(candidate.source, player, data, opts, tuning)
+            local effort, xp, hops = effortOf(candidate.source, player, data, opts, tuning)
             if effort and effort > 0 then
                 local level = obtainLevel(data.item(itemID), candidate.source, data)
                 local gain = delta.abs * lifetime(level, player, tuning)
@@ -177,6 +195,7 @@ function Planner.rank(candidates, player, profile, data, opts)
                         effort = effort,
                         xp = xp,
                         level = level,
+                        hops = hops,
                         priority = priority,
                     }
                 end
