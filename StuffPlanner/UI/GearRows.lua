@@ -8,6 +8,8 @@
 --   emplacement, nom ; gain ▲ à droite ; 2e ligne detailText ; 3e ligne si un raid fait mieux : raidText et
 --   son gain, cliquable à part (fiche de la source, Ctrl : essayage) ; la hauteur est fixée par GearTab.
 -- Clic : RowActions.click sur l'amélioration (fiche, Maj : repère, Ctrl : essayage).
+-- Alternatives (AltLines) : bouton flèche à droite de la 1re ligne, gain à sa gauche.
+--   ns.GearRows.mark(button) : cadres de sélection (amélioration, ligne raid, sous-lignes)
 -- Survol : info-bulle de l'objet porté (ou de l'emplacement vide) + score, remplacement, source, conseil.
 
 local _, ns = ...
@@ -98,7 +100,7 @@ local function buildRaidLine(button)
     local line = CreateFrame("Button", nil, button)
     line:SetHeight(LINE_HEIGHT)
     line:SetPoint("TOPLEFT", button.detail, "BOTTOMLEFT", 0, -2)
-    line:SetPoint("RIGHT", -4, 0)
+    line:SetPoint("RIGHT", -(4 + ns.AltLines.TOGGLE_WIDTH + theme.spacing.gap), 0)
     line.gain = line:CreateFontString(nil, "OVERLAY", theme.fonts.number)
     line.gain:SetPoint("RIGHT")
     line.text = line:CreateFontString(nil, "OVERLAY", theme.fonts.small)
@@ -142,19 +144,19 @@ local function buildRow(button)
     button.slotText:SetWordWrap(false)
     setColor(button.slotText, theme.colors.muted)
     button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-    button.gain:SetPoint("TOPRIGHT", -4, -5)
+    ns.AltLines.build(button, function(key)
+        toggleHandler(key)
+    end)
+    button.altToggle:SetPoint("TOPRIGHT", -4, -2)
+    button.gain:SetPoint("TOPRIGHT", button.altToggle, "TOPLEFT", -theme.spacing.gap, -3)
     button.name = button:CreateFontString(nil, "OVERLAY", theme.fonts.body)
     button.name:SetPoint("LEFT", button.slotText, "RIGHT", theme.spacing.gap, 0)
     button.name:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
     button.name:SetJustifyH("LEFT")
     button.name:SetWordWrap(false)
     button.detail = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    ns.AltLines.build(button, function(key)
-        toggleHandler(key)
-    end)
-    button.altToggle:SetPoint("TOPRIGHT", -4, -20)
     button.detail:SetPoint("TOPLEFT", button.slotText, "BOTTOMLEFT", 0, -4)
-    button.detail:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
+    button.detail:SetPoint("RIGHT", -4, 0)
     button.detail:SetJustifyH("LEFT")
     button.detail:SetWordWrap(false)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
@@ -166,6 +168,17 @@ local function buildRow(button)
     end)
     button:SetScript("OnClick", onRowClick)
     buildRaidLine(button)
+end
+
+function GearRows.mark(button)
+    local row = button.row
+    if not row then
+        return
+    end
+    local upgrade, raid = row.upgrade, row.raid
+    ns.RowActions.mark(button, upgrade and upgrade.questID, upgrade and upgrade.itemID, GearRows.baseHeight(row))
+    ns.RowActions.mark(button.raidLine, nil, raid and raid.itemID)
+    ns.AltLines.mark(button)
 end
 
 function GearRows.init(button, row)
@@ -194,4 +207,5 @@ function GearRows.init(button, row)
         button.raidLine.gain:SetText(row.raidGainLabel)
         setColor(button.raidLine.gain, row.raidGainColor)
     end
+    GearRows.mark(button)
 end

@@ -9,7 +9,8 @@
 --   select(questID, itemID, reveal?) : sélection courante (une seule, gardée jusqu'au prochain clic),
 --     émet SP_SELECTION_CHANGED(reveal) ; rien sans itemID. reveal : les listes font défiler jusqu'à elle.
 --   isSelected(questID, itemID) -> bool : même objet et même quête (nil = sans quête)
---   mark(button, questID, itemID) : cadre de sélection (créé au premier appel) affiché si isSelected
+--   mark(button, questID, itemID, height?) : cadre de sélection (créé au premier appel) affiché si
+--     isSelected ; height : cadre limité au haut du bouton (ligne dépliée : sans ses sous-lignes)
 
 local _, ns = ...
 
@@ -59,13 +60,22 @@ local function selectionFrame(button)
     return frame
 end
 
-function RowActions.mark(button, questID, itemID)
+function RowActions.mark(button, questID, itemID, height)
     local shown = RowActions.isSelected(questID, itemID)
     if shown and not button.selection then
         button.selection = selectionFrame(button)
     end
-    if button.selection then
-        button.selection:SetShown(shown)
+    local frame = button.selection
+    if frame then
+        frame:ClearAllPoints()
+        if height then
+            frame:SetPoint("TOPLEFT")
+            frame:SetPoint("TOPRIGHT")
+            frame:SetHeight(height)
+        else
+            frame:SetAllPoints()
+        end
+        frame:SetShown(shown)
     end
 end
 

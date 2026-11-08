@@ -164,3 +164,9 @@ local function create(parent)
 end
 
 ns.MainFrame.addTab("gear", { create = create, refresh = refresh })
+
+ns:On("SP_SELECTION_CHANGED", function()
+    if scrollBox then
+        scrollBox:ForEachFrame(ns.GearRows.mark)
+    end
+end)

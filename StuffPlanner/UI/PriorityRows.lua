@@ -1,8 +1,10 @@
 -- CONTRAT
 -- Lignes de « Mes stats » : rang et stat, poids, flèches haut/bas, x, plafond en % (stats plafonnables).
 -- Cadres seulement (vérifiés en jeu). Charger après Theme.lua, avant PriorityList.lua.
---   ns.PriorityRows.ROW_HEIGHT, ARROW_SIZE, ARROW_TEXTURE, ARROW_DOWN (repris par le bouton « Ajouter »)
+--   ns.PriorityRows.ROW_HEIGHT, ARROW_SIZE, ARROW_TEXTURE, ARROW_UP, ARROW_DOWN, SMALL_BUTTON (repris par
+--     le bouton « Ajouter » et AltLines)
 --   ns.PriorityRows.smallButton(parent, text, onClick) -> bouton carré de la hauteur d'une ligne
+--   ns.PriorityRows.arrowButton(parent, coords, onClick) -> smallButton à flèche dessinée ; button.arrow
 --   ns.PriorityRows.create(parent, index, handlers) -> ligne (à placer par l'appelant) ;
 --     handlers = {move(index, delta), remove(index), cap(index, text)} ; cap à Entrée ou perte du focus,
 --     Échap rend le texte affiché
@@ -21,9 +23,12 @@ PriorityRows.ARROW_SIZE = 10
 PriorityRows.ARROW_TEXTURE = "Interface\\ChatFrame\\ChatFrameExpandArrow"
 PriorityRows.ARROW_DOWN = { 0, 1, 1, 1, 0, 0, 1, 0 }
 
-local SMALL_BUTTON = 22
+PriorityRows.SMALL_BUTTON = 22
+PriorityRows.ARROW_UP = { 1, 0, 0, 0, 1, 1, 0, 1 }
+
+local SMALL_BUTTON = PriorityRows.SMALL_BUTTON
 local CAP_WIDTH = 40
-local ARROW_UP = { 1, 0, 0, 0, 1, 1, 0, 1 }
+local ARROW_UP = PriorityRows.ARROW_UP
 
 function PriorityRows.smallButton(parent, text, onClick)
     local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
@@ -35,13 +40,14 @@ end
 
 -- Bouton à flèche dessinée (les glyphes ^ et v ne sont pas centrés dans la police du jeu) :
 -- texture de flèche vers la droite tournée d'un quart de tour par SetTexCoord.
-local function arrowButton(parent, coords, onClick)
+function PriorityRows.arrowButton(parent, coords, onClick)
     local button = PriorityRows.smallButton(parent, "", onClick)
     local arrow = button:CreateTexture(nil, "ARTWORK")
     arrow:SetSize(PriorityRows.ARROW_SIZE, PriorityRows.ARROW_SIZE)
     arrow:SetPoint("CENTER")
     arrow:SetTexture(PriorityRows.ARROW_TEXTURE)
     arrow:SetTexCoord(unpack(coords))
+    button.arrow = arrow
     return button
 end
 
@@ -86,11 +92,11 @@ function PriorityRows.create(parent, index, handlers)
     line.weight = line:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     line.weight:SetPoint("LEFT", 225, 0)
     line.weight:SetTextColor(theme.colors.muted.r, theme.colors.muted.g, theme.colors.muted.b)
-    line.up = arrowButton(line, ARROW_UP, function()
+    line.up = PriorityRows.arrowButton(line, ARROW_UP, function()
         handlers.move(index, -1)
     end)
     line.up:SetPoint("LEFT", 270, 0)
-    line.down = arrowButton(line, PriorityRows.ARROW_DOWN, function()
+    line.down = PriorityRows.arrowButton(line, PriorityRows.ARROW_DOWN, function()
         handlers.move(index, 1)
     end)
     line.down:SetPoint("LEFT", line.up, "RIGHT", 2, 0)

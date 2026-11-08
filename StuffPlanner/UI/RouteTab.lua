@@ -11,7 +11,8 @@
 -- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}.
 -- Raids exclus. Clic sur une ligne de quête : fiche (QuestDetail) ; Maj+clic : repère ;
 -- donjon, artisanat : fiche de la source (SourceDetail). Objet sélectionné : cadre (RowActions.mark).
--- Alternatives plus faciles (AltLines) : « [+N] » à gauche du gain, sous-lignes sous la ligne ; état
+-- Alternatives plus faciles (AltLines) : bouton flèche à droite (gain à sa gauche), sous-lignes sous la
+-- ligne, cadre de sélection sur la sous-ligne choisie ; état
 -- déplié local (non gardé), par clé RoutePresenter expandKey.
 
 local _, ns = ...
@@ -80,17 +81,17 @@ local function buildRow(button)
     button.icon:SetSize(size, size)
     button.icon:SetPoint("TOPLEFT", 2, -(height - size) / 2)
     button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-    button.gain:SetPoint("RIGHT", button, "TOPRIGHT", -4, -height / 2)
     ns.AltLines.build(button, onToggle)
-    button.altToggle:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
+    button.altToggle:SetPoint("RIGHT", button, "TOPRIGHT", -4, -height / 2)
+    button.gain:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
     button.name = button:CreateFontString(nil, "OVERLAY", theme.fonts.body)
     button.name:SetPoint("TOPLEFT", button.icon, "TOPRIGHT", theme.spacing.gap, 1)
-    button.name:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
+    button.name:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
     button.name:SetJustifyH("LEFT")
     button.name:SetWordWrap(false)
     button.source = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     button.source:SetPoint("BOTTOMLEFT", button.icon, "BOTTOMRIGHT", theme.spacing.gap, -1)
-    button.source:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
+    button.source:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
     button.source:SetJustifyH("LEFT")
     button.source:SetWordWrap(false)
     setColor(button.source, theme.colors.muted)
@@ -162,7 +163,7 @@ local function initRow(button, row)
     showParts(button, row.header == true, row.toggle ~= nil)
     button.questID, button.itemID, button.itemSource = row.questID, row.itemID, row.source
     button.isHeader, button.toggle = row.header == true, row.toggle
-    ns.RowActions.mark(button, row.questID, row.itemID)
+    ns.RowActions.mark(button, row.questID, row.itemID, ns.Theme.spacing.rowHeight)
     local muted = ns.Theme.colors.muted
     ns.AltLines.render(button, row.header and {} or row, ns.Theme.spacing.rowHeight,
         ns.Theme.spacing.iconSize + ns.Theme.spacing.gap + 2)
@@ -251,7 +252,8 @@ ns:On("SP_PROFILE_CHANGED", ns.MainFrame.refresh)
 ns:On("SP_SELECTION_CHANGED", function()
     if scrollBox then
         scrollBox:ForEachFrame(function(button)
-            ns.RowActions.mark(button, button.questID, button.itemID)
+            ns.RowActions.mark(button, button.questID, button.itemID, ns.Theme.spacing.rowHeight)
+            ns.AltLines.mark(button)
         end)
     end
 end)

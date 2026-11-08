@@ -1,12 +1,14 @@
 -- CONTRAT
--- Bouton « [+N] » et sous-lignes d'alternatives d'une ligne de liste (Parcours, Équipement).
--- Charger après Theme.lua et RowActions.lua.
+-- Bouton à flèche (celui de « Mes stats », PriorityRows) et sous-lignes d'alternatives d'une ligne de
+-- liste (Parcours, Équipement). Charger après Theme.lua et RowActions.lua ; PriorityRows lu à build.
 --   ns.AltLines.LINE_HEIGHT, ns.AltLines.TOGGLE_WIDTH
 --   ns.AltLines.extra(row) -> hauteur à ajouter à la ligne (0 si repliée ou sans row.alternatives)
---   ns.AltLines.build(button, onToggle) -> crée button.altToggle (à placer par l'appelant) et les
---     sous-lignes ; onToggle(expandKey) au clic sur le bouton
---   ns.AltLines.render(button, row, top, left) : bouton « [+N] » / « [-] » si row.alternatives, sinon
---     caché (largeur 1) ; sous-lignes sous top (px depuis le haut), décalées de left, si row.expanded.
+--   ns.AltLines.build(button, onToggle) -> crée button.altToggle (à placer par l'appelant : à droite,
+--     le gain à sa gauche) et les sous-lignes ; onToggle(expandKey) au clic sur le bouton
+--   ns.AltLines.render(button, row, top, left) : bouton flèche bas (replié) / haut (déplié) si
+--     row.alternatives, sinon caché (largeur 1) ; sous-lignes sous top (px depuis le haut), décalées de
+--     left, si row.expanded, gain aligné sur celui de la ligne ; cadre de sélection (mark).
+--   ns.AltLines.mark(button) : cadre de sélection des sous-lignes (RowActions.mark), sur SP_SELECTION_CHANGED
 -- Sous-ligne (RowPresenter.alternative) : icône, nom, lineText, gain ; clic = RowActions.click
 -- (fiche, Maj : repère, Ctrl : essayage), survol = info-bulle de l'objet.
 
@@ -18,7 +20,7 @@ local AltLines = {}
 ns.AltLines = AltLines
 
 AltLines.LINE_HEIGHT = 18
-AltLines.TOGGLE_WIDTH = 30
+AltLines.TOGGLE_WIDTH = 22
 
 local MAX_LINES = 3
 local ICON_SIZE = 14
@@ -94,13 +96,8 @@ local function buildLine(button)
 end
 
 function AltLines.build(button, onToggle)
-    local toggle = CreateFrame("Button", nil, button)
-    toggle:SetSize(AltLines.TOGGLE_WIDTH, AltLines.LINE_HEIGHT)
-    toggle.text = toggle:CreateFontString(nil, "OVERLAY", ns.Theme.fonts.small)
-    toggle.text:SetAllPoints()
-    toggle.text:SetJustifyH("RIGHT")
-    setColor(toggle.text, ns.Theme.colors.title)
-    toggle:SetScript("OnClick", function()
+    local rows = ns.PriorityRows
+    local toggle = rows.arrowButton(button, rows.ARROW_DOWN, function()
         local row = button.altRow
         if row and row.expandKey ~= nil then
             onToggle(row.expandKey)
@@ -121,7 +118,8 @@ function AltLines.render(button, row, top, left)
     local toggle = button.altToggle
     toggle:SetShown(#alternatives > 0)
     toggle:SetWidth(#alternatives > 0 and AltLines.TOGGLE_WIDTH or 1)
-    toggle.text:SetText(row.expanded and "[-]" or ("[+" .. #alternatives .. "]"))
+    local rows = ns.PriorityRows
+    toggle.arrow:SetTexCoord(unpack(row.expanded and rows.ARROW_UP or rows.ARROW_DOWN))
     for i, line in ipairs(button.altLines) do
         local alt = row.expanded and alternatives[i] or nil
         line.alt = alt
@@ -129,7 +127,7 @@ function AltLines.render(button, row, top, left)
         if alt then
             local y = -(top + (i - 1) * AltLines.LINE_HEIGHT)
             line:SetPoint("TOPLEFT", left, y)
-            line:SetPoint("TOPRIGHT", -PADDING, y)
+            line:SetPoint("TOPRIGHT", -(PADDING + AltLines.TOGGLE_WIDTH + ns.Theme.spacing.gap), y)
             line.icon:SetTexture(alt.icon or UNKNOWN_ICON)
             line.name:SetText(alt.name)
             setColor(line.name, alt.nameColor)
@@ -137,5 +135,13 @@ function AltLines.render(button, row, top, left)
             line.gain:SetText(alt.gainLabel)
             setColor(line.gain, alt.gainColor)
         end
+    end
+    AltLines.mark(button)
+end
+
+function AltLines.mark(button)
+    for _, line in ipairs(button.altLines or {}) do
+        local alt = line:IsShown() and line.alt or nil
+        ns.RowActions.mark(line, alt and alt.questID, alt and alt.itemID)
     end
 end
