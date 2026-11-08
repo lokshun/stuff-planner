@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.1 — 2026-11-08
+
+### Changes
+- Easier alternatives: the "[+N]" text is replaced by an arrow button (the same as in My stats: down to
+  unfold, up to fold), placed at the right of the line on both the Route and Gear tabs, with the gain next to it;
+  gains of the alternatives and of the raid line line up under it.
+- Selecting an alternative frames that line only; the Gear tab now shows the selection frame too (upgrade,
+  raid line and alternatives), also when the item was picked from another tab.
+
 ## 1.4.0 — 2026-11-08
 
 ### Changes
