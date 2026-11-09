@@ -28,6 +28,8 @@
 --   ns.GearPresenter.filter(rows, onlyUpgrades) -> lignes avec upgrade ou raid (toutes si faux), ordre gardé
 --   ns.GearPresenter.sortByGain(rows) -> copie triée : plus fort gain (upgradeGain ou raidGain) d'abord,
 --     lignes sans gain ensuite, ordre de la fiche à égalité
+--   ns.GearPresenter.sortBySlot(rows) -> copie triée par row.slot dans l'ordre de la fiche (sans slot : à la fin),
+--     ordre reçu à égalité
 --   ns.GearPresenter.slotName(slot) -> nom de chaîne globale de l'emplacement ("BACKSLOT") | nil
 
 local _, ns = ...
@@ -48,9 +50,10 @@ local SLOTS = {
     { 17, "SECONDARYHANDSLOT" }, { 18, "RANGEDSLOT" },
 }
 
-local SLOT_NAMES = {}
-for _, slot in ipairs(SLOTS) do
+local SLOT_NAMES, SLOT_ORDER = {}, {}
+for i, slot in ipairs(SLOTS) do
     SLOT_NAMES[slot[1]] = slot[2]
+    SLOT_ORDER[slot[1]] = i
 end
 
 function GearPresenter.slotName(slot)
@@ -241,6 +244,21 @@ function GearPresenter.filter(rows, onlyUpgrades)
         end
     end
     return kept
+end
+
+function GearPresenter.sortBySlot(rows)
+    local sorted, position = {}, {}
+    for i, row in ipairs(rows) do
+        sorted[i], position[row] = row, i
+    end
+    table.sort(sorted, function(a, b)
+        local orderA, orderB = SLOT_ORDER[a.slot] or math.huge, SLOT_ORDER[b.slot] or math.huge
+        if orderA ~= orderB then
+            return orderA < orderB
+        end
+        return position[a] < position[b]
+    end)
+    return sorted
 end
 
 local function rowGain(row)

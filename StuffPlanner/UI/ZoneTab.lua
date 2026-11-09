@@ -5,6 +5,7 @@
 -- S'inscrit par ns.MainFrame.addTab("zone", …). Rafraîchi à l'ouverture et sur SP_RESULTS_UPDATED
 -- (Results, après joueur, base ou profil changés) si la fenêtre est visible ; noms reçus du client : un
 -- rafraîchissement regroupé (NAME_DELAY s). Filtres sauvegardés dans StuffPlannerDB.ui.zoneFilters.
+-- Puces Meilleur gain (défaut) / Par emplacement (GearPresenter.sortBySlot, StuffPlannerDB.ui.zoneBySlot).
 -- Messages d'état (chargement, sans profil, zone inconnue, rien trouvé) au centre de la liste.
 -- Clic sur une ligne : fiche de la quête (QuestDetail) ou de l'instance (SourceDetail) ;
 -- Maj+clic : repère vers le donneur (quêtes) ;
@@ -24,7 +25,7 @@ local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
 local GAIN_WIDTH = 70
 local DIMMED_ALPHA = 0.5
 
-local panel, header, chipBar, scrollBox, emptyText
+local panel, header, chipBar, sortBar, scrollBox, emptyText
 local asked, refreshPending = {}, false
 local lastShown
 
@@ -150,6 +151,17 @@ local function refresh()
     local rows, message = computeRows()
     local state = filterState()
     local shown = rows and ns.Filters.apply(state, rows) or {}
+    local ui = StuffPlannerDB.ui
+    if ui.zoneBySlot then
+        shown = ns.GearPresenter.sortBySlot(shown)
+    end
+    sortBar:render({
+        { key = "slot", label = L.SORT_SLOT, active = ui.zoneBySlot == true },
+        { key = "gain", label = L.SORT_GAIN, active = not ui.zoneBySlot },
+    }, function(key)
+        StuffPlannerDB.ui.zoneBySlot = key == "slot" or nil
+        ns.MainFrame.refresh()
+    end)
     chipBar:render(rows and ns.Filters.chips(state, rows) or {}, function(key)
         ns.Filters.toggle(filterState(), key)
         ns.MainFrame.refresh()
@@ -172,7 +184,10 @@ local function create(parent)
     chipBar.frame:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
     chipBar.frame:SetPoint("RIGHT")
     scrollBox = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
-    scrollBox:SetPoint("TOPLEFT", chipBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    sortBar = ns.Chips.new(panel)
+    sortBar.frame:SetPoint("TOPLEFT", chipBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    sortBar.frame:SetPoint("RIGHT")
+    scrollBox:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
     scrollBox:SetPoint("BOTTOMRIGHT", -20, 0)
     local scrollBar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")
     scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, 0)
