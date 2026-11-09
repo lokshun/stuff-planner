@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.2 — 2026-11-09
+
+### Changes
+- Sort chips "By slot" / "Best gain" on the Zone, Route and Gear tabs. Best gain puts the biggest upgrades
+  first (within each level range on the Route tab); the choice is kept per tab. Zone stays sorted by gain by
+  default.
+
+### Fixes
+- Tab buttons no longer overflow the window with long labels (French, German, Russian…): they shrink to fit,
+  and a truncated label shows in full in a tooltip.
+
 ## 1.4.1 — 2026-11-08
 
 ### Changes
