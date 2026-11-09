@@ -112,6 +112,8 @@
   "GEAR_ROUTE": "Auf Eurer Stufe",
   "GEAR_FILTER_ALL": "Alle (%d)",
   "GEAR_FILTER_UPGRADES": "Verbesserungen (%d)",
+  "SORT_SLOT": "Nach Platz",
+  "SORT_GAIN": "Bester Gewinn",
   "GEAR_TOOLTIP_SCORE": "Wertung: %s",
   "GEAR_TOOLTIP_REPLACE": "Ersetzen durch:",
   "GEAR_CLICK_HINT": "Klick: Quelle - Umschalt-Klick: Wegpunkt - Strg-Klick: anprobieren",

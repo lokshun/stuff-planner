@@ -115,6 +115,8 @@
   "GEAR_ROUTE": "На вашем уровне",
   "GEAR_FILTER_ALL": "Все (%d)",
   "GEAR_FILTER_UPGRADES": "Улучшения (%d)",
+  "SORT_SLOT": "По ячейкам",
+  "SORT_GAIN": "Лучший прирост",
   "GEAR_TOOLTIP_SCORE": "Оценка: %s",
   "GEAR_TOOLTIP_REPLACE": "Заменить на:",
   "GEAR_CLICK_HINT": "Щелчок: источник - Shift+щелчок: точка маршрута - Ctrl+щелчок: примерить",

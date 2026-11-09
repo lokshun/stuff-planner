@@ -11,6 +11,8 @@
 --   ns.MainFrame.resetPosition() -> fenêtre recentrée
 -- Fermeture par Échap (OnKeyDown, sans nom global) ; cachée en combat, ouverte hors combat seulement.
 -- Créée au premier affichage : rien n'est construit tant que le joueur ne l'ouvre pas.
+-- Boutons d'onglet réduits (Theme.fitWidths) si les libellés dépassent la largeur : texte tronqué,
+-- libellé complet en info-bulle.
 
 local _, ns = ...
 
@@ -25,6 +27,8 @@ local TAB_LABELS = { zone = "TAB_ZONE", route = "TAB_ROUTE", gear = "TAB_GEAR", 
 local PORTRAIT = ns.ICON -- logo de l'addon
 local GEAR_ICON = "Interface\\Icons\\INV_Misc_Gear_01"
 local TOP_INSET, SIDE_INSET, BOTTOM_INSET = 60, 12, 12
+-- Boutons d'onglet : marge gauche (portrait), marge droite, rembourrage du texte, largeur minimale.
+local TAB_LEFT, TAB_RIGHT, TAB_PADDING, TAB_TEXT_INSET, TAB_MIN_WIDTH = 64, 10, 24, 12, 40
 
 local frame
 local tabs, panels, buttons = {}, {}, {}
@@ -120,22 +124,47 @@ local function onKeyDown(self, key)
     end
 end
 
+local function showLabel(button)
+    GameTooltip:SetOwner(button, "ANCHOR_TOP")
+    GameTooltip:SetText(button:GetText())
+    GameTooltip:Show()
+end
+
+local function fitTabButtons()
+    local widths = {}
+    for i, key in ipairs(TAB_KEYS) do
+        widths[i] = buttons[key]:GetFontString():GetStringWidth() + TAB_PADDING
+    end
+    local available = WIDTH - TAB_LEFT - TAB_RIGHT
+    local fitted, shrunk = ns.Theme.fitWidths(widths, available, ns.Theme.spacing.gap, TAB_MIN_WIDTH)
+    for i, key in ipairs(TAB_KEYS) do
+        local button = buttons[key]
+        button:SetWidth(fitted[i])
+        local text = button:GetFontString()
+        text:SetWordWrap(false)
+        text:SetWidth(shrunk and fitted[i] - TAB_TEXT_INSET or 0)
+        button:SetScript("OnEnter", shrunk and fitted[i] < widths[i] and showLabel or nil)
+        button:SetScript("OnLeave", shrunk and GameTooltip_Hide or nil)
+    end
+end
+
 local function createTabButtons()
     local previous
     for _, key in ipairs(TAB_KEYS) do
         local button = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
         button:SetText(L[TAB_LABELS[key]])
-        button:SetSize(button:GetFontString():GetStringWidth() + 24, 22)
+        button:SetHeight(22)
         if previous then
             button:SetPoint("LEFT", previous, "RIGHT", ns.Theme.spacing.gap, 0)
         else
-            button:SetPoint("TOPLEFT", frame, "TOPLEFT", 64, -30)
+            button:SetPoint("TOPLEFT", frame, "TOPLEFT", TAB_LEFT, -30)
         end
         button:SetScript("OnClick", function()
             selectTab(key)
         end)
         buttons[key], previous = button, button
     end
+    fitTabButtons()
 end
 
 local function create()

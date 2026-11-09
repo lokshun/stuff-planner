@@ -1,14 +1,15 @@
 -- CONTRAT
 -- Onglet « Parcours 1-60 » : meilleur objet par emplacement et par palier de niveau
 -- (RouteResults, RoutePresenter), ScrollBox avec en-têtes de palier. Charger après MainFrame.lua,
--- RouteResults.lua, RoutePresenter.lua et AltLines.lua.
+-- RouteResults.lua, RoutePresenter.lua, Chips.lua et AltLines.lua.
 -- S'inscrit par ns.MainFrame.addTab("route", …). Classement partagé (RouteResults), recalculé
 -- à l'affichage de l'onglet après SP_PLAYER_CHANGED, SP_DATA_READY ou SP_PROFILE_CHANGED :
 -- « calcul en cours » d'ici là ; rafraîchi sur SP_ROUTE_UPDATED ;
 -- noms reçus du client : nouvelle présentation regroupée (NAME_DELAY s), sans recalcul ; noms
 -- encore inconnus : nouvelle présentation toutes les RETRY_DELAY s, RETRY_MAX fois au plus.
 -- Paliers passés (référence, grisés) repliés par défaut : clic sur l'en-tête, état gardé dans
--- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}.
+-- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}. Puces Par emplacement / Meilleur gain sous
+-- l'en-tête : tri dans chaque palier (StuffPlannerDB.ui.routeByGain).
 -- Raids exclus. Clic sur une ligne de quête : fiche (QuestDetail) ; Maj+clic : repère ;
 -- donjon, artisanat : fiche de la source (SourceDetail). Objet sélectionné : cadre (RowActions.mark).
 -- Alternatives plus faciles (AltLines) : bouton flèche à droite (gain à sa gauche), sous-lignes sous la
@@ -23,7 +24,7 @@ local NAME_DELAY = 0.2
 local RETRY_DELAY, RETRY_MAX = 1, 10
 local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
 
-local panel, header, footer, scrollBox, emptyText
+local panel, header, sortBar, footer, scrollBox, emptyText
 local asked, refreshPending = {}, false
 local expanded = {}
 local retries, retryPending = 0, false
@@ -103,11 +104,16 @@ local function buildRow(button)
     button.highlight:SetColorTexture(1, 1, 1, 0.08)
 end
 
-local function pastOpen()
+local function uiState()
     StuffPlannerDB = StuffPlannerDB or {}
     StuffPlannerDB.ui = StuffPlannerDB.ui or {}
-    StuffPlannerDB.ui.routePastOpen = StuffPlannerDB.ui.routePastOpen or {}
-    return StuffPlannerDB.ui.routePastOpen
+    return StuffPlannerDB.ui
+end
+
+local function pastOpen()
+    local ui = uiState()
+    ui.routePastOpen = ui.routePastOpen or {}
+    return ui.routePastOpen
 end
 
 local function onRowClick(button)
@@ -183,7 +189,7 @@ local function initRow(button, row)
 end
 
 local function presentRows(result)
-    local rows = ns.RoutePresenter.build(result, ns.Data, pastOpen(), expanded)
+    local rows = ns.RoutePresenter.build(result, ns.Data, pastOpen(), expanded, uiState().routeByGain == true)
     local missing = false
     local function ask(row)
         if row.itemID and not askName("item", row.itemID) then
@@ -208,6 +214,14 @@ local function refresh()
     local message = not tiers and info or nil
     local rows = tiers and presentRows(tiers) or {}
     header:SetText(L.ROUTE_HEADER)
+    local byGain = uiState().routeByGain == true
+    sortBar:render({
+        { key = "slot", label = L.SORT_SLOT, active = not byGain },
+        { key = "gain", label = L.SORT_GAIN, active = byGain },
+    }, function(key)
+        uiState().routeByGain = key == "gain"
+        ns.MainFrame.refresh()
+    end)
     footer:SetText(tiers and L.ROUTE_FOOTER:format(info) or "")
     scrollBox:SetDataProvider(CreateDataProvider(rows))
     emptyText:SetText(#rows == 0 and (message or L.ROUTE_EMPTY) or "")
@@ -220,12 +234,15 @@ local function create(parent)
     header:SetPoint("TOPLEFT")
     header:SetPoint("RIGHT")
     header:SetJustifyH("LEFT")
+    sortBar = ns.Chips.new(panel)
+    sortBar.frame:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    sortBar.frame:SetPoint("RIGHT")
     footer = panel:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     footer:SetPoint("BOTTOMLEFT")
     footer:SetJustifyH("LEFT")
     setColor(footer, theme.colors.muted)
     scrollBox = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
-    scrollBox:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    scrollBox:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
     scrollBox:SetPoint("BOTTOMRIGHT", -20, 18)
     local scrollBar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")
     scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, 0)

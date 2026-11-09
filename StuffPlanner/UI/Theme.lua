@@ -8,6 +8,8 @@
 --   ns.Theme.fonts.<rôle> -> nom d'objet de police du client ; rôles : title, header, body, small, number
 --   ns.Theme.spacing.<nom> -> pixels ; noms : padding, gap, rowHeight, iconSize, border
 --   ns.Theme.arrows.up / down -> "▲" / "▼"
+--   ns.Theme.fitWidths(widths, available, gap, minWidth?) -> widths', shrunk : largeurs réduites au prorata
+--     (arrondies vers le bas, minWidth au plus bas) pour que somme + écarts tienne dans available
 -- Tables partagées : ne pas les modifier.
 
 local _, ns = ...
@@ -81,4 +83,20 @@ end
 
 function Theme.colorize(text, color)
     return "|c" .. Theme.hex(color) .. text .. "|r"
+end
+
+function Theme.fitWidths(widths, available, gap, minWidth)
+    local total = 0
+    for _, width in ipairs(widths) do
+        total = total + width
+    end
+    local room = available - gap * math.max(#widths - 1, 0)
+    if total <= room then
+        return widths, false
+    end
+    local fitted, ratio = {}, room / total
+    for i, width in ipairs(widths) do
+        fitted[i] = math.max(math.floor(width * ratio), minWidth or 0)
+    end
+    return fitted, true
 end

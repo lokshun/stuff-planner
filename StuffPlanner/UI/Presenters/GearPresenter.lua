@@ -26,6 +26,8 @@
 --              expandKey = slot, expanded = expanded[slot] == true
 --   ns.GearPresenter.summary(rows) -> {count, total, text} (L.GEAR_SUMMARY | L.GEAR_NONE)
 --   ns.GearPresenter.filter(rows, onlyUpgrades) -> lignes avec upgrade ou raid (toutes si faux), ordre gardé
+--   ns.GearPresenter.sortByGain(rows) -> copie triée : plus fort gain (upgradeGain ou raidGain) d'abord,
+--     lignes sans gain ensuite, ordre de la fiche à égalité
 --   ns.GearPresenter.slotName(slot) -> nom de chaîne globale de l'emplacement ("BACKSLOT") | nil
 
 local _, ns = ...
@@ -239,4 +241,23 @@ function GearPresenter.filter(rows, onlyUpgrades)
         end
     end
     return kept
+end
+
+local function rowGain(row)
+    return math.max(row.upgradeGain or 0, row.raidGain or 0)
+end
+
+function GearPresenter.sortByGain(rows)
+    local sorted, position = {}, {}
+    for i, row in ipairs(rows) do
+        sorted[i], position[row] = row, i
+    end
+    table.sort(sorted, function(a, b)
+        local gainA, gainB = rowGain(a), rowGain(b)
+        if gainA ~= gainB then
+            return gainA > gainB
+        end
+        return position[a] < position[b]
+    end)
+    return sorted
 end

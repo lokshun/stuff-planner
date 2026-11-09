@@ -1,7 +1,8 @@
 -- CONTRAT
 -- Lignes de l'onglet Parcours. Pur : aucun appel d'API.
 -- Charger après RowPresenter.lua et GearPresenter.lua.
---   ns.RoutePresenter.build(tiers, data, open?, expanded?) -> {row...}, tiers = Tiers.build
+--   ns.RoutePresenter.build(tiers, data, open?, expanded?, byGain?) -> {row...}, tiers = Tiers.build ;
+--     byGain : lignes de chaque palier par gain (delta.abs) décroissant, sinon ordre de la fiche
 --     en-tête de palier : {header = true, text = L.ROUTE_TIER ("Levels 1-10") | L.ROUTE_TIER_MAX}
 --     palier passé (tier.past) : en-tête + toggle = tier.min, texte « [+] » (replié) ou « [-] » (ouvert,
 --       open[tier.min] vrai) devant L.ROUTE_PAST ; lignes seulement si ouvert
@@ -71,14 +72,35 @@ local function itemRow(entry, data, past, tier, expanded)
     return row
 end
 
-function RoutePresenter.build(tiers, data, open, expanded)
+local function gainOf(entry)
+    return entry.delta and entry.delta.abs or 0
+end
+
+local function ordered(entries, byGain)
+    if not byGain then
+        return entries
+    end
+    local sorted, position = {}, {}
+    for i, entry in ipairs(entries) do
+        sorted[i], position[entry] = entry, i
+    end
+    table.sort(sorted, function(a, b)
+        if gainOf(a) ~= gainOf(b) then
+            return gainOf(a) > gainOf(b)
+        end
+        return position[a] < position[b]
+    end)
+    return sorted
+end
+
+function RoutePresenter.build(tiers, data, open, expanded, byGain)
     open, expanded = open or {}, expanded or {}
     local rows = {}
     for _, tier in ipairs(tiers) do
         local shown = not tier.past or open[tier.min] == true
         rows[#rows + 1] = header(tier, shown)
         if shown then
-            for _, entry in ipairs(tier.entries) do
+            for _, entry in ipairs(ordered(tier.entries, byGain)) do
                 rows[#rows + 1] = itemRow(entry, data, tier.past, tier, expanded)
             end
         end

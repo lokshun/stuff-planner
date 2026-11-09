@@ -5,7 +5,8 @@
 -- S'inscrit par ns.MainFrame.addTab("gear", …). Rafraîchi à l'ouverture ; les messages
 -- SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED, SP_ROUTE_UPDATED passent par ns.MainFrame.refresh.
 -- En-tête : profil actif, résumé (GearPresenter.summary), puces Tous / Améliorations
---   (StuffPlannerDB.ui.gearOnlyUpgrades).
+--   (StuffPlannerDB.ui.gearOnlyUpgrades) ; puces Par emplacement / Meilleur gain (StuffPlannerDB.ui.gearByGain,
+--   GearPresenter.sortByGain).
 -- Lignes : UI/GearRows.lua (40 px, 56 avec une ligne raid, + alternatives dépliées : AltLines) ; état
 -- déplié local (non gardé), par emplacement.
 -- Objets portés absents de la base : stats lues par Compat.GetItemStats + StatParser.fromApi.
@@ -18,7 +19,7 @@ local MAX_ZONE_ENTRIES = 100
 local NAME_DELAY = 0.2
 local expanded = {}
 
-local profileText, summaryText, chipBar, footer, scrollBox
+local profileText, summaryText, chipBar, sortBar, footer, scrollBox
 local asked, refreshPending = {}, false
 
 local function scheduleRefresh()
@@ -119,7 +120,16 @@ local function refresh()
         uiState().gearOnlyUpgrades = key == "upgrades"
         ns.MainFrame.refresh()
     end)
-    scrollBox:SetDataProvider(CreateDataProvider(ns.GearPresenter.filter(rows, only)))
+    local byGain = ui.gearByGain == true
+    sortBar:render({
+        { key = "slot", label = L.SORT_SLOT, active = not byGain },
+        { key = "gain", label = L.SORT_GAIN, active = byGain },
+    }, function(key)
+        uiState().gearByGain = key == "gain"
+        ns.MainFrame.refresh()
+    end)
+    local shown = ns.GearPresenter.filter(rows, only)
+    scrollBox:SetDataProvider(CreateDataProvider(byGain and ns.GearPresenter.sortByGain(shown) or shown))
 end
 
 local function create(parent)
@@ -137,6 +147,9 @@ local function create(parent)
     chipBar = ns.Chips.new(panel)
     chipBar.frame:SetPoint("TOPLEFT", summaryText, "BOTTOMLEFT", 0, -theme.spacing.gap)
     chipBar.frame:SetPoint("RIGHT")
+    sortBar = ns.Chips.new(panel)
+    sortBar.frame:SetPoint("TOPLEFT", chipBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    sortBar.frame:SetPoint("RIGHT")
     footer = panel:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     footer:SetPoint("BOTTOMLEFT")
     footer:SetPoint("RIGHT")
@@ -144,7 +157,7 @@ local function create(parent)
     footer:SetText(L.GEAR_CLICK_HINT)
     setColor(footer, theme.colors.muted)
     scrollBox = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
-    scrollBox:SetPoint("TOPLEFT", chipBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    scrollBox:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
     scrollBox:SetPoint("BOTTOM", footer, "TOP", 0, theme.spacing.gap)
     scrollBox:SetPoint("RIGHT", -20, 0)
     local scrollBar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")

@@ -111,6 +111,8 @@
   "GEAR_ROUTE": "你的等级",
   "GEAR_FILTER_ALL": "全部（%d）",
   "GEAR_FILTER_UPGRADES": "提升（%d）",
+  "SORT_SLOT": "按部位",
+  "SORT_GAIN": "最佳提升",
   "GEAR_TOOLTIP_SCORE": "评分：%s",
   "GEAR_TOOLTIP_REPLACE": "替换为：",
   "GEAR_CLICK_HINT": "点击：来源 - Shift+点击：路径点 - Ctrl+点击：试穿",

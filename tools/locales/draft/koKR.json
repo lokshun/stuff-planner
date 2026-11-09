@@ -111,6 +111,8 @@
   "GEAR_ROUTE": "현재 레벨에서",
   "GEAR_FILTER_ALL": "전체 (%d)",
   "GEAR_FILTER_UPGRADES": "강화 (%d)",
+  "SORT_SLOT": "부위순",
+  "SORT_GAIN": "최고 향상순",
   "GEAR_TOOLTIP_SCORE": "점수: %s",
   "GEAR_TOOLTIP_REPLACE": "교체 대상:",
   "GEAR_CLICK_HINT": "클릭: 획득처 - Shift+클릭: 웨이포인트 - Ctrl+클릭: 착용해 보기",

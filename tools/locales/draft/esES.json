@@ -111,6 +111,8 @@
   "GEAR_ROUTE": "A tu nivel",
   "GEAR_FILTER_ALL": "Todo (%d)",
   "GEAR_FILTER_UPGRADES": "Mejoras (%d)",
+  "SORT_SLOT": "Por ranura",
+  "SORT_GAIN": "Mejor ganancia",
   "GEAR_TOOLTIP_SCORE": "Puntuación: %s",
   "GEAR_TOOLTIP_REPLACE": "Sustituir por:",
   "GEAR_CLICK_HINT": "Clic: fuente - Mayús+clic: marcador - Ctrl+clic: probar",

@@ -111,6 +111,8 @@
   "GEAR_ROUTE": "No seu nível",
   "GEAR_FILTER_ALL": "Todos (%d)",
   "GEAR_FILTER_UPGRADES": "Aprimoramentos (%d)",
+  "SORT_SLOT": "Por espaço",
+  "SORT_GAIN": "Maior ganho",
   "GEAR_TOOLTIP_SCORE": "Pontuação: %s",
   "GEAR_TOOLTIP_REPLACE": "Substituir por:",
   "GEAR_CLICK_HINT": "Clique: fonte - Shift+clique: ponto de referência - Ctrl+clique: provar",
