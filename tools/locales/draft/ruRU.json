@@ -249,5 +249,12 @@
   "FOLLOW_OBJECTIVE_ANY": "Выполнить цель",
   "FOLLOW_TURNIN": "Сдать: %s",
   "FOLLOW_TURNIN_ANY": "Сдать задание",
-  "FOLLOW_DONE": "Stuff Planner: цепочка заданий завершена (%s)."
+  "FOLLOW_DONE": "Stuff Planner: цепочка заданий завершена (%s).",
+  "FOLLOW_UNPLACED": "место неизвестно",
+  "FOLLOW_STEP_HINT": "Щелчок: стрелка к этому шагу и карта",
+  "FOLLOW_QUEST_HINT": "Щелчок: описание задания",
+  "FOLLOW_CLOSE_HINT": "Не следовать",
+  "OPTIONS_SECTION_FOLLOW": "Следование по цепочке заданий",
+  "OPTION_FOLLOW_WINDOW": "Показывать окно шагов",
+  "OPTION_FOLLOW_LOCKED": "Закрепить окно шагов"
 }

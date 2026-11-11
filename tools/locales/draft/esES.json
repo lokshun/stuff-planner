@@ -246,5 +246,12 @@
   "FOLLOW_OBJECTIVE_ANY": "Cumplir el objetivo",
   "FOLLOW_TURNIN": "Entregar: %s",
   "FOLLOW_TURNIN_ANY": "Entregar la misión",
-  "FOLLOW_DONE": "Stuff Planner: cadena de misiones completada (%s)."
+  "FOLLOW_DONE": "Stuff Planner: cadena de misiones completada (%s).",
+  "FOLLOW_UNPLACED": "ubicación desconocida",
+  "FOLLOW_STEP_HINT": "Clic: flecha a este paso y mapa",
+  "FOLLOW_QUEST_HINT": "Clic: detalles de la misión",
+  "FOLLOW_CLOSE_HINT": "Dejar de seguir",
+  "OPTIONS_SECTION_FOLLOW": "Seguimiento de cadena de misiones",
+  "OPTION_FOLLOW_WINDOW": "Mostrar la ventana de pasos",
+  "OPTION_FOLLOW_LOCKED": "Bloquear la ventana de pasos"
 }

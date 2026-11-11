@@ -245,5 +245,12 @@
   "FOLLOW_OBJECTIVE_ANY": "完成目标",
   "FOLLOW_TURNIN": "交付：%s",
   "FOLLOW_TURNIN_ANY": "交付任务",
-  "FOLLOW_DONE": "Stuff Planner：任务链已完成（%s）。"
+  "FOLLOW_DONE": "Stuff Planner：任务链已完成（%s）。",
+  "FOLLOW_UNPLACED": "位置未知",
+  "FOLLOW_STEP_HINT": "点击：箭头指向此步骤并打开地图",
+  "FOLLOW_QUEST_HINT": "点击：任务详情",
+  "FOLLOW_CLOSE_HINT": "停止跟随",
+  "OPTIONS_SECTION_FOLLOW": "任务链跟随",
+  "OPTION_FOLLOW_WINDOW": "显示步骤窗口",
+  "OPTION_FOLLOW_LOCKED": "锁定步骤窗口"
 }

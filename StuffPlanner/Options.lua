@@ -34,6 +34,8 @@ local CATALOG = {
     { key = "arrow.arrival", default = 10, min = 5, max = 30, step = 1, path = { "ui", "arrow", "arrival" } },
     { key = "arrow.color", default = "direction", values = { "direction", "gold" }, path = { "ui", "arrow", "color" } },
     { key = "arrow.locked", default = false, path = { "ui", "arrow", "locked" } },
+    { key = "follow.window", default = true, invert = true, path = { "ui", "follow", "hidden" } },
+    { key = "follow.locked", default = false, path = { "ui", "follow", "locked" } },
     { key = "waypoint.preferTomTom", default = true, invert = true, path = { "ui", "waypointNoTomTom" } },
 }
 

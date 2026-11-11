@@ -1,10 +1,11 @@
 -- CONTRAT
 -- Panneau de réglages dans Échap > Options > AddOns (ns.Compat.RegisterOptionsPanel).
--- Charger après OptionsWidgets.lua, MainFrame.lua, MiniTracker.lua, Arrow.lua et Onboarding.lua.
+-- Charger après OptionsWidgets.lua, MainFrame.lua, MiniTracker.lua, FollowWindow.lua, Arrow.lua et
+-- Onboarding.lua.
 --   ns.OptionsPanel.open() -> ouvre le panneau (hors combat ; fenêtre principale cachée)
 -- Contenu construit au premier affichage, dans un cadre défilant ; contrôles relus à chaque affichage
 -- et sur SP_OPTION_CHANGED (commandes /splan pris en compte). Sections : fenêtre, info-bulles,
--- mini-suivi, carte, flèche et repère. Commandes : /splan options, /splan config.
+-- mini-suivi, carte, flèche et repère, suivi de suite de quêtes. Commandes : /splan options, /splan config.
 
 local _, ns = ...
 
@@ -43,6 +44,7 @@ local function resetPositions()
     ns.MainFrame.resetPosition()
     ns.MiniTracker.resetPosition()
     ns.Arrow.resetPosition()
+    ns.FollowWindow.resetPosition()
 end
 
 local function welcome()
@@ -81,6 +83,9 @@ local function layout()
             { "direction", L.OPTIONS_COLOR_DIRECTION },
             { "gold", L.OPTIONS_COLOR_GOLD },
         }),
+        W.header(nil, L.OPTIONS_SECTION_FOLLOW),
+        W.checkbox(nil, "follow.window", labelOf("follow.window")),
+        W.checkbox(nil, "follow.locked", labelOf("follow.locked")),
     }
 end
 

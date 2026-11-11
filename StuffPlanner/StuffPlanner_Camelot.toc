@@ -78,6 +78,7 @@ UI\Theme.lua
 UI\Presenters\RowPresenter.lua
 UI\Presenters\Filters.lua
 UI\Presenters\TrackerPresenter.lua
+UI\Presenters\FollowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
 UI\Presenters\GearPresenter.lua
 UI\Presenters\ProfilePresenter.lua
@@ -113,6 +114,8 @@ UI\WaypointButton.lua
 UI\QuestDetail.lua
 UI\SourceDetail.lua
 UI\MapPins.lua
+UI\FloatingFrame.lua
+UI\FollowWindow.lua
 UI\OptionsWidgets.lua
 UI\OptionsPanel.lua
 UI\MinimapButton.lua

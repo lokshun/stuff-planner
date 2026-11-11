@@ -7,6 +7,8 @@
 --   ns.Follow.current() -> questID final suivi | nil ; ns.Follow.view() -> dernier FollowSteps.build | nil
 --   ns.Follow.owns(key) -> bool : repère `key` posé par le suivi (Waypoint.reached le garde)
 --   ns.Follow.refresh() -> recalcule les étapes (hors combat, sinon à la fin du combat)
+--   ns.Follow.aim(index) -> bool : repère sur view.steps[index] (placé), gardé jusqu'au changement de
+--     l'étape courante ; ns.Follow.objective(questID) -> texte du 1er objectif non fini | nil
 -- Repère de l'étape courante : Waypoint.set(mapID, x, y, nom de la quête, questID, libellé d'étape, npcID) ;
 --   libellé L.FOLLOW_PICKUP/OBJECTIVE/TURNIN (PNJ, 1er objectif non fini) ou leur variante _ANY ;
 --   posé seulement si l'étape change ; étape sans position : repère retiré, suivi gardé.
@@ -14,7 +16,8 @@
 --   bouton Retirer) : stop.
 -- Sauvegarde StuffPlannerCharDB.follow = {questID}, reprise à SP_DATA_READY.
 -- Recalcul sur QUEST_ACCEPTED, QUEST_TURNED_IN, QUEST_REMOVED, QUEST_LOG_UPDATE, PLAYER_LEVEL_UP (regroupés
---   sur BUCKET s), SP_QUEST_LOG_CHANGED. Message SP_FOLLOW_CHANGED à chaque début, fin ou changement d'étape.
+--   sur BUCKET s), SP_QUEST_LOG_CHANGED. Message SP_FOLLOW_CHANGED à chaque début, fin ou changement d'étape ;
+--   SP_FOLLOW_UPDATED après chaque recalcul (progression des objectifs).
 
 local _, ns = ...
 
@@ -26,7 +29,7 @@ ns.Follow = Follow
 local BUCKET = 0.5
 local EVENTS = { "QUEST_ACCEPTED", "QUEST_TURNED_IN", "QUEST_REMOVED", "QUEST_LOG_UPDATE", "PLAYER_LEVEL_UP" }
 
-local view, placedKey, placedStep, placing, waiting, announce
+local view, placedKey, placedStep, placing, waiting, announce, currentKey, aimed
 
 local function saved()
     StuffPlannerCharDB = StuffPlannerCharDB or {}
@@ -58,13 +61,22 @@ local function state()
     }
 end
 
-local function objectiveText(questID)
+function Follow.objective(questID)
     for _, objective in ipairs(ns.Compat.QuestObjectives(questID)) do
         if not objective.finished and objective.text then
-            return L.FOLLOW_OBJECTIVE:format(objective.text)
+            return objective.text
         end
     end
-    return L.FOLLOW_OBJECTIVE_ANY
+    return nil
+end
+
+local function objectiveText(questID)
+    local text = Follow.objective(questID)
+    return text and L.FOLLOW_OBJECTIVE:format(text) or L.FOLLOW_OBJECTIVE_ANY
+end
+
+local function keyOf(step)
+    return step and (step.questID .. ":" .. step.kind) or nil
 end
 
 local LABELS = {
@@ -90,7 +102,7 @@ local function clearMark()
 end
 
 local function place(step)
-    local stepKey = step.questID .. ":" .. step.kind
+    local stepKey = keyOf(step)
     if stepKey == placedStep and ns.Waypoint.has(placedKey) then
         return false
     end
@@ -123,17 +135,23 @@ local function compute()
         return
     end
     local step = view.current and view.steps[view.current]
-    local before = placedStep
-    if step and step.mapID then
-        place(step)
-    else
-        clearMark()
-        placedStep = step and (step.questID .. ":" .. step.kind) or nil
+    local key = keyOf(step)
+    if aimed and aimed.key ~= key then
+        aimed = nil
     end
-    if placedStep ~= before or announce then
-        announce = false
+    if not aimed then
+        if step and step.mapID then
+            place(step)
+        else
+            clearMark()
+            placedStep = key
+        end
+    end
+    if key ~= currentKey or announce then
+        currentKey, announce = key, false
         ns:Send("SP_FOLLOW_CHANGED")
     end
+    ns:Send("SP_FOLLOW_UPDATED")
 end
 
 function Follow.refresh()
@@ -157,13 +175,23 @@ function Follow.owns(key)
     return key ~= nil and key == placedKey
 end
 
+function Follow.aim(index)
+    local step = Follow.view() and view.steps[index]
+    if not (step and step.mapID) then
+        return false
+    end
+    place(step)
+    aimed = { key = currentKey }
+    return true
+end
+
 function Follow.start(questID)
     if not (questID and ns.Data.quest(questID)) then
         return
     end
     clearMark()
     save(questID)
-    view, announce = nil, true
+    view, announce, currentKey, aimed = nil, true, nil, nil
     Follow.refresh()
 end
 
@@ -172,7 +200,7 @@ function Follow.stop()
         return
     end
     save(nil)
-    view = nil
+    view, currentKey, aimed = nil, nil, nil
     clearMark()
     ns:Send("SP_FOLLOW_CHANGED")
 end

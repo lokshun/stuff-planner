@@ -245,5 +245,12 @@
   "FOLLOW_OBJECTIVE_ANY": "목표 달성",
   "FOLLOW_TURNIN": "완료: %s",
   "FOLLOW_TURNIN_ANY": "퀘스트 완료",
-  "FOLLOW_DONE": "Stuff Planner: 연계 퀘스트 완료 (%s)."
+  "FOLLOW_DONE": "Stuff Planner: 연계 퀘스트 완료 (%s).",
+  "FOLLOW_UNPLACED": "위치 알 수 없음",
+  "FOLLOW_STEP_HINT": "클릭: 이 단계로 화살표 및 지도",
+  "FOLLOW_QUEST_HINT": "클릭: 퀘스트 상세 정보",
+  "FOLLOW_CLOSE_HINT": "따라가기 중지",
+  "OPTIONS_SECTION_FOLLOW": "연계 퀘스트 따라가기",
+  "OPTION_FOLLOW_WINDOW": "단계 창 표시",
+  "OPTION_FOLLOW_LOCKED": "단계 창 잠금"
 }
