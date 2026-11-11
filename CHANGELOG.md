@@ -6,6 +6,7 @@
 - The data collector now only keeps equippable loot (grey items, cloth and other junk are ignored), at most
   20 loot records per creature. Existing saved data is cleaned once on load: smaller saved variables and
   shorter `/splan export` strings.
+- Two unused libraries (AceDB-3.0, AceConsole-3.0) are no longer shipped.
 
 ## 1.5.0 — 2026-11-11
 

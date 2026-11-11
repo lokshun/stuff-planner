@@ -9,11 +9,12 @@ LDB_COMMIT=1a63ede0248c11aa1ee415187c1f9c9489ce3e02        # v1.1.4
 HBD_COMMIT=90a7b2d8c065010dfb866e2b6bd56f5bc930029b        # 2.18-release
 LIBDBICON_REV=168                                          # SVN WowAce, MINOR 57
 
-ACE3_LIBS="LibStub CallbackHandler-1.0 AceAddon-3.0 AceBucket-3.0 AceConsole-3.0 AceDB-3.0 AceEvent-3.0 AceLocale-3.0 AceSerializer-3.0 AceTimer-3.0"
+ACE3_LIBS="LibStub CallbackHandler-1.0 AceAddon-3.0 AceBucket-3.0 AceEvent-3.0 AceLocale-3.0 AceSerializer-3.0 AceTimer-3.0"
 
 LIBS_DIR=StuffPlanner/Libs
 STAMP="$LIBS_DIR/.versions"
-WANTED="ace3=$ACE3_COMMIT libdeflate=$LIBDEFLATE_COMMIT ldb=$LDB_COMMIT hbd=$HBD_COMMIT libdbicon=$LIBDBICON_REV"
+# La liste des bibliothèques Ace3 fait partie du marqueur : en retirer une force un nouveau téléchargement.
+WANTED="ace3=$ACE3_COMMIT acelibs=$(echo "$ACE3_LIBS" | tr ' ' ',') libdeflate=$LIBDEFLATE_COMMIT ldb=$LDB_COMMIT hbd=$HBD_COMMIT libdbicon=$LIBDBICON_REV"
 
 if [ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$WANTED" ]; then
     exit 0
