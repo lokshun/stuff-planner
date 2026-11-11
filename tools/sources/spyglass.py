@@ -4,7 +4,8 @@ Importe butins et stats observées sur Forever depuis WoW-Spyglass (MIT), dossie
   fetch(cache_dir, opener=None) -> dossier cache_dir/COMMIT complété ; RuntimeError si réseau en échec
   load_drops(source_dir) -> (drops, instances), sans réseau
     drops = [{"item", "instance", "raid", "chance", "npc"}, ...] ; chance en %, npc nil hors boss
-    instances = {mapID d'instance: {"id", "minLevel", "maxLevel", "reqLevel", "mapID", "raid"}}
+    instances = {mapID d'instance: {"id", "minLevel", "maxLevel", "reqLevel", "mapID", "raid", "bosses"}} ;
+    bosses = [npcID...] dans l'ordre des rencontres (`encounters`), absent si aucune n'a de PNJ
   load_scan(source_dir) -> {itemID: {"quality", "ilvl", "reqLevel", "stats"}}
   convert_stats(raw) -> stats en clés internes ; clés inconnues ignorées
 Butin saisi à la main ou observé en jeu par les auteurs : couverture partielle, surtout sans taux.
@@ -105,6 +106,13 @@ def _instance(document, raid):
         "mapID": document.get("zone"),
         "raid": raid,
     }
+    bosses = []
+    for encounter in document.get("encounters") or ():
+        npc = encounter.get("npc")
+        if isinstance(npc, int) and npc not in bosses:
+            bosses.append(npc)
+    if bosses:
+        record["bosses"] = bosses
     return {field: value for field, value in record.items() if value is not None}
 
 

@@ -8,7 +8,7 @@ Précalculs à partir des enregistrements importés.
   merge_drops(primary, secondary) -> butins triés ; pour un même objet dans une même instance,
     `primary` l'emporte (il a les taux)
   merge_instances(primary, secondary) -> enregistrements `instances` triés ; secondary prime pour
-    `mapID`, les niveaux couvrent les deux
+    `mapID`, les niveaux couvrent les deux ; `bosses` de primary s'il en a (liste complète), sinon de secondary
   enrich_items(items, scan) -> copie ; ajoute DPS et SPELL_POWER des scans, absents des tables client
   hidden_items(ids, bases, scan, era) -> enregistrements `items` des objets masqués du client :
     scan d'abord (source spyglass, confidence 2), sinon Classic Era (source classic_era, confidence 1)
@@ -99,6 +99,10 @@ def merge_instances(primary, secondary):
         second = secondary.get(instance_id, {})
         merged = {**first, **second}
         _merge_levels(merged, first, second)
+        bosses = first.get("bosses") or second.get("bosses")
+        merged.pop("bosses", None)
+        if bosses:
+            merged["bosses"] = bosses
         records.append(merged)
     return records
 

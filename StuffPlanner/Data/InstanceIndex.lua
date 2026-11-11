@@ -5,6 +5,8 @@
 --     (champ mapID de l'instance) ; instance sans entrée connue : absente
 --   ns.Data.instanceItems(instanceID) -> {itemID...} trié, une fois chacun : objets ayant une
 --     origine donjon ou raid de cette instance (objets masqués compris, Data.item(id) nil)
+--   ns.Data.instanceBosses(instanceID) -> {npcID...} dans l'ordre du donjon (champ bosses) ; vide si
+--     inconnu
 -- Réservé à Loader : indexInstance(id) pour chaque db.Instances, indexOrigin(itemID) pour chaque
 --   db.Origins, avant Data.finish (qui trie). Data.attach efface l'index.
 -- Tables renvoyées partagées : ne pas les modifier. Aucun appel d'API.
@@ -79,4 +81,9 @@ end
 
 function Data.instanceItems(instanceID)
     return byInstance[instanceID] or EMPTY
+end
+
+function Data.instanceBosses(instanceID)
+    local instance = Data.instance(instanceID)
+    return instance and instance.bosses or EMPTY
 end

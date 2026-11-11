@@ -15,11 +15,13 @@ Version 8 : table `eraItems` (quality, ilvl, reqLevel, stats) : objets communs d
 Version 9 : `instance` (instanceID | nil) en fin de quests : quête de donjon ou de raid (zone de la quête).
 Version 10 : `ender` (npcID | nil), `objMap`, `objX`, `objY` (lieu d'objectif, fraction 0–1 | nil) en fin de
   quests (suivi des suites, sources/quest_steps.py) ; `npcs` couvre donneurs et PNJ de rendu.
+Version 11 : `bosses` ({npcID...} | nil) en fin d'instances : boss dans l'ordre du donjon (NorgannonDB,
+  sinon Spyglass).
 quests.prereq : quêtes toutes requises ; un élément liste signifie « l'une de celles-ci ».
 Aucun nom de quête ou d'objet ici : ils viennent du client.
 """
 
-VERSION = 10
+VERSION = 11
 
 FIELDS = {
     "quests": (
@@ -56,7 +58,7 @@ FIELDS = {
         "forever",
     ),
     "origins": ("entries",),
-    "instances": ("minLevel", "maxLevel", "reqLevel", "mapID", "size", "raid"),
+    "instances": ("minLevel", "maxLevel", "reqLevel", "mapID", "size", "raid", "bosses"),
     "npcs": ("mapID", "x", "y"),
     "eraItems": ("quality", "ilvl", "reqLevel", "stats"),
 }
@@ -65,7 +67,7 @@ OPTIONAL = {
     "quests": frozenset({"mapID", "classMask", "raceMask", "forever", "starter", "instance", "ender", "objMap", "objX", "objY"}),
     "items": frozenset({"slot", "classMask", "icon", "forever"}),
     "origins": frozenset(),
-    "instances": frozenset({"minLevel", "maxLevel", "reqLevel", "mapID", "size"}),
+    "instances": frozenset({"minLevel", "maxLevel", "reqLevel", "mapID", "size", "bosses"}),
     "npcs": frozenset(),
     "eraItems": frozenset(),
 }

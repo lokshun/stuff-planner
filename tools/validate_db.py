@@ -4,7 +4,7 @@ Valide les enregistrements de la base avant écriture ; aucune lecture de fichie
   Finding : category, blocking, count, examples (3 identifiants triés au plus)
   report_lines(findings) -> une ligne par catégorie
 Bloquant : doublons, origine sans cible, prérequis négatif ou sur soi-même, niveau < 1, niveaux
-d'instance inversés, donneur ou PNJ de rendu absent de `npcs`, position ou lieu d'objectif hors de [0, 1]. Le reste signale des manques connus des sources, sans arrêter la construction.
+d'instance inversés, boss en double dans l'ordre, donneur ou PNJ de rendu absent de `npcs`, position ou lieu d'objectif hors de [0, 1]. Le reste signale des manques connus des sources, sans arrêter la construction.
 """
 
 from collections import Counter
@@ -114,13 +114,31 @@ def _item_checks(tables):
 
 
 def _instance_checks(tables):
+    instances = tables["instances"]
     yield "niveaux d'instance inversés", True, [
         record["id"]
-        for record in tables["instances"]
+        for record in instances
         if record.get("minLevel") is not None
         and record.get("maxLevel") is not None
         and record["minLevel"] > record["maxLevel"]
     ]
+    yield "boss en double dans l'ordre", True, [
+        record["id"] for record in instances if len(set(record.get("bosses") or ())) != len(record.get("bosses") or ())
+    ]
+    yield "instances sans ordre de boss", False, [record["id"] for record in instances if not record.get("bosses")]
+    yield "boss à butin hors de l'ordre", False, sorted(_unordered_bosses(tables))
+
+
+def _unordered_bosses(tables):
+    ordered = {record["id"]: set(record.get("bosses") or ()) for record in tables["instances"]}
+    kinds = (schema.ORIGIN_KINDS["dungeon"], schema.ORIGIN_KINDS["raid"])
+    found = set()
+    for origin in tables["origins"]:
+        for entry in origin["entries"]:
+            npc = entry[3] if len(entry) > 3 else None
+            if entry[0] in kinds and npc and entry[1] in ordered and ordered[entry[1]] and npc not in ordered[entry[1]]:
+                found.add(entry[1])
+    return found
 
 
 def _npc_checks(tables):

@@ -5,7 +5,8 @@ Importe le butin des boss des instances Classic depuis NorgannonDB (GPL-3.0), sa
   load(source_dir, npc_zones=None) -> (drops, instances), sans réseau ; npc_zones = {npcID: zone}
     drops = [{"item", "instance", "raid", "chance", "npc"}, ...], triés ; chance en %
     npc nil : butin hors boss de l'instance, une ligne au meilleur taux par monstre
-    instances = {mapID d'instance: {"id", "minLevel", "maxLevel", "mapID", "size", "raid"}}
+    instances = {mapID d'instance: {"id", "minLevel", "maxLevel", "mapID", "size", "raid", "bosses"}} ;
+    bosses = [npcID...] dans l'ordre de la liste `bosses` de la source, ailes à la suite (ordre des clés)
   area_instances(source_dir) -> {areaID: instanceID} des instances gardées par load (zone d'instance)
 Seules sont gardées les lignes à taux réel, sur un identifiant d'objet Classic, hors instance
 Forever : le contenu issu de DungeonJournal n'est autorisé qu'à l'auteur de NorgannonDB, et les
@@ -70,6 +71,12 @@ def _merge_wing(instances, instance_id, data, maps):
     if "min" in levels:
         current["minLevel"] = min(current["minLevel"], levels["min"])
         current["maxLevel"] = max(current["maxLevel"], levels["max"])
+    bosses = current.setdefault("bosses", [])
+    listed = data.get("bosses") or {}
+    for boss in (listed[key] for key in sorted(listed)) if isinstance(listed, dict) else listed:
+        npc = boss.get("id") if isinstance(boss, dict) else None
+        if isinstance(npc, int) and npc not in bosses:
+            bosses.append(npc)
 
 
 def _boss_drops(data, instance_id, npc_drops):
