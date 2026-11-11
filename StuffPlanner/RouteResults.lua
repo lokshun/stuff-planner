@@ -1,6 +1,7 @@
 -- CONTRAT
 -- Classement du Parcours 1-60 (Planner, Tiers) partagé par les onglets Parcours et Équipement.
--- Charger après Engine/Planner.lua, Engine/Tiers.lua, Data/Loader.lua et Profiles/Manager.lua.
+-- Charger après Engine/Planner.lua, Engine/Tiers.lua, Data/Loader.lua, Profiles/Manager.lua et Results.lua.
+-- Instantané du joueur : ns.Results.player() (partagé, cache de Scoring commun).
 --   ns.RouteResults.get() -> tiers (Tiers.build, paliers passés compris), evaluated (objets évalués) | nil, message
 --     (L.ROUTE_COMPUTING | BEST_NOT_READY | BEST_NO_PROFILE) ; lance le calcul s'il manque
 --   ns.RouteResults.current(level) -> entrées, alternatives du palier contenant level (Tiers.current)
@@ -102,7 +103,7 @@ function RouteResults.get()
         return nil, L.BEST_NO_PROFILE
     end
     dirty, tiers = false, nil
-    local player = ns.Player.snapshot()
+    local player = ns.Results.player() or ns.Player.snapshot()
     job = coroutine.create(function()
         return work(player, profile)
     end)

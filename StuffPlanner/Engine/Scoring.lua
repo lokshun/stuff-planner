@@ -14,12 +14,13 @@
 --     Une main : main droite, ou main gauche si la classe a la double arme, le meilleur gain.
 --     Totaux de plafond : HIT = player.meleeHit, SPELL_HIT = player.spellHit, moins les objets
 --     retirés. Résultat en cache par (itemID, empreinte de weights et caps) : table partagée,
---     à ne pas modifier. Le cache se vide quand player n'est plus la même table.
+--     à ne pas modifier. Le cache se vide quand player n'est plus la même table. Empreinte calculée
+--     une fois par table de profil : profil modifié sur place, appeler invalidate().
 --   deltaFields(fields, player, profile, data [, key]) -> comme delta, pour des champs donnés
 --     ({slot, itemClass, itemSubClass, classMask?, stats} : objet lu en jeu, hors base ou à suffixe) ;
 --     cache par (key, empreinte) si key est donnée, aucun sinon.
 --     player.equippedTypes = {[slot]=InventoryType} facultatif : objets portés hors base (deux-mains).
---   invalidate() -> vide le cache (instantané modifié sur place).
+--   invalidate() -> vide le cache et les empreintes (instantané ou profil modifié sur place).
 --   dependsOn(itemID, data) -> {slot...} : emplacements portés dont dépend delta (anneaux,
 --     bijoux : les deux ; armes, boucliers, mains gauches : 16 et 17) ; {} si inconnu.
 --   hasClass, hasRace, allows : alias de ns.Masks (Engine/Masks.lua).
@@ -53,6 +54,8 @@ local DUAL_WIELD = { ROGUE = 10, WARRIOR = 20, HUNTER = 20 }
 local PLAYER_TOTALS = { HIT = "meleeHit", SPELL_HIT = "spellHit" }
 
 local cache, cachedPlayer = {}, nil
+local WEAK_KEYS = { __mode = "k" }
+local prints = setmetatable({}, WEAK_KEYS)
 
 function Scoring.score(stats, weights, ctx)
     local caps = ctx and ctx.caps or {}
@@ -85,7 +88,12 @@ local function sortedPairs(map)
 end
 
 local function fingerprint(profile)
-    return sortedPairs(profile.weights) .. "|" .. sortedPairs(profile.caps)
+    local key = prints[profile]
+    if not key then
+        key = sortedPairs(profile.weights) .. "|" .. sortedPairs(profile.caps)
+        prints[profile] = key
+    end
+    return key
 end
 
 Scoring.hasClass = ns.Masks.hasClass
@@ -239,6 +247,7 @@ end
 
 function Scoring.invalidate()
     cache = {}
+    prints = setmetatable({}, WEAK_KEYS)
 end
 
 function Scoring.dependsOn(itemID, data)

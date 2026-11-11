@@ -15,7 +15,10 @@
 --   ns.Chat.currentZone(limit, instances) -> résultats de bestInZone pour la zone et le profil actuels, mapID ;
 --     isDone = Compat.IsQuestCompleted, isInLog = Compat.IsOnQuest, opts.instances = instances ;
 --     instantané et gains partagés de ns.Results ;
---     nil, message (L.BEST_NOT_READY | BEST_NO_PROFILE | BEST_NO_ZONE) si impossible
+--     nil, message (L.BEST_NOT_READY | BEST_NO_PROFILE | BEST_NO_ZONE) si impossible.
+--     Un seul classement (sans limite, instances comprises) gardé pour l'instantané et le profil, oublié sur
+--     SP_RESULTS_UPDATED et SP_QUEST_LOG_CHANGED ; chaque appel en reçoit une liste neuve, sans les entrées
+--     d'instance si instances est faux, tronquée à limit (DEFAULT_LIMIT) ; entrées partagées, à ne pas modifier.
 -- Commande /splan best : top 5 de la zone actuelle pour le profil actif ; gain en points de score
 --   (même échelle que le tri, 2 décimales sous 1) ; « estimé » si l'objet a confidence 1.
 --   Noms demandés au client (Names.onReady) : affichage dès qu'ils sont tous connus, au plus 2 s.
@@ -158,6 +161,21 @@ local function whenNamed(results, done)
     end
 end
 
+local shared -- {player, profile, results}
+
+local function sharedRanking(player, profile, data)
+    if not (shared and shared.player == player and shared.profile == profile) then
+        local opts = { isDone = ns.Compat.IsQuestCompleted, isInLog = ns.Compat.IsOnQuest, limit = math.huge,
+            delta = ns.Results.delta, instances = true }
+        shared = { player = player, profile = profile, results = Chat.bestInZone(player, profile, data, opts) }
+    end
+    return shared.results
+end
+
+local function forget()
+    shared = nil
+end
+
 function Chat.currentZone(limit, instances)
     local data = ns.Data
     if not data.ready() then
@@ -171,9 +189,16 @@ function Chat.currentZone(limit, instances)
     if not player or not player.mapID then
         return nil, L.BEST_NO_ZONE
     end
-    local opts = { isDone = ns.Compat.IsQuestCompleted, isInLog = ns.Compat.IsOnQuest, limit = limit,
-        delta = ns.Results.delta, instances = instances }
-    return Chat.bestInZone(player, profile, data, opts), player.mapID
+    local results, max = {}, limit or DEFAULT_LIMIT
+    for _, entry in ipairs(sharedRanking(player, profile, data)) do
+        if #results >= max then
+            break
+        end
+        if instances or entry.questID then
+            results[#results + 1] = entry
+        end
+    end
+    return results, player.mapID
 end
 
 local function showBest()
@@ -197,3 +222,5 @@ local function showBest()
 end
 
 ns:RegisterCommand("best", showBest, "BEST_COMMAND_HELP")
+ns:On("SP_RESULTS_UPDATED", forget)
+ns:On("SP_QUEST_LOG_CHANGED", forget)
