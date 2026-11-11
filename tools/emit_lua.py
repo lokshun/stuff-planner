@@ -14,6 +14,10 @@
   lua_name(table) -> nom Lua d'une table (« eraItems » -> « EraItems ») : ns.<nom> dans <nom>.lua
   emit_toc(interface, name_files=(), flavor=None) -> contenu d'un TOC LoadOnDemand ; name_files avant
     Register.lua ; EraItems.lua (après Items.lua) pour le seul flavor ERA_FLAVOR
+  CLIENT_LOCALES : valeurs de GetLocale() du client ; fallback_locales(locales) -> enUS puis les langues du
+    client sans fichier de noms (triées) : seules à charger le fichier anglais de repli
+  TOC : chaque fichier de noms suivi de [AllowLoadTextLocale <langue>] (anglais : fallback_locales), le client
+    ne compile que ceux de sa langue ; la garde GetLocale() des fichiers reste (client qui ignorerait la directive)
   emit_names(var, locale, names, fallback=False) -> <var>_<langue>.lua (var : NpcNames, QuestNames, ItemNames) :
     ns.<var> = {[id]="nom"} si GetLocale() vaut la langue ; fallback (anglais, chargé après les autres) : si
     aucune autre ne l'a rempli. emit_npc_names(locale, names, fallback) = emit_names("NpcNames", ...)
@@ -232,11 +236,19 @@ def emit_neighbors(neighbors):
     return "".join(lines)
 
 
+CLIENT_LOCALES = ("enUS", "enGB", "deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW")
+
+
+def fallback_locales(locales):
+    return ["enUS"] + sorted(locale for locale in CLIENT_LOCALES if locale != "enUS" and locale not in locales)
+
+
 def _name_files(var, by_locale):
-    locales = sorted(locale for locale in (by_locale or {}) if locale != "enUS")
-    if by_locale and "enUS" in by_locale:
-        locales.append("enUS")
-    return [f"{var}_{locale}.lua" for locale in locales]
+    present = set(by_locale or {})
+    lines = [f"{var}_{locale}.lua [AllowLoadTextLocale {locale}]" for locale in sorted(present - {"enUS"})]
+    if "enUS" in present:
+        lines.append(f"{var}_enUS.lua [AllowLoadTextLocale {', '.join(fallback_locales(present))}]")
+    return lines
 
 
 def emit_toc(interface, name_files=(), flavor=None):

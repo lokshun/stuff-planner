@@ -36,6 +36,7 @@ def toc_files(toc):
     for line in toc.read_text(encoding="utf-8-sig").splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
+            line = re.sub(r"\s*(\[[^\]]*\])+\s*$", "", line)  # directives en fin de ligne
             files.append(line.replace("\\", "/"))
     return files
 
