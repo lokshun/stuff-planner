@@ -11,8 +11,9 @@
 -- classement en mode référence (Planner, maxLevel = fin du palier précédant celui du joueur) pour les
 -- paliers passés, sauté au premier palier ; à la fin,
 -- SP_ROUTE_UPDATED (aussi quand le résultat est jeté parce qu'invalidé pendant le calcul).
--- SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED : classement oublié, recalculé au
--- prochain get().
+-- SP_PLAYER_CHANGED (émis seulement sur un vrai changement, voir Player), SP_DATA_READY,
+-- SP_PROFILE_CHANGED : classement oublié, recalculé au prochain get().
+-- Candidats (Planner.candidates, toute la base) gardés d'un calcul à l'autre, refaits après SP_DATA_READY.
 
 local _, ns = ...
 
@@ -24,6 +25,7 @@ ns.RouteResults = RouteResults
 local COMBAT_DELAY = 0.5
 
 local tiers, evaluated, dirty, job = nil, 0, true, nil
+local candidates
 local sliceStart = 0
 
 local function tick()
@@ -36,15 +38,16 @@ end
 local function work(player, profile)
     local data = ns.Data
     local itemIDs = data.itemIDs()
-    local candidates = ns.Planner.candidates(itemIDs, data, tick)
+    local list = candidates or ns.Planner.candidates(itemIDs, data, tick)
+    candidates = list
     local opts = { isDone = ns.Compat.IsQuestCompleted, step = tick, pause = coroutine.yield, includeRaids = true }
-    local rows = ns.Planner.rank(candidates, player, profile, data, opts)
+    local rows = ns.Planner.rank(list, player, profile, data, opts)
     local reference
     local first = ns.Tiers.indexOf(player.level)
     if first > 1 then
         local refOpts = { isDone = opts.isDone, step = tick, pause = coroutine.yield, includeRaids = true,
             reference = true, maxLevel = ns.Tiers.BOUNDS[first - 1][2] }
-        reference = ns.Planner.rank(candidates, player, profile, data, refOpts)
+        reference = ns.Planner.rank(list, player, profile, data, refOpts)
     end
     evaluated = #itemIDs
     coroutine.yield()
@@ -124,5 +127,8 @@ local function invalidate()
 end
 
 ns:On("SP_PLAYER_CHANGED", invalidate)
-ns:On("SP_DATA_READY", invalidate)
+ns:On("SP_DATA_READY", function()
+    candidates = nil
+    invalidate()
+end)
 ns:On("SP_PROFILE_CHANGED", invalidate)

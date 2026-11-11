@@ -7,8 +7,11 @@
 --     (Data prête), stats lues par Compat.GetItemStats + StatParser.fromApi ; vide avant Data prête
 --   equippedTypes={[slot]=InventoryType} : objets portés absents de la base (Compat.GetItemInfoInstant)
 -- Table neuve à chaque appel : la modifier n'affecte ni l'état ni les autres instantanés.
--- Message SP_PLAYER_CHANGED, sans argument, regroupé sur niveau, zone et équipement,
--- jamais émis en combat. Les changements de métier n'émettent rien.
+-- ns.Player.signature() -> chaîne : niveau, carte, toucher, lien et stats connues (Compat.GetItemStats non
+--   vide) de chaque objet porté ; égale tant que rien de ce qui compte pour les gains ne change.
+-- Message SP_PLAYER_CHANGED, sans argument, regroupé sur niveau, zone et équipement, émis seulement si la
+-- signature a changé depuis le dernier message (sous-zone sans changement de carte : rien), jamais en
+-- combat (signature lue à l'envoi). Les changements de métier n'émettent rien.
 -- Message SP_QUEST_LOG_CHANGED, sans argument : quêtes du journal changées (Compat.QuestLogIDs,
 -- relu sur QUEST_LOG_UPDATE regroupé sur 1 s : prise, abandon, quête rendue ; pas les objectifs),
 -- jamais émis en combat.
@@ -118,10 +121,21 @@ function Player.snapshot()
     }
 end
 
+function Player.signature()
+    local melee, spell = Compat.GetHitModifiers()
+    local parts = { UnitLevel("player") or 0, (Compat.PlayerMapPosition()) or 0, melee, spell }
+    for slot = FIRST_EQUIPPED_SLOT, LAST_EQUIPPED_SLOT do
+        local link = GetInventoryItemLink and GetInventoryItemLink("player", slot)
+        parts[#parts + 1] = link and (link .. (next(Compat.GetItemStats(link)) and "+" or "-")) or ""
+    end
+    return table.concat(parts, "|")
+end
+
 local waiting = {}
 
--- Envoie message hors combat, une seule fois même s'il est demandé plusieurs fois en combat.
-local function notifier(message)
+-- Envoie message hors combat, une seule fois même s'il est demandé plusieurs fois en combat ;
+-- changed() (facultatif), appelé à l'envoi, peut l'annuler.
+local function notifier(message, changed)
     return function()
         if waiting[message] then
             return
@@ -129,12 +143,25 @@ local function notifier(message)
         waiting[message] = true
         ns:RunOutOfCombat(function()
             waiting[message] = nil
-            ns:Send(message)
+            if not changed or changed() then
+                ns:Send(message)
+            end
         end)
     end
 end
 
-Player:RegisterBucketEvent(EVENTS, BUCKET_INTERVAL, notifier("SP_PLAYER_CHANGED"))
+local lastSignature
+
+local function playerChanged()
+    local signature = Player.signature()
+    if signature == lastSignature then
+        return false
+    end
+    lastSignature = signature
+    return true
+end
+
+Player:RegisterBucketEvent(EVENTS, BUCKET_INTERVAL, notifier("SP_PLAYER_CHANGED", playerChanged))
 local notifyLog = notifier("SP_QUEST_LOG_CHANGED")
 local lastLog
 
