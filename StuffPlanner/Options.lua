@@ -51,24 +51,11 @@ for _, spec in ipairs(CATALOG) do
 end
 
 local function readPath(path)
-    local node = StuffPlannerDB
-    for _, name in ipairs(path) do
-        if type(node) ~= "table" then
-            return nil
-        end
-        node = node[name]
-    end
-    return node
+    return ns.DB.peek("account", unpack(path))
 end
 
 local function writePath(path, value)
-    StuffPlannerDB = StuffPlannerDB or {}
-    local node = StuffPlannerDB
-    for i = 1, #path - 1 do
-        node[path[i]] = type(node[path[i]]) == "table" and node[path[i]] or {}
-        node = node[path[i]]
-    end
-    node[path[#path]] = value
+    ns.DB.account(unpack(path, 1, #path - 1))[path[#path]] = value
 end
 
 local function normalize(spec, value)

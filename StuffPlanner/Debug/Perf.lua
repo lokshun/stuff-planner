@@ -101,16 +101,14 @@ local function debugCommand(args)
         print(L.DEBUG_USAGE)
         return
     end
-    StuffPlannerDB = StuffPlannerDB or {}
-    StuffPlannerDB.debug = StuffPlannerDB.debug or {}
-    local enabled = not StuffPlannerDB.debug.pseudo
-    StuffPlannerDB.debug.pseudo = enabled
+    local debug = ns.DB.account("debug")
+    local enabled = not debug.pseudo
+    debug.pseudo = enabled
     print(enabled and L.DEBUG_PSEUDO_ON or L.DEBUG_PSEUDO_OFF)
 end
 
 function Perf:OnInitialize() -- luacheck: ignore 212/self
-    local saved = StuffPlannerDB and StuffPlannerDB.debug
-    if saved and saved.pseudo then
+    if ns.DB.peek("account", "debug", "pseudo") then
         ns.Pseudo.apply(L)
     end
 end

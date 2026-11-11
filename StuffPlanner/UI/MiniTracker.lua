@@ -31,10 +31,7 @@ local buttons = {}
 local asked, refreshPending, combatPending = {}, false, false
 
 local function settings()
-    StuffPlannerDB = StuffPlannerDB or {}
-    StuffPlannerDB.ui = StuffPlannerDB.ui or {}
-    StuffPlannerDB.ui.tracker = StuffPlannerDB.ui.tracker or {}
-    return StuffPlannerDB.ui.tracker
+    return ns.DB.account("ui", "tracker")
 end
 
 local function setColor(region, color)

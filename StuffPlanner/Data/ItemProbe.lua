@@ -45,11 +45,11 @@ local function loadStore()
     if store then
         return store
     end
-    StuffPlannerDB = StuffPlannerDB or {}
-    local saved = StuffPlannerDB.items
+    local account = ns.DB.account()
+    local saved = account.items
     if type(saved) ~= "table" or saved.schema ~= SCHEMA or saved.build ~= build() then
         saved = { schema = SCHEMA, build = build(), stats = {} }
-        StuffPlannerDB.items = saved
+        account.items = saved
     end
     store = saved
     return store

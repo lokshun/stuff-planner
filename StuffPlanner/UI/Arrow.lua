@@ -37,10 +37,7 @@ local target
 local elapsed = 0
 
 local function settings()
-    StuffPlannerDB = StuffPlannerDB or {}
-    StuffPlannerDB.ui = StuffPlannerDB.ui or {}
-    StuffPlannerDB.ui.arrow = StuffPlannerDB.ui.arrow or {}
-    return StuffPlannerDB.ui.arrow
+    return ns.DB.account("ui", "arrow")
 end
 
 local function hbd()

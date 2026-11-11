@@ -11,3 +11,11 @@ if [ -n "$matches" ]; then
     echo "$matches"
     exit 1
 fi
+
+# Sauvegardes : seul DB.lua lit ou écrit StuffPlannerDB et StuffPlannerCharDB (commentaires exclus).
+saved=$(grep -rnE --include='*.lua' --exclude='DB.lua' --exclude-dir=Libs 'StuffPlanner(Char)?DB' "$root"     | grep -vE '^[^:]+:[0-9]+:[[:space:]]*--')
+if [ -n "$saved" ]; then
+    echo "Sauvegarde lue ou ecrite hors de DB.lua :"
+    echo "$saved"
+    exit 1
+fi

@@ -30,10 +30,7 @@ local lines = {}
 local asked, refreshPending, combatPending = {}, false, false
 
 local function settings()
-    StuffPlannerDB = StuffPlannerDB or {}
-    StuffPlannerDB.ui = StuffPlannerDB.ui or {}
-    StuffPlannerDB.ui.follow = StuffPlannerDB.ui.follow or {}
-    return StuffPlannerDB.ui.follow
+    return ns.DB.account("ui", "follow")
 end
 
 local function setColor(region, color)

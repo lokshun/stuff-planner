@@ -31,9 +31,8 @@ local LOOKUPS = {
     quest = Compat.GetQuestTitle,
     item = Compat.GetItemName,
     npc = function(id)
-        local saved = StuffPlannerDB and StuffPlannerDB.npcNames
-        saved = saved and saved[GetLocale()]
-        return (saved and saved[id]) or Compat.GetCreatureName(id) or (ns.Data and ns.Data.npcName(id))
+        local saved = ns.DB.peek("account", "npcNames", GetLocale(), id)
+        return saved or Compat.GetCreatureName(id) or (ns.Data and ns.Data.npcName(id))
     end,
     zone = Compat.GetZoneName,
     spell = Compat.GetSpellName,
@@ -149,11 +148,8 @@ end
 
 function Names.learn(kind, id, name)
     known[kind][id] = name
-    if kind == "npc" and StuffPlannerDB then
-        StuffPlannerDB.npcNames = StuffPlannerDB.npcNames or {}
-        local locale = GetLocale()
-        StuffPlannerDB.npcNames[locale] = StuffPlannerDB.npcNames[locale] or {}
-        StuffPlannerDB.npcNames[locale][id] = name
+    if kind == "npc" and ns.DB.peek("account") then
+        ns.DB.account("npcNames", GetLocale())[id] = name
     end
     wake(kind, id)
 end

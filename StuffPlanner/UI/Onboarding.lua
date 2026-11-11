@@ -25,8 +25,7 @@ local optionButtons = {}
 local step = 1
 
 local function markDone()
-    StuffPlannerCharDB = StuffPlannerCharDB or {}
-    StuffPlannerCharDB.onboarded = true
+    ns.DB.char().onboarded = true
 end
 
 local function optionButton(index)
@@ -154,7 +153,7 @@ ns:RegisterCommand("welcome", Onboarding.show, "WELCOME_COMMAND_HELP")
 local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN")
 events:SetScript("OnEvent", function()
-    if StuffPlannerCharDB and StuffPlannerCharDB.onboarded then
+    if ns.DB.peek("char", "onboarded") then
         return
     end
     C_Timer.After(ONBOARD_DELAY, function()

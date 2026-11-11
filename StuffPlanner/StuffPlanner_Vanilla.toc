@@ -35,6 +35,7 @@ Locales\zhTW.lua
 Locales\Format.lua
 
 Core.lua
+DB.lua
 Options.lua
 Compat.lua
 CompatItem.lua

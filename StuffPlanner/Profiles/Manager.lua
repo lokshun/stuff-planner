@@ -36,9 +36,7 @@ local built = setmetatable({}, { __mode = "k" }) -- entrée sauvegardée -> prof
 Profiles.isCustom = ns.Customs.isCustom
 
 local function store()
-    StuffPlannerCharDB = StuffPlannerCharDB or {}
-    StuffPlannerCharDB.profiles = StuffPlannerCharDB.profiles or {}
-    local saved = StuffPlannerCharDB.profiles
+    local saved = ns.DB.char("profiles")
     ns.Customs.migrate(saved)
     return saved
 end

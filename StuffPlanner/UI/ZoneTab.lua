@@ -30,10 +30,9 @@ local asked, refreshPending = {}, false
 local lastShown
 
 local function filterState()
-    StuffPlannerDB = StuffPlannerDB or {}
-    StuffPlannerDB.ui = StuffPlannerDB.ui or {}
-    StuffPlannerDB.ui.zoneFilters = ns.Filters.new(StuffPlannerDB.ui.zoneFilters)
-    return StuffPlannerDB.ui.zoneFilters
+    local ui = ns.DB.account("ui")
+    ui.zoneFilters = ns.Filters.new(ui.zoneFilters)
+    return ui.zoneFilters
 end
 
 local function scheduleRefresh()
@@ -151,7 +150,7 @@ local function refresh()
     local rows, message = computeRows()
     local state = filterState()
     local shown = rows and ns.Filters.apply(state, rows) or {}
-    local ui = StuffPlannerDB.ui
+    local ui = ns.DB.account("ui")
     if ui.zoneBySlot then
         shown = ns.GearPresenter.sortBySlot(shown)
     end
@@ -159,7 +158,7 @@ local function refresh()
         { key = "slot", label = L.SORT_SLOT, active = ui.zoneBySlot == true },
         { key = "gain", label = L.SORT_GAIN, active = not ui.zoneBySlot },
     }, function(key)
-        StuffPlannerDB.ui.zoneBySlot = key == "slot" or nil
+        ui.zoneBySlot = key == "slot" or nil
         ns.MainFrame.refresh()
     end)
     chipBar:render(rows and ns.Filters.chips(state, rows) or {}, function(key)

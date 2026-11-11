@@ -50,9 +50,9 @@ local function loadStore()
     if store then
         return store
     end
-    StuffPlannerDB = StuffPlannerDB or {}
-    local saved = StuffPlannerDB.collector or { schema = SCHEMA, records = {} }
-    StuffPlannerDB.collector = saved
+    local account = ns.DB.account()
+    local saved = account.collector or { schema = SCHEMA, records = {} }
+    account.collector = saved
     if saved.schema and saved.schema > SCHEMA then
         store = { records = {}, inactive = true }
     else

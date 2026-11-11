@@ -35,13 +35,11 @@ local EVENTS = { "QUEST_ACCEPTED", "QUEST_TURNED_IN", "QUEST_REMOVED", "QUEST_LO
 local view, placedKey, placedStep, placedTarget, placing, waiting, announce, currentKey, aimed
 
 local function saved()
-    StuffPlannerCharDB = StuffPlannerCharDB or {}
-    return StuffPlannerCharDB.follow
+    return ns.DB.peek("char", "follow")
 end
 
 local function save(questID)
-    StuffPlannerCharDB = StuffPlannerCharDB or {}
-    StuffPlannerCharDB.follow = questID and { questID = questID } or nil
+    ns.DB.char().follow = questID and { questID = questID } or nil
 end
 
 local function playerInfo()

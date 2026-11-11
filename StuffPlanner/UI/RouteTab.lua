@@ -105,9 +105,7 @@ local function buildRow(button)
 end
 
 local function uiState()
-    StuffPlannerDB = StuffPlannerDB or {}
-    StuffPlannerDB.ui = StuffPlannerDB.ui or {}
-    return StuffPlannerDB.ui
+    return ns.DB.account("ui")
 end
 
 local function pastOpen()

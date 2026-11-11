@@ -41,9 +41,6 @@ local function register()
     if not broker then
         return
     end
-    StuffPlannerDB = StuffPlannerDB or {}
-    StuffPlannerDB.ui = StuffPlannerDB.ui or {}
-    StuffPlannerDB.ui.minimap = StuffPlannerDB.ui.minimap or {}
     local launcher = broker:NewDataObject(ADDON, {
         type = "launcher",
         text = L.WINDOW_TITLE,
@@ -51,7 +48,7 @@ local function register()
         OnClick = onClick,
         OnTooltipShow = onTooltip,
     })
-    icon:Register(ADDON, launcher, StuffPlannerDB.ui.minimap)
+    icon:Register(ADDON, launcher, ns.DB.account("ui", "minimap"))
 end
 
 ns:On("SP_OPTION_CHANGED", function(key, value)

@@ -35,9 +35,7 @@ local function faction()
 end
 
 local function saved()
-    StuffPlannerCharDB = StuffPlannerCharDB or {}
-    StuffPlannerCharDB.taxi = StuffPlannerCharDB.taxi or {}
-    return StuffPlannerCharDB.taxi
+    return ns.DB.char("taxi")
 end
 
 local function regionOf(mapID)
