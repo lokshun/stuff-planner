@@ -1,12 +1,16 @@
 -- CONTRAT
--- Observe quêtes et butins et les garde dans StuffPlannerDB.collector. Charger après CompatQuest.lua.
---   ns.Collector.schema -> 1
+-- Observe quêtes et butins et les garde dans StuffPlannerDB.collector. Charger après CompatQuest.lua
+-- et Data/CollectorStore.lua (clé de doublon, objets équipables, migration).
+--   ns.Collector.schema -> 2 ; ns.Collector.MAX_LOOT_PER_SOURCE -> butins gardés au plus par créature (ou
+--     carte, sans créature)
 --   ns.Collector.records() -> liste vivante d'observations, ne pas la modifier :
 --     {kind, questID, level, npcID, mapID, x, y, choices={itemID...}, rewards={itemID...}}
 --     kind : "detail" (QUEST_DETAIL), "complete" (QUEST_COMPLETE), "loot" (LOOT_OPENED, sans questID,
 --     ni level, ni choices ; un par créature source), "log" (journal : questID, choices, rewards).
 --     level nil sur Classic Era ; npcID nil si la source n'est pas une créature ; listes triées.
--- Doublon = même kind, questID, npcID (mapID si npcID nil), choices et rewards ; la position l'ignore.
+-- Butin : objets équipables seulement (CollectorStore.gearOnly) ; butin sans objet équipable ignoré ;
+-- au plus MAX_LOOT_PER_SOURCE par source. Schéma 1 : CollectorStore.migrate au chargement.
+-- Doublon : même CollectorStore.key.
 -- Rien n'est observé en combat. Objet d'une quête pas encore en cache : nouvel essai toutes les
 -- RETRY_DELAY s, RETRY_MAX essais au plus, tant que la même quête est affichée.
 -- Journal (SP_QUEST_LOG_CHANGED, SP_DATA_READY) : chaque quête confidence 2 du journal est lue une
@@ -26,27 +30,21 @@ local Compat = ns.Compat
 local Collector = ns:NewModule("Collector", "AceEvent-3.0")
 ns.Collector = Collector
 
-local SCHEMA = 1
+local Store = ns.CollectorStore
+local SCHEMA = 2
+local MAX_LOOT_PER_SOURCE = Store.MAX_LOOT_PER_SOURCE
 local COORD_PRECISION = 10000
 local GUESSED_QUEST = 2
 local RETRY_DELAY, RETRY_MAX = 0.5, 6
 local LOG_RETRY_DELAY, LOG_RETRY_MAX = 2, 3
 
 Collector.schema = SCHEMA
+Collector.MAX_LOOT_PER_SOURCE = MAX_LOOT_PER_SOURCE
 
 local store
 local seen
+local lootCount
 local logged, logRetries = {}, 0
-
-local function keyOf(record)
-    return table.concat({
-        tostring(record.kind),
-        tostring(record.questID),
-        record.npcID and tostring(record.npcID) or "map" .. tostring(record.mapID),
-        table.concat(record.choices or {}, ","),
-        table.concat(record.rewards or {}, ","),
-    }, "|")
-end
 
 local function loadStore()
     if store then
@@ -58,13 +56,20 @@ local function loadStore()
     if saved.schema and saved.schema > SCHEMA then
         store = { records = {}, inactive = true }
     else
-        saved.schema = SCHEMA
         saved.records = saved.records or {}
+        if (saved.schema or 1) < SCHEMA then
+            saved.records = Store.migrate(saved.records)
+        end
+        saved.schema = SCHEMA
         store = saved
     end
-    seen = {}
+    seen, lootCount = {}, {}
     for _, record in ipairs(store.records) do
-        seen[keyOf(record)] = true
+        seen[Store.key(record)] = true
+        if record.kind == "loot" then
+            local source = Store.source(record)
+            lootCount[source] = (lootCount[source] or 0) + 1
+        end
     end
     return store
 end
@@ -135,9 +140,16 @@ local function add(record)
     if current.inactive or redundant(record) then
         return
     end
-    local key = keyOf(record)
+    local key = Store.key(record)
+    local source = record.kind == "loot" and Store.source(record)
+    if source and (lootCount[source] or 0) >= MAX_LOOT_PER_SOURCE then
+        return
+    end
     if not seen[key] then
         seen[key] = true
+        if source then
+            lootCount[source] = (lootCount[source] or 0) + 1
+        end
         current.records[#current.records + 1] = record
         local Data = ns.Data
         if Data and Data.ready() then
@@ -221,11 +233,14 @@ local function observeLoot()
         table.insert(bySource[source], slot.itemID)
     end
     for source, items in pairs(bySource) do
+        items = Store.gearOnly(items)
         table.sort(items)
-        local record = newRecord("loot")
-        record.npcID = source or nil
-        record.rewards = items
-        add(record)
+        if #items > 0 then
+            local record = newRecord("loot")
+            record.npcID = source or nil
+            record.rewards = items
+            add(record)
+        end
     end
 end
 

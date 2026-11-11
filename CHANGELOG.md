@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+- The data collector now only keeps equippable loot (grey items, cloth and other junk are ignored), at most
+  20 loot records per creature. Existing saved data is cleaned once on load: smaller saved variables and
+  shorter `/splan export` strings.
+
 ## 1.5.0 — 2026-11-11
 
 ### Changes

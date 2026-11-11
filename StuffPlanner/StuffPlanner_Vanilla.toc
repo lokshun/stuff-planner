@@ -51,6 +51,7 @@ Data\Codec.lua
 Data\DataProvider.lua
 Data\InstanceIndex.lua
 Data\QuestieAdapter.lua
+Data\CollectorStore.lua
 Data\Collector.lua
 Data\Loader.lua
 Data\Export.lua
