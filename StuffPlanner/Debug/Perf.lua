@@ -11,8 +11,6 @@
 --   médianes du joueur (Timings.medians : durée Format.duration, trajet en rapport ×1.25, nombre de mesures).
 -- /splan debug pseudo : bascule StuffPlannerDB.debug.pseudo ; actif, ns.Pseudo.apply(ns.L) à
 --   l'initialisation de l'addon : effet après /reload.
--- /splan debug effort : bascule StuffPlannerDB.debug.legacyEffort (ancien effort du Parcours, RouteResults),
---   Parcours recalculé aussitôt.
 
 local _, ns = ...
 
@@ -127,11 +125,6 @@ local function debugCommand(args)
         local enabled = not debug.pseudo
         debug.pseudo = enabled
         print(enabled and L.DEBUG_PSEUDO_ON or L.DEBUG_PSEUDO_OFF)
-    elseif command == "effort" then
-        local legacy = not debug.legacyEffort or nil
-        debug.legacyEffort = legacy
-        print(legacy and L.DEBUG_EFFORT_LEGACY or L.DEBUG_EFFORT_SECONDS)
-        ns.RouteResults.invalidate()
     else
         print(L.DEBUG_USAGE)
     end

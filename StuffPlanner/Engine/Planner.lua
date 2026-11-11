@@ -7,8 +7,7 @@
 --     steps, priority}...} : un objet une fois (sa meilleure source), tri par priorité décroissante
 --     puis itemID ; delta = Scoring.delta ({abs, pct, slot}), objets à gain abs <= 0 écartés.
 --     opts.isDone(questID) ; opts.includeRaids (raids écartés sinon) ; opts.tuning = {clé=valeur}
---     remplace les constantes de Planner.TUNING ; opts.tuning.SECONDS = false : ancien calcul (constantes de
---     Planner.LEGACY en unités, priorité / effort, sans seconds ni opts.travel), gardé jusqu'à la recette T9.2.
+--     remplace les constantes de Planner.TUNING (Calibration.tuning : mesures du joueur).
 --     opts.travel(mapID, x, y) -> secondes | nil : trajet du joueur jusqu'au donneur de la première étape
 --     restante (data.npc, x, y en 0–1) ; nil, absent ou sans donneur : hops × TRAVEL.
 --     effort = seconds (s) ; trip = part du trajet dans seconds, place = donneur de la 1re étape (data.npc)
@@ -42,7 +41,6 @@ local MAX_LEVEL = 60
 -- Secondes, provisoires : quête (prise, objectif, rendu sur place) 7 min, zone traversée 3 min
 -- (Travel.TUNING.zoneSeconds), donjon 50 min, raid 3 h, artisanat 2 min, métier à monter 1 h.
 Planner.TUNING = {
-    SECONDS = true,
     LIFESPAN = 8,
     ALPHA = 0.1,
     QUEST_STEP = 420,
@@ -56,10 +54,6 @@ Planner.TUNING = {
     CRAFT_UNKNOWN = 3600,
     TRAVEL_FACTOR = 1, -- trajet réel / prévu (Calibration)
 }
-
--- Ancien calcul (unités arbitraires).
-Planner.LEGACY = { SECONDS = false, LIFESPAN = 8, ALPHA = 0.1, QUEST_STEP = 1, TRAVEL = 1, MAX_HOPS = 3,
-    DUNGEON_RUN = 4, RAID_RUN = 20, DEFAULT_CHANCE = 5, MIN_CHANCE = 1, CRAFT = 2, CRAFT_UNKNOWN = 6 }
 
 function Planner.candidates(itemIDs, data, step)
     local out = {}
@@ -129,8 +123,8 @@ end
 
 -- Trajet : opts.travel vers target ({mapID, x, y}) en secondes, sinon par zones.
 local function travel(hops, tuning, opts, target)
-    local factor = tuning.SECONDS and tuning.TRAVEL_FACTOR or 1
-    if tuning.SECONDS and opts.travel and target and target.mapID then
+    local factor = tuning.TRAVEL_FACTOR
+    if opts.travel and target and target.mapID then
         local seconds = opts.travel(target.mapID, target.x, target.y)
         if seconds then
             return seconds * factor
@@ -197,8 +191,7 @@ end
 
 local function tuningOf(opts)
     local tuning = {}
-    local base = opts.tuning and opts.tuning.SECONDS == false and Planner.LEGACY or Planner.TUNING
-    for key, value in pairs(base) do
+    for key, value in pairs(Planner.TUNING) do
         tuning[key] = value
     end
     for key, value in pairs(opts.tuning or {}) do
@@ -209,11 +202,6 @@ end
 
 local function neverDone()
     return false
-end
-
--- Diviseur de la priorité : minutes, ou unités de l'ancien calcul.
-local function cost(effort, tuning)
-    return tuning.SECONDS and effort / 60 or effort
 end
 
 -- Ligne d'un candidat en parcours normal ; nil si écarté.
@@ -227,9 +215,8 @@ local function evaluate(candidate, delta, player, data, opts, tuning)
     end
     local level = obtainLevel(data.item(candidate.itemID), candidate.source, data)
     local gain = delta.abs * lifetime(level, player, tuning)
-    return { effort = effort, seconds = tuning.SECONDS and effort or nil, xp = xp, hops = hops, steps = steps,
-        level = level, priority = (gain + tuning.ALPHA * xp) / cost(effort, tuning),
-        trip = tuning.SECONDS and trip or nil, place = place }
+    return { effort = effort, seconds = effort, xp = xp, hops = hops, steps = steps, level = level,
+        priority = (gain + tuning.ALPHA * xp) / (effort / 60), trip = trip, place = place }
 end
 
 -- Ligne d'un candidat en mode référence ; nil si écarté.
@@ -249,8 +236,8 @@ local function evaluateReference(candidate, delta, player, profile, data, opts, 
     end
     local source = candidate.source
     local done = source.type == "quest" and opts.isDone ~= nil and opts.isDone(source.id) == true
-    return { effort = effort, seconds = tuning.SECONDS and effort or nil, xp = 0, hops = hops, steps = steps,
-        level = level, priority = score / cost(effort, tuning), done = done, beaten = delta.abs <= 0 }
+    return { effort = effort, seconds = effort, xp = 0, hops = hops, steps = steps, level = level,
+        priority = score / (effort / 60), done = done, beaten = delta.abs <= 0 }
 end
 
 function Planner.rank(candidates, player, profile, data, opts)
