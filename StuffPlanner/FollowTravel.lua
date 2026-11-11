@@ -9,7 +9,10 @@
 -- Points de vol connus : Compat.KnownTaxiNodes sur Kalimdor et les Royaumes de l'Est (sans ouvrir la carte
 --   de vol) ; sans cette API, ceux relevés à TAXIMAP_OPENED (Compat.TaxiNodes) dans
 --   StuffPlannerCharDB.taxi = {[nodeID] = {name, mapID, x, y}}.
--- Toutes les TICK s pendant un suivi, hors combat : si le trajet de l'étape repérée change, Follow.refresh.
+--   ns.FollowTravel.check() -> appelé toutes les TICK s : pendant un suivi, hors combat, recalcule le trajet de
+--     l'étape repérée seulement si le joueur a bougé de plus de MOVE_YARDS, changé de carte, pris ou quitté un
+--     vol, si l'étape ou les points de vol ont changé ; trajet changé : Follow.refresh.
+-- Graphe des points de vol et transports (Travel.prepare) gardé jusqu'à reset ou un relevé de carte de vol.
 -- Positions monde : HereBeDragons-2.0 ; absent : aucun trajet (flèche directe).
 
 local _, ns = ...
@@ -23,7 +26,9 @@ local TICK = 0.5
 local CONTINENTS = { 1414, 1415 }
 local LABELS = { boat = "TRAVEL_BOAT", zeppelin = "TRAVEL_ZEPPELIN" }
 
-local worldNodes, worldTransports, lastID
+FollowTravel.MOVE_YARDS = 50
+
+local worldNodes, worldTransports, lastID, graph, lastCheck
 
 local function hbd()
     return LibStub and LibStub("HereBeDragons-2.0", true)
@@ -85,7 +90,7 @@ function FollowTravel.nodes()
 end
 
 function FollowTravel.reset()
-    worldNodes, worldTransports, lastID = nil, nil, nil
+    worldNodes, worldTransports, lastID, graph, lastCheck = nil, nil, nil, nil, nil
 end
 
 local function transports(lib)
@@ -131,16 +136,46 @@ function FollowTravel.leg(step)
         return nil
     end
     local from = { instance = instance, x = px, y = py, region = regionOf(ns.Compat.PlayerMapPosition()) }
-    local leg = ns.Travel.next(from, target, FollowTravel.nodes(), transports(lib), { faction = faction() })
+    graph = graph or ns.Travel.prepare(FollowTravel.nodes(), transports(lib), { faction = faction() })
+    local leg = ns.Travel.route(graph, from, target)
     if not leg or leg.kind == "walk" then
         return nil
     end
     return legOf(leg)
 end
 
-local function tick()
+local function stepKey(step)
+    return table.concat({ tostring(step.questID), tostring(step.kind), tostring(step.mapID), tostring(step.x),
+        tostring(step.y) }, ":")
+end
+
+-- Position et contexte du dernier calcul ; vrai si rien n'a assez changé pour recalculer.
+local function unchanged(step)
+    local lib = hbd()
+    local x, y, instance
+    if lib then
+        x, y, instance = lib:GetPlayerWorldPosition()
+    end
+    local state = { key = stepKey(step), x = x, y = y, instance = instance, mapID = ns.Compat.PlayerMapPosition(),
+        taxi = ns.Compat.OnTaxi() and true or false }
+    local last = lastCheck
+    lastCheck = state
+    if not (last and x and last.x) then
+        return false
+    end
+    local dx, dy = x - last.x, y - last.y
+    local moved = dx * dx + dy * dy > FollowTravel.MOVE_YARDS * FollowTravel.MOVE_YARDS
+    if moved or last.key ~= state.key or last.instance ~= instance or last.mapID ~= state.mapID
+        or last.taxi ~= state.taxi then
+        return false
+    end
+    lastCheck = last -- la distance se compte depuis le dernier calcul
+    return true
+end
+
+function FollowTravel.check()
     local step = ns.Follow.current() and ns.Follow.target()
-    if not step or InCombatLockdown() then
+    if not step or InCombatLockdown() or unchanged(step) then
         return
     end
     local leg = FollowTravel.leg(step)
@@ -158,7 +193,7 @@ local function onTaxiMap()
             store[node.nodeID] = { name = node.name, mapID = node.mapID, x = node.x, y = node.y }
         end
     end
-    worldNodes = nil
+    worldNodes, graph, lastCheck = nil, nil, nil
 end
 
 local events = CreateFrame("Frame")
@@ -168,6 +203,6 @@ events:SetScript("OnEvent", function(_, event)
     if event == "TAXIMAP_OPENED" then
         onTaxiMap()
     else
-        C_Timer.NewTicker(TICK, tick)
+        C_Timer.NewTicker(TICK, FollowTravel.check)
     end
 end)

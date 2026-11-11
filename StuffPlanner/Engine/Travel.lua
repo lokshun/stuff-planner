@@ -14,6 +14,10 @@
 --     + TUNING.overhead ; transport TUNING.transport ; vol et transport divisés par TUNING.ratio (on ne
 --     quitte la marche que si on y gagne). leg = première étape non à pied du chemin, sinon marche.
 --   ns.Travel.TUNING = {walk, fly (yards/s), overhead, transport (s), ratio} : constantes provisoires.
+--   ns.Travel.prepare(nodes, transports [, opts]) -> graphe : nœuds et transports (faction appliquée), arêtes
+--     entre eux calculées une fois ; ns.Travel.route(graph, from, to) -> comme next, sur ce graphe (seules
+--     les arêtes du départ et de l'arrivée sont calculées). next = prepare puis route. Graphe valable tant
+--     que nodes, transports et TUNING ne changent pas.
 
 local _, ns = ...
 
@@ -33,9 +37,9 @@ local function walkable(a, b)
     return a.instance == b.instance and a.region == b.region
 end
 
--- Sommets : 1 = départ, 2 = arrivée, puis nœuds de vol, puis extrémités des transports.
-local function graph(from, to, nodes, transports, faction)
-    local vertices = { { point = from }, { point = to } }
+-- Sommets fixes : nœuds de vol, puis extrémités des transports.
+local function staticVertices(nodes, transports, faction)
+    local vertices = {}
     for _, node in ipairs(nodes) do
         vertices[#vertices + 1] = { point = node, node = node }
     end
@@ -69,7 +73,36 @@ local function edge(u, v)
     return nil
 end
 
-local function shortest(vertices)
+local FIRST_STATIC = 3 -- 1 = départ, 2 = arrivée
+
+-- Arêtes entre sommets fixes : edges[i][j] = {weight, kind} | false (indices de graph.static).
+function Travel.prepare(nodes, transports, opts)
+    local static = staticVertices(nodes or {}, transports or {}, opts and opts.faction)
+    local edges = {}
+    for i, u in ipairs(static) do
+        edges[i] = {}
+        for j, v in ipairs(static) do
+            if i ~= j then
+                local weight, kind = edge(u, v)
+                edges[i][j] = weight and { weight, kind } or false
+            end
+        end
+    end
+    return { static = static, edges = edges }
+end
+
+local function weightOf(graph, vertices, u, v)
+    if u >= FIRST_STATIC and v >= FIRST_STATIC then
+        local cached = graph.edges[u - 2][v - 2]
+        if cached then
+            return cached[1], cached[2]
+        end
+        return nil
+    end
+    return edge(vertices[u], vertices[v])
+end
+
+local function shortest(graph, vertices)
     local cost, previous, kinds, done = { [1] = 0 }, {}, {}, {}
     while true do
         local u, best = nil, INFINITE
@@ -84,7 +117,7 @@ local function shortest(vertices)
         done[u] = true
         for v in ipairs(vertices) do
             if not done[v] then
-                local weight, kind = edge(vertices[u], vertices[v])
+                local weight, kind = weightOf(graph, vertices, u, v)
                 if weight and best + weight < (cost[v] or INFINITE) then
                     cost[v], previous[v], kinds[v] = best + weight, u, kind
                 end
@@ -122,14 +155,24 @@ local function firstLeg(vertices, previous, kinds)
     return { kind = "walk" }
 end
 
-function Travel.next(from, to, nodes, transports, opts)
+function Travel.route(graph, from, to)
     if not (from and to) then
         return nil
     end
-    local vertices = graph(from, to, nodes or {}, transports or {}, opts and opts.faction)
-    local previous, kinds, found = shortest(vertices)
+    local vertices = { { point = from }, { point = to } }
+    for _, vertex in ipairs(graph.static) do
+        vertices[#vertices + 1] = vertex
+    end
+    local previous, kinds, found = shortest(graph, vertices)
     if not found then
         return { kind = "walk", unreachable = true }
     end
     return firstLeg(vertices, previous, kinds)
+end
+
+function Travel.next(from, to, nodes, transports, opts)
+    if not (from and to) then
+        return nil
+    end
+    return Travel.route(Travel.prepare(nodes, transports, opts), from, to)
 end
