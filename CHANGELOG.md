@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.5.0 — 2026-11-11
 
 ### Changes
 - Quest chains: the quest detail button now reads "Follow". The arrow then guides you step by step
