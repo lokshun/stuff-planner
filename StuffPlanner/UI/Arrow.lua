@@ -1,6 +1,7 @@
 -- CONTRAT
 -- Flèche intégrée vers un repère, utilisée quand TomTom n'est pas chargé (Integrations/TomTom.lua).
--- Charger après Bearing.lua, Theme.lua et CompatMap.lua, avant Integrations/TomTom.lua.
+-- Charger après Bearing.lua, Distance.lua, Theme.lua, CompatMap.lua et CompatTravel.lua, avant
+-- Integrations/TomTom.lua.
 --   ns.Arrow.show(key, mapID, x, y, title [, giver]) -> bool ; x, y en 0–1 ; giver : nom du donneur,
 --     sous le titre ; false si la flèche est coupée
 --     (arrow.enabled, /splan arrow), si HereBeDragons ou la carte manque ; remplace la cible précédente
@@ -12,6 +13,8 @@
 -- (Bearing.arrived) ou sur une autre carte.
 -- Réglages ns.Options : arrow.enabled, arrow.scale, arrow.arrival, arrow.color ("direction" : vert
 -- devant, rouge derrière ; "gold" : couleur du thème), arrow.locked (pas de glisser).
+-- Zone de la cible si le joueur est ailleurs : L.ARROW_ZONE (nom, zones traversées : ns.Distance.hops),
+-- L.ARROW_ZONE_FAR sans chemin ; en vol (Compat.OnTaxi) : flèche masquée, L.ARROW_ON_TAXI.
 -- Rafraîchie à 10 Hz, figée en combat. Clic gauche maintenu : déplacer ; clic droit : cacher.
 -- Sauvegarde : StuffPlannerDB.ui.arrow = {point, relativePoint, x, y} (+ réglages ci-dessus).
 -- Texture : Media/Arrow3D.tga (tools/gen_arrow.py), 16 x 8 vues 3D ; image et teinte par ns.Bearing.
@@ -29,7 +32,7 @@ local WIDTH = 160
 local TEXTURE = "Interface\\AddOns\\StuffPlanner\\Media\\Arrow3D"
 local COLS, ROWS = 16, 8 -- planche de Media/Arrow3D.tga
 
-local frame, needle, titleText, giverText, distanceText
+local frame, needle, titleText, giverText, distanceText, zoneText
 local target
 local elapsed = 0
 
@@ -57,7 +60,27 @@ local function close()
     end
 end
 
+local function zoneLine()
+    local playerMap = ns.Compat.PlayerMapPosition()
+    if not playerMap or playerMap == target.mapID then
+        return ""
+    end
+    if target.zoneFrom ~= playerMap then
+        local hops = ns.Distance.hops(playerMap, target.mapID, ns.Data)
+        local name = ns.Names.zone(target.mapID)
+        target.zoneFrom = playerMap
+        target.zoneLine = hops and L.ARROW_ZONE:format(name, hops) or L.ARROW_ZONE_FAR:format(name)
+    end
+    return target.zoneLine
+end
+
 local function update()
+    zoneText:SetText(zoneLine())
+    if ns.Compat.OnTaxi() then
+        needle:Hide()
+        distanceText:SetText(L.ARROW_ON_TAXI)
+        return
+    end
     local lib = hbd()
     local px, py, instance = lib:GetPlayerWorldPosition()
     if not px or instance ~= target.instance then
@@ -122,7 +145,7 @@ end
 local function create()
     local theme = ns.Theme
     frame = CreateFrame("Frame", nil, UIParent)
-    frame:SetSize(WIDTH, ARROW_SIZE + 50)
+    frame:SetSize(WIDTH, ARROW_SIZE + 64)
     frame:SetFrameStrata("LOW")
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
@@ -154,6 +177,10 @@ local function create()
     giverText:SetWordWrap(false)
     distanceText = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     distanceText:SetPoint("TOP", giverText, "BOTTOM", 0, -2)
+    zoneText = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
+    zoneText:SetPoint("TOP", distanceText, "BOTTOM", 0, -2)
+    zoneText:SetWidth(WIDTH)
+    zoneText:SetWordWrap(false)
     restorePosition()
     frame:SetScale(ns.Options.get("arrow.scale"))
     frame:Hide()
@@ -171,10 +198,11 @@ function Arrow.show(key, mapID, x, y, title, giver)
     if not frame then
         create()
     end
-    target = { key = key, wx = wx, wy = wy, instance = instance }
+    target = { key = key, wx = wx, wy = wy, instance = instance, mapID = mapID }
     titleText:SetText(title or "")
     giverText:SetText(giver or "")
     distanceText:SetText("")
+    zoneText:SetText("")
     needle:Hide()
     elapsed = INTERVAL
     setVisible(true)

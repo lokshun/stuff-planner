@@ -256,5 +256,11 @@
   "FOLLOW_CLOSE_HINT": "Не следовать",
   "OPTIONS_SECTION_FOLLOW": "Следование по цепочке заданий",
   "OPTION_FOLLOW_WINDOW": "Показывать окно шагов",
-  "OPTION_FOLLOW_LOCKED": "Закрепить окно шагов"
+  "OPTION_FOLLOW_LOCKED": "Закрепить окно шагов",
+  "ARROW_ZONE": "Зона: %s (%d зон)",
+  "ARROW_ZONE_FAR": "Зона: %s",
+  "ARROW_ON_TAXI": "В полете",
+  "TRAVEL_FLY": "Полет: %s – %s",
+  "TRAVEL_BOAT": "Корабль: %s",
+  "TRAVEL_ZEPPELIN": "Дирижабль: %s"
 }

@@ -40,11 +40,13 @@ Compat.lua
 CompatItem.lua
 CompatQuest.lua
 CompatMap.lua
+CompatTravel.lua
 CompatOptions.lua
 Debug\Pseudo.lua
 Debug\Perf.lua
 Player.lua
 Data\Names.lua
+Data\Transports.lua
 Data\Codec.lua
 Data\DataProvider.lua
 Data\InstanceIndex.lua
@@ -63,6 +65,7 @@ Engine\Scoring.lua
 Engine\Chains.lua
 Engine\FollowSteps.lua
 Engine\Distance.lua
+Engine\Travel.lua
 Engine\Planner.lua
 Engine\Tiers.lua
 Engine\Recompute.lua
@@ -89,6 +92,7 @@ UI\Chat.lua
 UI\Arrow.lua
 Integrations\TomTom.lua
 Follow.lua
+FollowTravel.lua
 UI\MainFrame.lua
 UI\Chips.lua
 UI\RowActions.lua

@@ -253,5 +253,11 @@
   "FOLLOW_CLOSE_HINT": "Nicht mehr folgen",
   "OPTIONS_SECTION_FOLLOW": "Questreihe folgen",
   "OPTION_FOLLOW_WINDOW": "Schrittfenster anzeigen",
-  "OPTION_FOLLOW_LOCKED": "Schrittfenster sperren"
+  "OPTION_FOLLOW_LOCKED": "Schrittfenster sperren",
+  "ARROW_ZONE": "Zone: %s (%d Zonen)",
+  "ARROW_ZONE_FAR": "Zone: %s",
+  "ARROW_ON_TAXI": "Im Flug",
+  "TRAVEL_FLY": "Flug von %s nach %s",
+  "TRAVEL_BOAT": "Schiff nach %s",
+  "TRAVEL_ZEPPELIN": "Zeppelin nach %s"
 }

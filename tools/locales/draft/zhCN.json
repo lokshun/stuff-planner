@@ -252,5 +252,11 @@
   "FOLLOW_CLOSE_HINT": "停止跟随",
   "OPTIONS_SECTION_FOLLOW": "任务链跟随",
   "OPTION_FOLLOW_WINDOW": "显示步骤窗口",
-  "OPTION_FOLLOW_LOCKED": "锁定步骤窗口"
+  "OPTION_FOLLOW_LOCKED": "锁定步骤窗口",
+  "ARROW_ZONE": "区域：%s（%d个区域）",
+  "ARROW_ZONE_FAR": "区域：%s",
+  "ARROW_ON_TAXI": "飞行中",
+  "TRAVEL_FLY": "从%s飞往%s",
+  "TRAVEL_BOAT": "前往%s的船",
+  "TRAVEL_ZEPPELIN": "前往%s的飞艇"
 }

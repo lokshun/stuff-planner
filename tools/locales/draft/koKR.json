@@ -252,5 +252,11 @@
   "FOLLOW_CLOSE_HINT": "따라가기 중지",
   "OPTIONS_SECTION_FOLLOW": "연계 퀘스트 따라가기",
   "OPTION_FOLLOW_WINDOW": "단계 창 표시",
-  "OPTION_FOLLOW_LOCKED": "단계 창 잠금"
+  "OPTION_FOLLOW_LOCKED": "단계 창 잠금",
+  "ARROW_ZONE": "지역: %s (%d개 지역)",
+  "ARROW_ZONE_FAR": "지역: %s",
+  "ARROW_ON_TAXI": "비행 중",
+  "TRAVEL_FLY": "%s에서 %s(으)로 비행",
+  "TRAVEL_BOAT": "%s행 배",
+  "TRAVEL_ZEPPELIN": "%s행 비행선"
 }

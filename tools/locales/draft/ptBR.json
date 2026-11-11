@@ -253,5 +253,11 @@
   "FOLLOW_CLOSE_HINT": "Parar de seguir",
   "OPTIONS_SECTION_FOLLOW": "Seguir cadeia de missões",
   "OPTION_FOLLOW_WINDOW": "Mostrar a janela de etapas",
-  "OPTION_FOLLOW_LOCKED": "Travar a janela de etapas"
+  "OPTION_FOLLOW_LOCKED": "Travar a janela de etapas",
+  "ARROW_ZONE": "Zona: %s (%d zonas)",
+  "ARROW_ZONE_FAR": "Zona: %s",
+  "ARROW_ON_TAXI": "Em voo",
+  "TRAVEL_FLY": "Voo de %s para %s",
+  "TRAVEL_BOAT": "Barco para %s",
+  "TRAVEL_ZEPPELIN": "Zepelim para %s"
 }

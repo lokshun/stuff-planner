@@ -253,5 +253,11 @@
   "FOLLOW_CLOSE_HINT": "Dejar de seguir",
   "OPTIONS_SECTION_FOLLOW": "Seguimiento de cadena de misiones",
   "OPTION_FOLLOW_WINDOW": "Mostrar la ventana de pasos",
-  "OPTION_FOLLOW_LOCKED": "Bloquear la ventana de pasos"
+  "OPTION_FOLLOW_LOCKED": "Bloquear la ventana de pasos",
+  "ARROW_ZONE": "Zona: %s (%d zonas)",
+  "ARROW_ZONE_FAR": "Zona: %s",
+  "ARROW_ON_TAXI": "En vuelo",
+  "TRAVEL_FLY": "Vuelo de %s a %s",
+  "TRAVEL_BOAT": "Barco a %s",
+  "TRAVEL_ZEPPELIN": "Zepelín a %s"
 }

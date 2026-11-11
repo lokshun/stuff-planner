@@ -7,6 +7,9 @@
   (pick up, objective, turn in) through every quest of the chain, and resumes after a reload.
 - A small steps window lists the followed chain (done, current, upcoming, objective progress); click a step
   to aim the arrow and open the map. Options: show and lock the window.
+- While following, the arrow leads to a known flight master when flying is faster, and to the boat or
+  zeppelin when the next step is on another continent. Open a flight map once to record your flight paths.
+  The arrow also shows the target zone and how many zones away it is.
 - Item tooltips now show the Stuff Planner gain for every equippable item, including world drops
   that are not in the database and random-suffix items ("of the Monkey"), read from the item link.
 - When the suggested upgrade is a crafted item, its alternatives now start with the best quest reward for

@@ -9,6 +9,9 @@
 --   ns.Follow.refresh() -> recalcule les étapes (hors combat, sinon à la fin du combat)
 --   ns.Follow.aim(index) -> bool : repère sur view.steps[index] (placé), gardé jusqu'au changement de
 --     l'étape courante ; ns.Follow.objective(questID) -> texte du 1er objectif non fini | nil
+--   ns.Follow.target() -> étape repérée (courante ou visée) | nil
+-- Trajet : ns.FollowTravel.leg(step) (s'il est chargé) -> repère sur le maître de vol ou le quai, libellé
+--   du trajet, sans npcID ; le repère change quand le trajet change.
 -- Repère de l'étape courante : Waypoint.set(mapID, x, y, nom de la quête, questID, libellé d'étape, npcID) ;
 --   libellé L.FOLLOW_PICKUP/OBJECTIVE/TURNIN (PNJ, 1er objectif non fini) ou leur variante _ANY ;
 --   posé seulement si l'étape change ; étape sans position : repère retiré, suivi gardé.
@@ -29,7 +32,7 @@ ns.Follow = Follow
 local BUCKET = 0.5
 local EVENTS = { "QUEST_ACCEPTED", "QUEST_TURNED_IN", "QUEST_REMOVED", "QUEST_LOG_UPDATE", "PLAYER_LEVEL_UP" }
 
-local view, placedKey, placedStep, placing, waiting, announce, currentKey, aimed
+local view, placedKey, placedStep, placedTarget, placing, waiting, announce, currentKey, aimed
 
 local function saved()
     StuffPlannerCharDB = StuffPlannerCharDB or {}
@@ -96,19 +99,25 @@ end
 local function clearMark()
     if placedKey ~= nil then
         local key = placedKey
-        placedKey, placedStep = nil, nil
+        placedKey, placedStep, placedTarget = nil, nil, nil
         ns.Waypoint.clear(key)
     end
 end
 
 local function place(step)
-    local stepKey = keyOf(step)
+    local leg = ns.FollowTravel and ns.FollowTravel.leg(step)
+    local stepKey = keyOf(step) .. (leg and ("@" .. leg.id) or "")
+    placedTarget = step
     if stepKey == placedStep and ns.Waypoint.has(placedKey) then
         return false
     end
     placing = true
-    ns.Waypoint.set(step.mapID, step.x, step.y, ns.Names.quest(step.questID), step.questID, stepLabel(step),
-        step.npcID)
+    local title = ns.Names.quest(step.questID)
+    if leg then
+        ns.Waypoint.set(leg.mapID, leg.x, leg.y, title, step.questID, leg.label)
+    else
+        ns.Waypoint.set(step.mapID, step.x, step.y, title, step.questID, stepLabel(step), step.npcID)
+    end
     placing = false
     placedKey, placedStep = step.questID, stepKey
     return true
@@ -139,7 +148,9 @@ local function compute()
     if aimed and aimed.key ~= key then
         aimed = nil
     end
-    if not aimed then
+    if aimed then
+        place(aimed.step)
+    else
         if step and step.mapID then
             place(step)
         else
@@ -171,6 +182,10 @@ function Follow.view()
     return Follow.current() and view or nil
 end
 
+function Follow.target()
+    return Follow.current() and placedTarget or nil
+end
+
 function Follow.owns(key)
     return key ~= nil and key == placedKey
 end
@@ -181,7 +196,7 @@ function Follow.aim(index)
         return false
     end
     place(step)
-    aimed = { key = currentKey }
+    aimed = { key = currentKey, step = step }
     return true
 end
 
