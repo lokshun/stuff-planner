@@ -9,6 +9,9 @@
 --   ns.FollowTravel.estimator() -> function(mapID, x, y) -> secondes | nil (Planner, opts.travel) : trajet
 --     depuis la position actuelle du joueur (Travel.reach une fois), x, y en 0–1 ; nil sans HereBeDragons ou
 --     sans position du joueur
+--   ns.FollowTravel.between() -> function(from, to) -> secondes | nil (Session) : trajet entre deux lieux
+--     {mapID, x, y} (x, y en 0–1), Travel.reach une fois par lieu de départ ; nil sans position ou sans
+--     chemin ; between() nil sans HereBeDragons
 -- Points de vol connus : Compat.KnownTaxiNodes sur Kalimdor et les Royaumes de l'Est (sans ouvrir la carte
 --   de vol) ; sans cette API, ceux relevés à TAXIMAP_OPENED (Compat.TaxiNodes) dans
 --   StuffPlannerCharDB.taxi = {[nodeID] = {name, mapID, x, y}}.
@@ -162,6 +165,29 @@ function FollowTravel.estimator()
     return function(mapID, x, y)
         local target = x and y and world(lib, mapID, x, y, {})
         return target and ns.Travel.reachSeconds(reach, target) or nil
+    end
+end
+
+function FollowTravel.between()
+    local lib = hbd()
+    if not lib then
+        return nil
+    end
+    graph = graph or ns.Travel.prepare(FollowTravel.nodes(), transports(lib), { faction = faction() })
+    local reaches = {}
+    local function point(place)
+        return place and place.mapID and place.x and place.y and world(lib, place.mapID, place.x, place.y, {})
+    end
+    return function(from, to)
+        local target = point(to)
+        if not target or not from then
+            return nil
+        end
+        if reaches[from] == nil then
+            local start = point(from)
+            reaches[from] = start and ns.Travel.reach(graph, start) or false
+        end
+        return reaches[from] and ns.Travel.reachSeconds(reaches[from], target) or nil
     end
 end
 

@@ -3,7 +3,8 @@
 -- Charger après Core.lua, CompatQuest.lua, Engine/Masks.lua, Engine/FollowSteps.lua, Data/Names.lua et
 -- Integrations/TomTom.lua.
 --   ns.Follow.start(questID) -> suit la suite qui mène à questID (quête finale) ; quête inconnue : rien
---   ns.Follow.stop() -> fin du suivi, repère posé retiré
+--   ns.Follow.stop() -> fin du suivi, repère posé retiré ; SP_FOLLOW_CHANGED sans argument (suite terminée :
+--     SP_FOLLOW_CHANGED("done", questID final), voir plus bas)
 --   ns.Follow.current() -> questID final suivi | nil ; ns.Follow.view() -> dernier FollowSteps.build | nil
 --   ns.Follow.owns(key) -> bool : repère `key` posé par le suivi (Waypoint.reached le garde)
 --   ns.Follow.refresh() -> recalcule les étapes (hors combat, sinon à la fin du combat)
@@ -123,7 +124,7 @@ end
 
 local function finish(final)
     print(L.FOLLOW_DONE:format(ns.Names.quest(final) or tostring(final)))
-    Follow.stop()
+    Follow.stop("done", final)
 end
 
 local function compute()
@@ -208,14 +209,14 @@ function Follow.start(questID)
     Follow.refresh()
 end
 
-function Follow.stop()
+function Follow.stop(reason, final)
     if not Follow.current() then
         return
     end
     save(nil)
     view, currentKey, aimed = nil, nil, nil
     clearMark()
-    ns:Send("SP_FOLLOW_CHANGED")
+    ns:Send("SP_FOLLOW_CHANGED", reason, final)
 end
 
 Follow:RegisterBucketEvent(EVENTS, BUCKET, Follow.refresh)

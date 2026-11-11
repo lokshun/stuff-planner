@@ -15,6 +15,9 @@
 -- Alternatives plus faciles (AltLines) : bouton flèche à droite (gain à sa gauche), sous-lignes sous la
 -- ligne, cadre de sélection sur la sous-ligne choisie ; état
 -- déplié local (non gardé), par clé RoutePresenter expandKey.
+-- Puces de session sous le tri (SessionPresenter.chips, SessionPlan.toggle) : Tout / 30 min / 1 h / 2 h,
+-- puis Suivre la session ; budget choisi : liste de la session (SessionPlan.get, SessionPresenter.build)
+-- à la place des paliers ; rafraîchi aussi sur SP_FOLLOW_CHANGED. Charger après SessionPlan.lua.
 
 local _, ns = ...
 
@@ -23,7 +26,7 @@ local L = ns.L
 local RETRY_DELAY, RETRY_MAX = 1, 10
 local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
 
-local panel, header, sortBar, footer, scrollBox, emptyText
+local panel, header, sortBar, sessionBar, footer, scrollBox, emptyText
 local expanded = {}
 local retries, retryPending = 0, false
 
@@ -168,8 +171,8 @@ local function initRow(button, row)
     button.source:SetText(sourceLine(row))
 end
 
-local function presentRows(result)
-    local rows = ns.RoutePresenter.build(result, ns.Data, pastOpen(), expanded, uiState().routeByGain == true)
+-- Noms demandés pour les lignes affichées (sous-lignes dépliées comprises).
+local function askNames(rows)
     local missing = false
     local function ask(row)
         if row.itemID and not askName("item", row.itemID) then
@@ -189,10 +192,25 @@ local function presentRows(result)
     return rows
 end
 
+local function presentRows(tiers, budget, plan)
+    if budget then
+        return askNames(ns.SessionPresenter.build(plan, ns.Data, budget))
+    end
+    return tiers and askNames(ns.RoutePresenter.build(tiers, ns.Data, pastOpen(), expanded,
+        uiState().routeByGain == true)) or {}
+end
+
 local function refresh()
     local tiers, info = ns.RouteResults.get()
     local message = not tiers and info or nil
-    local rows = tiers and presentRows(tiers) or {}
+    local budget = ns.SessionPlan.budget()
+    local plan = budget and tiers and ns.SessionPlan.get(budget)
+    message = message or (budget and L.SESSION_EMPTY) or nil
+    local rows = presentRows(tiers, budget, plan)
+    sessionBar:render(ns.SessionPresenter.chips(budget, plan, ns.SessionPlan.following()), function(key)
+        ns.SessionPlan.toggle(key, plan)
+        ns.MainFrame.refresh()
+    end)
     header:SetText(L.ROUTE_HEADER)
     local byGain = uiState().routeByGain == true
     sortBar:render({
@@ -217,12 +235,15 @@ local function create(parent)
     sortBar = ns.Chips.new(panel)
     sortBar.frame:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
     sortBar.frame:SetPoint("RIGHT")
+    sessionBar = ns.Chips.new(panel)
+    sessionBar.frame:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    sessionBar.frame:SetPoint("RIGHT")
     footer = panel:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     footer:SetPoint("BOTTOMLEFT")
     footer:SetJustifyH("LEFT")
     setColor(footer, theme.colors.muted)
     scrollBox = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
-    scrollBox:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    scrollBox:SetPoint("TOPLEFT", sessionBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
     scrollBox:SetPoint("BOTTOMRIGHT", -20, 18)
     local scrollBar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")
     scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, 0)
@@ -245,6 +266,7 @@ ns:On("SP_ROUTE_UPDATED", ns.MainFrame.refresh)
 ns:On("SP_PLAYER_CHANGED", ns.MainFrame.refresh)
 ns:On("SP_DATA_READY", ns.MainFrame.refresh)
 ns:On("SP_PROFILE_CHANGED", ns.MainFrame.refresh)
+ns:On("SP_FOLLOW_CHANGED", ns.MainFrame.refresh)
 
 ns:On("SP_SELECTION_CHANGED", function()
     if scrollBox then

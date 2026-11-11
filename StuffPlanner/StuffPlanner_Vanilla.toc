@@ -94,12 +94,14 @@ UI\Presenters\GearPresenter.lua
 UI\Presenters\ProfilePresenter.lua
 UI\Presenters\DetailPresenter.lua
 UI\Presenters\RoutePresenter.lua
+UI\Presenters\SessionPresenter.lua
 UI\Presenters\SourcePresenter.lua
 UI\Chat.lua
 UI\Arrow.lua
 Integrations\TomTom.lua
 Follow.lua
 FollowTravel.lua
+SessionPlan.lua
 Data\Timings.lua
 UI\MainFrame.lua
 UI\Chips.lua
