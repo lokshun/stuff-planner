@@ -2,8 +2,8 @@
 -- Pastille de gain (flèche verte + pourcentage, BadgePresenter) dans le coin d'un bouton d'objet.
 -- Charger après BadgePresenter.lua, LiveItem.lua, Manager.lua et Results.lua.
 --   ns.ItemBadge.show(button, link) : pastille demandée ; calculée plus tard, MAX_PER_FRAME boutons
---     par image, jamais en combat (reprise à la fin du combat) ; le dernier lien demandé l'emporte.
---     link nil : comme hide.
+--     par image, jamais en combat (reprise à la fin du combat) ; le dernier lien demandé l'emporte ;
+--     même lien que la pastille posée : rien (pas de recalcul). link nil : comme hide.
 --   ns.ItemBadge.hide(button) : pastille retirée tout de suite, demande en attente oubliée.
 --   ns.ItemBadge.refreshAll() : toutes les pastilles posées sont recalculées (file).
 --   ns.ItemBadge.pending() -> nombre de boutons en attente (tests, débogage)
@@ -120,6 +120,9 @@ function ItemBadge.show(button, link)
     if not link then
         ItemBadge.hide(button)
         return
+    end
+    if wanted[button] == link then
+        return -- déjà posée pour ce lien (ou en attente) ; les recalculs passent par refreshAll
     end
     wanted[button] = link
     enqueue(button)

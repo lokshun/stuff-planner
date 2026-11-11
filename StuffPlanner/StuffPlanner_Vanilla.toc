@@ -39,6 +39,7 @@ DB.lua
 Options.lua
 Compat.lua
 CompatItem.lua
+CompatBags.lua
 CompatQuest.lua
 CompatMap.lua
 CompatTravel.lua
@@ -123,6 +124,7 @@ UI\Onboarding.lua
 UI\MiniTracker.lua
 UI\Tooltip.lua
 UI\ItemBadge.lua
+UI\BagBadges.lua
 UI\QuestFrameHint.lua
 UI\DetailWidgets.lua
 UI\QuestTooltip.lua

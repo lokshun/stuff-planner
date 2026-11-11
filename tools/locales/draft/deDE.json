@@ -280,6 +280,8 @@
   "OPTION_FOLLOW_WINDOW": "Schrittfenster anzeigen",
   "OPTION_FOLLOW_LOCKED": "Schrittfenster sperren",
   "OPTION_PLANNER_CALIBRATE": "Dauern an dein eigenes Tempo anpassen (nach 5 Messungen)",
+  "OPTIONS_SECTION_BADGES": "Gewinn-Abzeichen",
+  "OPTION_BADGES_BAGS": "Gewinn auf Gegenständen in den Taschen anzeigen",
   "ARROW_ZONE": "Zone: %s (%d Zonen)",
   "ARROW_ZONE_FAR": "Zone: %s",
   "ARROW_ON_TAXI": "Im Flug",

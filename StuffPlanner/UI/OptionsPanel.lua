@@ -63,6 +63,8 @@ local function layout()
         W.header(nil, L.OPTIONS_SECTION_TOOLTIP),
         W.checkbox(nil, "tooltip.enabled", labelOf("tooltip.enabled")),
         W.checkbox(nil, "questHint.enabled", labelOf("questHint.enabled")),
+        W.header(nil, L.OPTIONS_SECTION_BADGES),
+        W.checkbox(nil, "badges.bags", labelOf("badges.bags")),
         W.header(nil, L.OPTIONS_SECTION_TRACKER),
         W.checkbox(nil, "tracker.shown", labelOf("tracker.shown")),
         W.checkbox(nil, "tracker.locked", labelOf("tracker.locked")),

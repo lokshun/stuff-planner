@@ -1,6 +1,7 @@
 -- Globals WoW en lecture seule autorisés par luacheck (voir .luacheckrc).
 return {
     "C_AddOns",
+    "C_Container",
     "C_Item",
     "C_Map",
     "C_Spell",

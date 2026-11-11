@@ -283,6 +283,8 @@
   "OPTION_FOLLOW_WINDOW": "Показывать окно шагов",
   "OPTION_FOLLOW_LOCKED": "Закрепить окно шагов",
   "OPTION_PLANNER_CALIBRATE": "Подстраивать длительность под ваш темп (после 5 замеров)",
+  "OPTIONS_SECTION_BADGES": "Значки улучшений",
+  "OPTION_BADGES_BAGS": "Показывать улучшение на предметах в сумках",
   "ARROW_ZONE": "Зона: %s (%d зон)",
   "ARROW_ZONE_FAR": "Зона: %s",
   "ARROW_ON_TAXI": "В полете",

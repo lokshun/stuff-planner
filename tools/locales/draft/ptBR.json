@@ -280,6 +280,8 @@
   "OPTION_FOLLOW_WINDOW": "Mostrar a janela de etapas",
   "OPTION_FOLLOW_LOCKED": "Travar a janela de etapas",
   "OPTION_PLANNER_CALIBRATE": "Ajustar as durações ao seu ritmo (após 5 medições)",
+  "OPTIONS_SECTION_BADGES": "Selos de melhoria",
+  "OPTION_BADGES_BAGS": "Mostrar a melhoria nos itens das bolsas",
   "ARROW_ZONE": "Zona: %s (%d zonas)",
   "ARROW_ZONE_FAR": "Zona: %s",
   "ARROW_ON_TAXI": "Em voo",

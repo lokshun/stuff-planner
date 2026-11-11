@@ -280,6 +280,8 @@
   "OPTION_FOLLOW_WINDOW": "Mostrar la ventana de pasos",
   "OPTION_FOLLOW_LOCKED": "Bloquear la ventana de pasos",
   "OPTION_PLANNER_CALIBRATE": "Ajustar las duraciones a tu ritmo (tras 5 mediciones)",
+  "OPTIONS_SECTION_BADGES": "Insignias de mejora",
+  "OPTION_BADGES_BAGS": "Mostrar la mejora en los objetos de las bolsas",
   "ARROW_ZONE": "Zona: %s (%d zonas)",
   "ARROW_ZONE_FAR": "Zona: %s",
   "ARROW_ON_TAXI": "En vuelo",

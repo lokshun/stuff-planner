@@ -279,6 +279,8 @@
   "OPTION_FOLLOW_WINDOW": "显示步骤窗口",
   "OPTION_FOLLOW_LOCKED": "锁定步骤窗口",
   "OPTION_PLANNER_CALIBRATE": "按你的节奏调整时长（测量 5 次后）",
+  "OPTIONS_SECTION_BADGES": "提升标记",
+  "OPTION_BADGES_BAGS": "在背包物品上显示提升",
   "ARROW_ZONE": "区域：%s（%d个区域）",
   "ARROW_ZONE_FAR": "区域：%s",
   "ARROW_ON_TAXI": "飞行中",
