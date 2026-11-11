@@ -90,6 +90,7 @@ UI\Presenters\TrackerPresenter.lua
 UI\Presenters\FollowPresenter.lua
 UI\Presenters\ArrowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
+UI\Presenters\BadgePresenter.lua
 UI\Presenters\GearPresenter.lua
 UI\Presenters\ProfilePresenter.lua
 UI\Presenters\DetailPresenter.lua
@@ -121,6 +122,7 @@ UI\ProfileTab.lua
 UI\Onboarding.lua
 UI\MiniTracker.lua
 UI\Tooltip.lua
+UI\ItemBadge.lua
 UI\QuestFrameHint.lua
 UI\DetailWidgets.lua
 UI\QuestTooltip.lua
