@@ -61,6 +61,7 @@ Engine\ItemLink.lua
 Data\LiveItem.lua
 Engine\Scoring.lua
 Engine\Chains.lua
+Engine\FollowSteps.lua
 Engine\Distance.lua
 Engine\Planner.lua
 Engine\Tiers.lua
