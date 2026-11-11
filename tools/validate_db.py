@@ -4,7 +4,7 @@ Valide les enregistrements de la base avant écriture ; aucune lecture de fichie
   Finding : category, blocking, count, examples (3 identifiants triés au plus)
   report_lines(findings) -> une ligne par catégorie
 Bloquant : doublons, origine sans cible, prérequis négatif ou sur soi-même, niveau < 1, niveaux
-d'instance inversés, donneur absent de `npcs`, position hors de [0, 1]. Le reste signale des manques connus des sources, sans arrêter la construction.
+d'instance inversés, donneur ou PNJ de rendu absent de `npcs`, position ou lieu d'objectif hors de [0, 1]. Le reste signale des manques connus des sources, sans arrêter la construction.
 """
 
 from collections import Counter
@@ -131,6 +131,17 @@ def _npc_checks(tables):
     yield "positions de PNJ hors carte", True, [
         n["id"] for n in tables["npcs"] if not (0 <= n["x"] <= 1 and 0 <= n["y"] <= 1)
     ]
+    yield "PNJ de rendu absents de la base", True, [
+        q["id"] for q in tables["quests"] if q.get("ender") is not None and q["ender"] not in npcs
+    ]
+    yield "lieux d'objectif invalides", True, [q["id"] for q in tables["quests"] if not _objective_ok(q)]
+
+
+def _objective_ok(quest):
+    point = [quest.get(key) for key in ("objMap", "objX", "objY")]
+    if all(value is None for value in point):
+        return True
+    return None not in point and 0 <= point[1] <= 1 and 0 <= point[2] <= 1
 
 
 def validate(tables):

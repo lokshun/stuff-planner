@@ -31,7 +31,7 @@ import merge_exports
 import precompute
 import schema
 import validate_db
-from sources import cmangos, norgannon, questie, spyglass, wago, wago_era, zones
+from sources import cmangos, norgannon, quest_steps, questie, spyglass, wago, wago_era, zones
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCES = ROOT / "tools" / "tests" / "fixtures"
@@ -104,7 +104,7 @@ def build(
     with_origin = {origin["id"] for origin in tables["origins"]}
     tables["items"] = [item for item in tables["items"] if item["id"] in with_origin]
     tables["instances"] = list(instances)
-    starters = {quest.get("starter") for quest in tables["quests"]} - {None}
+    starters = quest_steps.npc_ids(tables["quests"])
     tables["npcs"] = [npc for npc in npcs if npc["id"] in starters]
     findings = validate_db.validate(tables)
     lines = validate_db.report_lines(findings)
@@ -136,7 +136,8 @@ def load_sources():
     questie_dir = questie.fetch(CACHE_DIR / "questie")
     quests = questie.load_quests(questie_dir)
     quests = precompute.split_rewards(quests, cmangos.load_quest_rewards(cmangos.fetch(CACHE_DIR / "cmangos")))
-    npcs = questie.load_npcs(questie_dir, {quest["starter"] for quest in quests} - {None})
+    quests = quest_steps.add_steps(quests, questie_dir)
+    npcs = questie.load_npcs(questie_dir, quest_steps.npc_ids(quests))
     wago_dir = wago.fetch(CACHE_DIR / "wago")
     era_dir = wago_era.fetch(CACHE_DIR / "wago_era")
     spy_dir = spyglass.fetch(CACHE_DIR / "spyglass")
@@ -189,7 +190,7 @@ def main():
     print(
         f"Base : {counts['quests']} quêtes, {counts['items']} objets, "
         f"{counts['origins']} objets avec origine, {counts['instances']} instances, "
-        f"{counts['npcs']} donneurs placés, {counts['eraItems']} objets différents sur Classic Era, "
+        f"{counts['npcs']} PNJ placés (donneurs et rendus), {counts['eraItems']} objets différents sur Classic Era, "
         f"{counts['instanceQuests']} quêtes de donjon ou de raid, "
         f"{counts['guessedQuests']} quêtes aux récompenses devinées, "
         f"noms de base : {counts['questNames']} quêtes, {counts['itemNames']} objets"

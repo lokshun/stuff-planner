@@ -13,11 +13,13 @@ Version 7 : `starter` (npcID | nil) en fin de quests ; table `npcs` (mapID, x, y
 Version 8 : table `eraItems` (quality, ilvl, reqLevel, stats) : objets communs dont Classic Era diffère,
   émise dans EraItems.lua, cité par le seul TOC Vanilla ; Data remplace ces champs sur ce client.
 Version 9 : `instance` (instanceID | nil) en fin de quests : quête de donjon ou de raid (zone de la quête).
+Version 10 : `ender` (npcID | nil), `objMap`, `objX`, `objY` (lieu d'objectif, fraction 0–1 | nil) en fin de
+  quests (suivi des suites, sources/quest_steps.py) ; `npcs` couvre donneurs et PNJ de rendu.
 quests.prereq : quêtes toutes requises ; un élément liste signifie « l'une de celles-ci ».
 Aucun nom de quête ou d'objet ici : ils viennent du client.
 """
 
-VERSION = 9
+VERSION = 10
 
 FIELDS = {
     "quests": (
@@ -34,6 +36,10 @@ FIELDS = {
         "forever",
         "starter",
         "instance",
+        "ender",
+        "objMap",
+        "objX",
+        "objY",
     ),
     "items": (
         "quality",
@@ -56,7 +62,7 @@ FIELDS = {
 }
 
 OPTIONAL = {
-    "quests": frozenset({"mapID", "classMask", "raceMask", "forever", "starter", "instance"}),
+    "quests": frozenset({"mapID", "classMask", "raceMask", "forever", "starter", "instance", "ender", "objMap", "objX", "objY"}),
     "items": frozenset({"slot", "classMask", "icon", "forever"}),
     "origins": frozenset(),
     "instances": frozenset({"minLevel", "maxLevel", "reqLevel", "mapID", "size"}),

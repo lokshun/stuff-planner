@@ -4,10 +4,10 @@
 --     RequireContract(4) refusé, Quest ou Npc manquants ; zones : Support.Get("ZoneDB").private,
 --     areaIdToUiMapId puis areaIdToUiMapIdOverride (chaînes « return {…} », la seconde l'emporte)
 --   available() -> bool
---   quest(id) -> {level, reqLevel, prereq, classMask?, raceMask?, starter?} | nil, mêmes règles que
+--   quest(id) -> {level, reqLevel, prereq, classMask?, raceMask?, starter?, ender?} | nil, mêmes règles que
 --     tools/sources/questie.py : reqLevel <= 0 -> 1 ; level <= 0 -> reqLevel ; prereq = groupe
 --     (valeur absolue, sans la quête elle-même) puis alternatives (une seule : obligatoire,
---     plusieurs : liste) ; masque 0 -> nil ; starter = PNJ donneur d'ID le plus bas qui a une position
+--     plusieurs : liste) ; masque 0 -> nil ; starter, ender = PNJ donneur, de rendu (créatures) d'ID le plus bas placé
 --   npc(id) -> {id, mapID, x, y} (0–1, 4 décimales) | nil ; zone d'origine (zoneID) d'abord, puis
 --     zones par ID croissant ; premier point dont x et y sont dans 0–100
 --   npcName(id) -> nom dans la langue choisie par QuestieDB | nil
@@ -165,7 +165,7 @@ function Adapter.npcName(id)
     return type(name) == "string" and name or nil
 end
 
-local function starterOf(startedBy)
+local function placedCreature(startedBy)
     local creatures = type(startedBy) == "table" and startedBy[CREATURES]
     for _, npcID in ipairs(ints(creatures)) do
         if Adapter.npc(npcID) then
@@ -187,6 +187,7 @@ function Adapter.quest(id)
         prereq = prereqOf(id, call(quest.preQuestGroup, id), call(quest.preQuestSingle, id)),
         classMask = positive(call(quest.requiredClasses, id)),
         raceMask = positive(call(quest.requiredRaces, id)),
-        starter = starterOf(call(quest.startedBy, id)),
+        starter = placedCreature(call(quest.startedBy, id)),
+        ender = placedCreature(call(quest.finishedBy, id)),
     }
 end

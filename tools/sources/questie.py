@@ -4,6 +4,7 @@ Importe les quêtes Forever de QuestieDB (github.com/Questie/QuestieDB), sans ex
   FILES -> chemins amont nécessaires
   fetch(cache_dir, opener=None) -> dossier cache_dir/COMMIT complété ; RuntimeError si réseau en échec
   load_quests(source_dir) -> enregistrements `quests` triés par id, sans réseau
+  OBJECT_DB, OBJECT_LAYERS -> base des objets du monde (lue par sources/quest_steps.py)
   npc_zones(source_dir) -> {npcID: zone}, sans réseau
   load_npcs(source_dir, ids) -> enregistrements `npcs` {id, mapID, x, y} des PNJ demandés ayant une
     position, triés par id, sans réseau
@@ -45,6 +46,7 @@ RAW_URL = "https://raw.githubusercontent.com/Questie/QuestieDB/{commit}/{path}"
 QUEST_DB = "data/Forever/foreverQuestDB.lua"
 ITEM_DB = "data/Forever/foreverItemDB.lua"
 NPC_DB = "data/Forever/foreverNpcDB.lua"
+OBJECT_DB = "data/Forever/foreverObjectDB.lua"
 CLASSIC_QUEST_DB = "data/Classic/classicQuestDB.lua"
 CORRECTIONS = "src/corrections/Forever"
 QUEST_LAYERS = (
@@ -65,14 +67,21 @@ NPC_LAYERS = (
     f"{CORRECTIONS}/traces/foreverNpcTraces.lua",
     f"{CORRECTIONS}/foreverNPCFixes.lua",
 )
+OBJECT_LAYERS = (
+    f"{CORRECTIONS}/legacy/classicObjectFixes.lua",
+    f"{CORRECTIONS}/generated/foreverBaseObject.lua",
+    f"{CORRECTIONS}/traces/foreverObjectTraces.lua",
+    f"{CORRECTIONS}/foreverObjectFixes.lua",
+)
 AREA_MAP = "support/Forever/Zones/areaIdToUiMapId.lua"
 ZONE_ENUM = "src/corrections/enum/zones.lua"
 SORT_ENUM = "src/corrections/enum/quests.lua"
 FILES = (
-    (QUEST_DB, ITEM_DB, NPC_DB, CLASSIC_QUEST_DB)
+    (QUEST_DB, ITEM_DB, NPC_DB, OBJECT_DB, CLASSIC_QUEST_DB)
     + QUEST_LAYERS
     + ITEM_LAYERS
     + NPC_LAYERS
+    + OBJECT_LAYERS
     + (AREA_MAP, ZONE_ENUM, SORT_ENUM)
 )
 

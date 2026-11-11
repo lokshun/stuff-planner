@@ -1,11 +1,11 @@
 -- CONTRAT
 -- Façade de lecture de StuffPlanner_Data. Aucun appel d'API : Loader la remplit.
--- Schéma 9 : enregistrements en chaînes décodées par ns.Codec (charger Codec.lua avant) ; `forever` (1 | nil) :
--- absent de Classic Era ; quest.starter = npcID | nil ; quest.instance = instanceID | nil (donjon, raid).
+-- Schéma 10 : chaînes décodées par ns.Codec (charger Codec.lua avant) ; `forever` (1 | nil) : absent de Classic Era ;
+-- quest.starter, quest.ender = npcID | nil ; instance = instanceID | nil ; objMap, objX, objY = lieu d'objectif | nil.
 --   ns.Data.ready() -> bool
 --   quest(id), item(id), instance(id) -> table aux champs nommés de tools/schema.py, `id` compris | nil ;
 --     la base n'a que les objets ayant une origine : item(id) d'un objet porté peut valoir nil
---   npc(id) -> {id, mapID, x, y} (x, y en 0–1) | nil ; base = donneurs de quête, position observée d'abord
+--   npc(id) -> {id, mapID, x, y} (x, y en 0–1) | nil ; base = donneurs et PNJ de rendu, position observée d'abord
 --   npcName(id) -> nom du PNJ dans la langue du client (ns.NpcNames de la base) | nil ;
 --     baseName("npc"|"quest"|"item", id) -> nom de la base (NpcNames, QuestNames, ItemNames) | nil
 --   recipe(itemID) -> {spellID, skillLine} | nil, première recette de l'objet
@@ -39,12 +39,12 @@ local _, ns = ...
 local Data = {}
 ns.Data = Data
 
-local SCHEMA_VERSION = 9
+local SCHEMA_VERSION = 10
 local EMPTY = {}
 local WEAK = { __mode = "v" }
 local OBSERVED = { "level", "mapID", "rewards", "choices" }
 local QUEST_KINDS = { detail = true, complete = true, log = true }
-local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "starter" }
+local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "starter", "ender" }
 local GUESSED, CONFIRMED, ESTIMATED = 2, 3, 1
 
 local db, overlay, kinds, hideForever, external, eraItems
