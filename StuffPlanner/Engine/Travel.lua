@@ -22,6 +22,9 @@
 --     ratio (durée réelle) ; ns.Travel.routeSeconds(graph, from, to [, opts]) : idem sur un graphe préparé.
 --     Sans position (from ou to sans x/y) ou sans chemin : opts.hops (Distance.hops) × TUNING.zoneSeconds,
 --     opts.hops absent = Distance.MAX_HOPS (3).
+--   ns.Travel.reach(graph, from) -> départ explorée une fois (Dijkstra complet) ;
+--     ns.Travel.reachSeconds(reach, to) -> secondes comme routeSeconds, en O(sommets) | nil (sans chemin ou
+--     to sans x/y). Pour estimer beaucoup de destinations depuis le même point (Planner).
 
 local _, ns = ...
 
@@ -118,7 +121,7 @@ local function shortest(graph, vertices)
             end
         end
         if not u or u == 2 then
-            return previous, kinds, u == 2, real[2]
+            return previous, kinds, u == 2, real[2], cost, real
         end
         done[u] = true
         for v in ipairs(vertices) do
@@ -204,6 +207,39 @@ function Travel.routeSeconds(graph, from, to, opts)
     local _, _, _, found, seconds = search(graph, from, to)
     if not found then
         return byZones(opts)
+    end
+    return seconds
+end
+
+-- Arrivée fictive jamais atteinte : Dijkstra explore tout le graphe.
+local NOWHERE = { point = {} }
+
+function Travel.reach(graph, from)
+    if not located(from) then
+        return nil
+    end
+    local vertices = { { point = from }, NOWHERE }
+    for _, vertex in ipairs(graph.static) do
+        vertices[#vertices + 1] = vertex
+    end
+    local _, _, _, _, cost, real = shortest(graph, vertices)
+    return { vertices = vertices, cost = cost, real = real }
+end
+
+-- La dernière arête vers to est toujours à pied (to n'est ni nœud ni arrivée de transport).
+function Travel.reachSeconds(reach, to)
+    if not (reach and located(to)) then
+        return nil
+    end
+    local best, seconds = INFINITE, nil
+    for index, vertex in ipairs(reach.vertices) do
+        local cost = reach.cost[index]
+        if cost and walkable(vertex.point, to) then
+            local walk = distance(vertex.point, to) / Travel.TUNING.walk
+            if cost + walk < best then
+                best, seconds = cost + walk, reach.real[index] + walk
+            end
+        end
     end
     return seconds
 end

@@ -1,13 +1,17 @@
 -- CONTRAT
--- Priorité de parcours : (gain × durée de vie + ALPHA × XP) / effort. Pur : aucun appel à l'API WoW.
+-- Priorité de parcours : (gain × durée de vie + ALPHA × XP) / minutes d'effort. Pur : aucun appel à l'API WoW.
 -- Charger après Engine/Scoring.lua, Engine/Chains.lua et Engine/Distance.lua.
 --   candidates(itemIDs, data, step?) -> {{itemID, source}...}, une entrée par source de data.sourcesOf ;
 --     step() appelé après chaque objet (sourcesOf décode la base : à étaler)
---   rank(candidates, player, profile, data, opts?) -> {{itemID, source, delta, effort, xp, level, hops, steps,
---     priority}...} : un objet une fois (sa meilleure source), tri par priorité décroissante
+--   rank(candidates, player, profile, data, opts?) -> {{itemID, source, delta, effort, seconds, xp, level, hops,
+--     steps, priority}...} : un objet une fois (sa meilleure source), tri par priorité décroissante
 --     puis itemID ; delta = Scoring.delta ({abs, pct, slot}), objets à gain abs <= 0 écartés.
 --     opts.isDone(questID) ; opts.includeRaids (raids écartés sinon) ; opts.tuning = {clé=valeur}
---     remplace les constantes de Planner.TUNING ; opts.step() appelé après chaque candidat
+--     remplace les constantes de Planner.TUNING ; opts.tuning.SECONDS = false : ancien calcul (constantes de
+--     Planner.LEGACY en unités, priorité / effort, sans seconds ni opts.travel), gardé jusqu'à la recette T9.2.
+--     opts.travel(mapID, x, y) -> secondes | nil : trajet du joueur jusqu'au donneur de la première étape
+--     restante (data.npc, x, y en 0–1) ; nil, absent ou sans donneur : hops × TRAVEL.
+--     effort = seconds (en secondes). opts.step() appelé après chaque candidat
 --     (coroutine.yield pour étaler le calcul sur plusieurs images) ; opts.pause() appelé une fois avant
 --     le tri final (yield sans condition : le tri ne partage pas son image).
 --   opts.reference = true : paliers passés du Parcours, « comme si on y était ». Gain = score de l'objet
@@ -34,19 +38,26 @@ ns.Planner = Planner
 
 local MAX_LEVEL = 60
 
+-- Secondes, provisoires : quête (prise, objectif, rendu sur place) 7 min, zone traversée 3 min
+-- (Travel.TUNING.zoneSeconds), donjon 50 min, raid 3 h, artisanat 2 min, métier à monter 1 h.
 Planner.TUNING = {
+    SECONDS = true,
     LIFESPAN = 8,
     ALPHA = 0.1,
-    QUEST_STEP = 1,
-    TRAVEL = 1,
+    QUEST_STEP = 420,
+    TRAVEL = 180,
     MAX_HOPS = 3,
-    DUNGEON_RUN = 4,
-    RAID_RUN = 20,
+    DUNGEON_RUN = 3000,
+    RAID_RUN = 10800,
     DEFAULT_CHANCE = 5,
     MIN_CHANCE = 1,
-    CRAFT = 2,
-    CRAFT_UNKNOWN = 6,
+    CRAFT = 120,
+    CRAFT_UNKNOWN = 3600,
 }
+
+-- Ancien calcul (unités arbitraires).
+Planner.LEGACY = { SECONDS = false, LIFESPAN = 8, ALPHA = 0.1, QUEST_STEP = 1, TRAVEL = 1, MAX_HOPS = 3,
+    DUNGEON_RUN = 4, RAID_RUN = 20, DEFAULT_CHANCE = 5, MIN_CHANCE = 1, CRAFT = 2, CRAFT_UNKNOWN = 6 }
 
 function Planner.candidates(itemIDs, data, step)
     local out = {}
@@ -114,8 +125,21 @@ local function hopsTo(mapID, player, data, tuning)
     return ns.Distance.hops(player.mapID, mapID, data, tuning.MAX_HOPS)
 end
 
-local function travel(hops, tuning)
+-- Trajet : opts.travel vers target ({mapID, x, y}) en secondes, sinon par zones.
+local function travel(hops, tuning, opts, target)
+    if tuning.SECONDS and opts.travel and target and target.mapID then
+        local seconds = opts.travel(target.mapID, target.x, target.y)
+        if seconds then
+            return seconds
+        end
+    end
     return (hops or 0) * tuning.TRAVEL
+end
+
+-- Donneur de la première étape restante, s'il est placé.
+local function starterOf(steps, data)
+    local first = data.quest(steps[1])
+    return first and first.starter and data.npc and data.npc(first.starter) or nil
 end
 
 -- Renvoie effort, xp, hops ; nil si la source est écartée.
@@ -132,7 +156,8 @@ local function questEffort(source, player, data, opts, tuning)
         return nil
     end
     local hops = hopsTo(quest.mapID, player, data, tuning)
-    return #steps * tuning.QUEST_STEP + travel(hops, tuning), questXP(steps, player, data), hops, #steps
+    local trip = travel(hops, tuning, opts, starterOf(steps, data))
+    return #steps * tuning.QUEST_STEP + trip, questXP(steps, player, data), hops, #steps
 end
 
 local function runs(source, tuning)
@@ -140,10 +165,11 @@ local function runs(source, tuning)
     return 100 / chance
 end
 
-local function instanceEffort(source, player, data, tuning, perRun)
+-- Entrée d'instance sans position dans la base : trajet par zones.
+local function instanceEffort(source, player, data, opts, tuning, perRun)
     local instance = data.instance and data.instance(source.id)
     local hops = hopsTo(instance and instance.mapID, player, data, tuning)
-    return perRun * runs(source, tuning) + travel(hops, tuning), 0, hops
+    return perRun * runs(source, tuning) + travel(hops, tuning, opts), 0, hops
 end
 
 local function effortOf(source, player, data, opts, tuning)
@@ -151,12 +177,12 @@ local function effortOf(source, player, data, opts, tuning)
     if kind == "quest" then
         return questEffort(source, player, data, opts, tuning)
     elseif kind == "dungeon" then
-        return instanceEffort(source, player, data, tuning, tuning.DUNGEON_RUN)
+        return instanceEffort(source, player, data, opts, tuning, tuning.DUNGEON_RUN)
     elseif kind == "raid" then
         if not opts.includeRaids then
             return nil
         end
-        return instanceEffort(source, player, data, tuning, tuning.RAID_RUN)
+        return instanceEffort(source, player, data, opts, tuning, tuning.RAID_RUN)
     elseif kind == "craft" then
         local known = player.professions and player.professions[source.skillLine]
         return known and tuning.CRAFT or tuning.CRAFT_UNKNOWN, 0
@@ -166,7 +192,8 @@ end
 
 local function tuningOf(opts)
     local tuning = {}
-    for key, value in pairs(Planner.TUNING) do
+    local base = opts.tuning and opts.tuning.SECONDS == false and Planner.LEGACY or Planner.TUNING
+    for key, value in pairs(base) do
         tuning[key] = value
     end
     for key, value in pairs(opts.tuning or {}) do
@@ -177,6 +204,11 @@ end
 
 local function neverDone()
     return false
+end
+
+-- Diviseur de la priorité : minutes, ou unités de l'ancien calcul.
+local function cost(effort, tuning)
+    return tuning.SECONDS and effort / 60 or effort
 end
 
 -- Ligne d'un candidat en parcours normal ; nil si écarté.
@@ -190,8 +222,8 @@ local function evaluate(candidate, delta, player, data, opts, tuning)
     end
     local level = obtainLevel(data.item(candidate.itemID), candidate.source, data)
     local gain = delta.abs * lifetime(level, player, tuning)
-    return { effort = effort, xp = xp, hops = hops, steps = steps, level = level,
-        priority = (gain + tuning.ALPHA * xp) / effort }
+    return { effort = effort, seconds = tuning.SECONDS and effort or nil, xp = xp, hops = hops, steps = steps,
+        level = level, priority = (gain + tuning.ALPHA * xp) / cost(effort, tuning) }
 end
 
 -- Ligne d'un candidat en mode référence ; nil si écarté.
@@ -211,15 +243,15 @@ local function evaluateReference(candidate, delta, player, profile, data, opts, 
     end
     local source = candidate.source
     local done = source.type == "quest" and opts.isDone ~= nil and opts.isDone(source.id) == true
-    return { effort = effort, xp = 0, hops = hops, steps = steps, level = level, priority = score / effort,
-        done = done, beaten = delta.abs <= 0 }
+    return { effort = effort, seconds = tuning.SECONDS and effort or nil, xp = 0, hops = hops, steps = steps,
+        level = level, priority = score / cost(effort, tuning), done = done, beaten = delta.abs <= 0 }
 end
 
 function Planner.rank(candidates, player, profile, data, opts)
     opts = opts or {}
     local tuning = tuningOf(opts)
     if opts.reference then
-        opts.effortOpts = { isDone = neverDone, includeRaids = opts.includeRaids }
+        opts.effortOpts = { isDone = neverDone, includeRaids = opts.includeRaids, travel = opts.travel }
     end
     local best, deltas = {}, {}
     for _, candidate in ipairs(candidates) do

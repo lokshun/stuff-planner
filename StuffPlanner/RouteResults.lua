@@ -15,6 +15,9 @@
 -- SP_PLAYER_CHANGED (émis seulement sur un vrai changement, voir Player), SP_DATA_READY,
 -- SP_PROFILE_CHANGED : classement oublié, recalculé au prochain get().
 -- Candidats (Planner.candidates, toute la base) gardés d'un calcul à l'autre, refaits après SP_DATA_READY.
+-- Trajet : FollowTravel.estimator() au lancement du calcul (position du joueur à ce moment) ; ancien calcul
+--   d'effort (Planner.LEGACY) si debug.legacyEffort (/splan debug effort, recette T9.2).
+--   ns.RouteResults.invalidate() -> classement oublié, SP_ROUTE_UPDATED (l'onglet redemande get())
 
 local _, ns = ...
 
@@ -36,18 +39,20 @@ local function tick()
 end
 
 -- Corps de la coroutine : paliers calculés.
-local function work(player, profile)
+local function work(player, profile, travel)
     local data = ns.Data
     local itemIDs = data.itemIDs()
     local list = candidates or ns.Planner.candidates(itemIDs, data, tick)
     candidates = list
-    local opts = { isDone = ns.Compat.IsQuestCompleted, step = tick, pause = coroutine.yield, includeRaids = true }
+    local tuning = ns.DB.peek("account", "debug", "legacyEffort") and { SECONDS = false } or nil
+    local opts = { isDone = ns.Compat.IsQuestCompleted, step = tick, pause = coroutine.yield, includeRaids = true,
+        travel = travel, tuning = tuning }
     local rows = ns.Planner.rank(list, player, profile, data, opts)
     local reference
     local first = ns.Tiers.indexOf(player.level)
     if first > 1 then
         local refOpts = { isDone = opts.isDone, step = tick, pause = coroutine.yield, includeRaids = true,
-            reference = true, maxLevel = ns.Tiers.BOUNDS[first - 1][2] }
+            reference = true, maxLevel = ns.Tiers.BOUNDS[first - 1][2], travel = travel, tuning = tuning }
         reference = ns.Planner.rank(list, player, profile, data, refOpts)
     end
     evaluated = #itemIDs
@@ -104,8 +109,9 @@ function RouteResults.get()
     end
     dirty, tiers = false, nil
     local player = ns.Results.player() or ns.Player.snapshot()
+    local travel = ns.FollowTravel and ns.FollowTravel.estimator() or nil
     job = coroutine.create(function()
-        return work(player, profile)
+        return work(player, profile, travel)
     end)
     C_Timer.After(0, resume)
     return nil, L.ROUTE_COMPUTING
@@ -125,6 +131,11 @@ end
 
 local function invalidate()
     dirty = true
+end
+
+function RouteResults.invalidate()
+    invalidate()
+    ns:Send("SP_ROUTE_UPDATED")
 end
 
 ns:On("SP_PLAYER_CHANGED", invalidate)

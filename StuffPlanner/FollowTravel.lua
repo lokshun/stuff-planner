@@ -6,6 +6,9 @@
 --     L.TRAVEL_ZEPPELIN (zone d'arrivée) ; aucun chemin : nil (flèche directe)
 --   ns.FollowTravel.nodes() -> points de vol connus en coordonnées monde, région (ns.TravelRegions) comprise
 --   ns.FollowTravel.reset() -> oublie les positions calculées (nouveaux points de vol)
+--   ns.FollowTravel.estimator() -> function(mapID, x, y) -> secondes | nil (Planner, opts.travel) : trajet
+--     depuis la position actuelle du joueur (Travel.reach une fois), x, y en 0–1 ; nil sans HereBeDragons ou
+--     sans position du joueur
 -- Points de vol connus : Compat.KnownTaxiNodes sur Kalimdor et les Royaumes de l'Est (sans ouvrir la carte
 --   de vol) ; sans cette API, ceux relevés à TAXIMAP_OPENED (Compat.TaxiNodes) dans
 --   StuffPlannerCharDB.taxi = {[nodeID] = {name, mapID, x, y}}.
@@ -142,6 +145,24 @@ function FollowTravel.leg(step)
         return nil
     end
     return legOf(leg)
+end
+
+function FollowTravel.estimator()
+    local lib = hbd()
+    local px, py, instance
+    if lib then
+        px, py, instance = lib:GetPlayerWorldPosition()
+    end
+    if not px then
+        return nil
+    end
+    local from = { instance = instance, x = px, y = py, region = regionOf(ns.Compat.PlayerMapPosition()) }
+    graph = graph or ns.Travel.prepare(FollowTravel.nodes(), transports(lib), { faction = faction() })
+    local reach = ns.Travel.reach(graph, from)
+    return function(mapID, x, y)
+        local target = x and y and world(lib, mapID, x, y, {})
+        return target and ns.Travel.reachSeconds(reach, target) or nil
+    end
 end
 
 local function stepKey(step)
