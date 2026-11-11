@@ -11,7 +11,7 @@
 --   button(content, text) -> bouton du jeu à la taille de son texte
 --   stacker(content) -> place(region, height?, gapBefore?), finish() : empile de haut en bas,
 --     finish fixe la hauteur du contenu et remonte en haut si le contenu a changé de taille
---   nameAsker(refresh) -> askName(kind, id) : nom demandé une fois, refresh regroupé (NAME_DELAY s)
+--   nameAsker(refresh) -> ns.NameAsker.new(refresh) (UI/NameAsker.lua)
 --   openMap(mapID, target?) -> Compat.OpenWorldMap puis fenêtre principale cachée, message en cas d'échec ;
 --     target ({mapID, x, y, title, giver}, view.waypoint) : ping au donneur (MapPins.focus)
 --   setColor(region, color)
@@ -27,7 +27,6 @@ DetailWidgets.WIDTH = 300
 DetailWidgets.BUTTON_HEIGHT = 22
 DetailWidgets.UNKNOWN_ICON = 134400
 
-local NAME_DELAY = 0.2
 local SCROLLBAR_SPACE = 24
 local TOP_SPACE = 24 -- sous la croix de fermeture
 
@@ -144,24 +143,7 @@ function DetailWidgets.stacker(content)
 end
 
 function DetailWidgets.nameAsker(refresh)
-    local asked, pending = {}, false
-    local function scheduled()
-        if pending then
-            return
-        end
-        pending = true
-        C_Timer.After(NAME_DELAY, function()
-            pending = false
-            refresh()
-        end)
-    end
-    return function(kind, id)
-        local key = kind .. id
-        if not asked[key] then
-            asked[key] = true
-            ns.Names.onReady(kind, id, scheduled)
-        end
-    end
+    return ns.NameAsker.new(refresh)
 end
 
 function DetailWidgets.openMap(mapID, target)

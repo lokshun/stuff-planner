@@ -20,14 +20,13 @@ local LINE_HEIGHT = 16
 local ICON_SIZE = 14
 local INDENT = 12
 local MAX_LINES = 14
-local NAME_DELAY = 0.2
 
 local FollowWindow = {}
 ns.FollowWindow = FollowWindow
 
 local frame, header, titleText, target
 local lines = {}
-local asked, refreshPending, combatPending = {}, false, false
+local combatPending = false
 
 local function settings()
     return ns.DB.account("ui", "follow")
@@ -136,27 +135,9 @@ local function create()
     frame:Hide()
 end
 
-local function scheduleRefresh()
-    if refreshPending then
-        return
-    end
-    refreshPending = true
-    C_Timer.After(NAME_DELAY, function()
-        refreshPending = false
-        refresh()
-    end)
-end
-
-local function askName(kind, id)
-    if not id then
-        return
-    end
-    local key = kind .. id
-    if not asked[key] then
-        asked[key] = true
-        ns.Names.onReady(kind, id, scheduleRefresh)
-    end
-end
+local askName = ns.NameAsker.new(function()
+    refresh()
+end)
 
 local function targetText(row)
     if not row then

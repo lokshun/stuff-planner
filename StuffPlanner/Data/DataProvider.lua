@@ -20,7 +20,8 @@
 --   collecteur (quêtes connues de la base : level s'il est connu, mapID, rewards, choices ; la dernière
 --   observation detail ou complete l'emporte ; "log", lue dans le journal, n'apporte que rewards et
 --   choices et ne remplace pas un dialogue). Quête confidence 2 dont une couche (Overlay ou
---   observation) fixe rewards et choices : confidence 3 (confirmée).
+--   observation) fixe rewards et choices : confidence 3 (confirmée). Observations : ns.Observations
+--   (Data/Observations.lua, charger avant).
 -- observeItem(id, stats) : stats lues en jeu (ItemProbe), au-dessus de l'Overlay, effet immédiat ;
 --   objet confidence 1 dont une couche fixe stats : confidence 3.
 -- observe(record) : Loader au chargement, puis Collector ; effet immédiat sur quest(id) et npc(id),
@@ -42,14 +43,13 @@ ns.Data = Data
 local SCHEMA_VERSION = 10
 local EMPTY = {}
 local WEAK = { __mode = "v" }
-local OBSERVED = { "level", "mapID", "rewards", "choices" }
-local QUEST_KINDS = { detail = true, complete = true, log = true }
 local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "starter", "ender" }
 local GUESSED, CONFIRMED, ESTIMATED = 2, 3, 1
 
 local db, overlay, kinds, hideForever, external, eraItems
-local cache, observed, observedItems, npcs, byMap, itemList
+local cache, byMap, itemList
 local isReady = false
+local Observations = ns.Observations
 
 local function reset()
     db, overlay, kinds, hideForever, external, eraItems = nil, nil, nil, false, nil, nil
@@ -57,7 +57,8 @@ local function reset()
     for _, name in ipairs({ "quests", "items", "instances", "npcs", "sources" }) do
         cache[name] = setmetatable({}, WEAK)
     end
-    observed, observedItems, npcs, byMap, itemList = {}, {}, {}, {}, nil
+    byMap, itemList = {}, nil
+    Observations.reset()
     isReady = false
 end
 reset()
@@ -83,18 +84,14 @@ function Data.observe(record)
     if not db then
         return
     end
-    if record.npcID and record.mapID then
-        npcs[record.npcID] = { id = record.npcID, mapID = record.mapID, x = record.x, y = record.y }
-    end
     local id = record.questID
-    if id and db.Quests[id] and QUEST_KINDS[record.kind] and not (record.kind == "log" and observed[id]) then
-        observed[id] = record
+    if Observations.add(record, id ~= nil and db.Quests[id] ~= nil) then
         cache.quests[id] = nil
     end
 end
 
 function Data.observeItem(id, stats)
-    observedItems[id] = stats
+    Observations.setItem(id, stats)
     cache.items[id] = nil
 end
 
@@ -157,16 +154,10 @@ local function cached(tableName, rowsName, id, layer)
 end
 
 local function applyObservation(quest)
-    local record = observed[quest.id]
-    if not record then
-        return
+    local record = Observations.applyQuest(quest)
+    if record then
+        confirm("quests", quest, record)
     end
-    for _, field in ipairs(OBSERVED) do
-        if record[field] ~= nil then
-            quest[field] = record[field]
-        end
-    end
-    confirm("quests", quest, record)
 end
 
 function Data.quest(id)
@@ -174,9 +165,7 @@ function Data.quest(id)
 end
 
 local function applyItemObservation(item)
-    local stats = observedItems[item.id]
-    if stats then
-        item.stats = stats
+    if Observations.applyItem(item) then
         confirm("items", item, item)
     end
 end
@@ -190,7 +179,7 @@ function Data.instance(id)
 end
 
 function Data.npc(id)
-    return npcs[id] or (external and external.npc(id)) or cached("npcs", "Npcs", id)
+    return Observations.npc(id) or (external and external.npc(id)) or cached("npcs", "Npcs", id)
 end
 
 function Data.npcName(id)
@@ -204,9 +193,9 @@ function Data.baseName(kind, id)
 end
 
 local function mapOf(id)
-    local record = observed[id]
-    if record and record.mapID then
-        return record.mapID
+    local seen = Observations.mapID(id)
+    if seen then
+        return seen
     end
     local corrected = (overlay.quests or EMPTY)[id]
     if corrected and corrected.mapID then

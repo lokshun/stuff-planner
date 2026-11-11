@@ -4,7 +4,7 @@
 -- Charger après MainFrame.lua, Chat.lua, RowPresenter.lua et Filters.lua.
 -- S'inscrit par ns.MainFrame.addTab("zone", …). Rafraîchi à l'ouverture et sur SP_RESULTS_UPDATED
 -- (Results, après joueur, base ou profil changés) si la fenêtre est visible ; noms reçus du client : un
--- rafraîchissement regroupé (NAME_DELAY s). Filtres sauvegardés dans StuffPlannerDB.ui.zoneFilters.
+-- rafraîchissement regroupé (NameAsker). Filtres sauvegardés dans StuffPlannerDB.ui.zoneFilters.
 -- Puces Meilleur gain (défaut) / Par emplacement (GearPresenter.sortBySlot, StuffPlannerDB.ui.zoneBySlot).
 -- Messages d'état (chargement, sans profil, zone inconnue, rien trouvé) au centre de la liste.
 -- Clic sur une ligne : fiche de la quête (QuestDetail) ou de l'instance (SourceDetail) ;
@@ -20,13 +20,11 @@ local _, ns = ...
 local L = ns.L
 
 local MAX_ROWS = 100
-local NAME_DELAY = 0.2
 local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
 local GAIN_WIDTH = 70
 local DIMMED_ALPHA = 0.5
 
 local panel, header, chipBar, sortBar, scrollBox, emptyText
-local asked, refreshPending = {}, false
 local lastShown
 
 local function filterState()
@@ -35,24 +33,9 @@ local function filterState()
     return ui.zoneFilters
 end
 
-local function scheduleRefresh()
-    if refreshPending then
-        return
-    end
-    refreshPending = true
-    C_Timer.After(NAME_DELAY, function()
-        refreshPending = false
-        ns.MainFrame.refresh()
-    end)
-end
-
-local function askName(kind, id)
-    local key = kind .. id
-    if not asked[key] then
-        asked[key] = true
-        ns.Names.onReady(kind, id, scheduleRefresh)
-    end
-end
+local askName = ns.NameAsker.new(function()
+    ns.MainFrame.refresh()
+end)
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)

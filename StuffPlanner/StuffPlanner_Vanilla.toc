@@ -49,6 +49,7 @@ Player.lua
 Data\Names.lua
 Data\Transports.lua
 Data\Codec.lua
+Data\Observations.lua
 Data\DataProvider.lua
 Data\InstanceIndex.lua
 Data\QuestieAdapter.lua
@@ -80,6 +81,7 @@ Profiles\Priorities.lua
 Results.lua
 RouteResults.lua
 UI\Theme.lua
+UI\NameAsker.lua
 UI\Presenters\RowPresenter.lua
 UI\Presenters\Filters.lua
 UI\Presenters\TrackerPresenter.lua

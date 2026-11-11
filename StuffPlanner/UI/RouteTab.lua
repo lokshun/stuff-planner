@@ -5,7 +5,7 @@
 -- S'inscrit par ns.MainFrame.addTab("route", …). Classement partagé (RouteResults), recalculé
 -- à l'affichage de l'onglet après SP_PLAYER_CHANGED, SP_DATA_READY ou SP_PROFILE_CHANGED :
 -- « calcul en cours » d'ici là ; rafraîchi sur SP_ROUTE_UPDATED ;
--- noms reçus du client : nouvelle présentation regroupée (NAME_DELAY s), sans recalcul ; noms
+-- noms reçus du client : nouvelle présentation regroupée (NameAsker), sans recalcul ; noms
 -- encore inconnus : nouvelle présentation toutes les RETRY_DELAY s, RETRY_MAX fois au plus.
 -- Paliers passés (référence, grisés) repliés par défaut : clic sur l'en-tête, état gardé dans
 -- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}. Puces Par emplacement / Meilleur gain sous
@@ -20,34 +20,16 @@ local _, ns = ...
 
 local L = ns.L
 
-local NAME_DELAY = 0.2
 local RETRY_DELAY, RETRY_MAX = 1, 10
 local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
 
 local panel, header, sortBar, footer, scrollBox, emptyText
-local asked, refreshPending = {}, false
 local expanded = {}
 local retries, retryPending = 0, false
 
-local function scheduleRefresh()
-    if refreshPending then
-        return
-    end
-    refreshPending = true
-    C_Timer.After(NAME_DELAY, function()
-        refreshPending = false
-        ns.MainFrame.refresh()
-    end)
-end
-
-local function askName(kind, id)
-    local key = kind .. id
-    if not asked[key] then
-        asked[key] = true
-        ns.Names.onReady(kind, id, scheduleRefresh)
-    end
-    return ns.Names.isKnown(kind, id)
-end
+local askName = ns.NameAsker.new(function()
+    ns.MainFrame.refresh()
+end)
 
 -- Filet de sécurité : une réponse du client peut arriver avant que le nom soit lisible.
 local function scheduleRetry(missing)

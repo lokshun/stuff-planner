@@ -20,7 +20,6 @@ local WIDTH = 240
 local LINE_HEIGHT = 20
 local ICON_SIZE = 16
 local MAX_LINES = 5
-local NAME_DELAY = 0.2
 local UNKNOWN_ICON = 134400
 
 local MiniTracker = {}
@@ -28,7 +27,7 @@ ns.MiniTracker = MiniTracker
 
 local frame, title, emptyText, background
 local buttons = {}
-local asked, refreshPending, combatPending = {}, false, false
+local combatPending = false
 
 local function settings()
     return ns.DB.account("ui", "tracker")
@@ -186,24 +185,9 @@ end
 
 local refresh
 
-local function scheduleRefresh()
-    if refreshPending then
-        return
-    end
-    refreshPending = true
-    C_Timer.After(NAME_DELAY, function()
-        refreshPending = false
-        refresh()
-    end)
-end
-
-local function askName(kind, id)
-    local key = kind .. id
-    if not asked[key] then
-        asked[key] = true
-        ns.Names.onReady(kind, id, scheduleRefresh)
-    end
-end
+local askName = ns.NameAsker.new(function()
+    refresh()
+end)
 
 local function render(view)
     for index, button in ipairs(buttons) do

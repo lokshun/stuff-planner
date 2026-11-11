@@ -16,30 +16,13 @@ local _, ns = ...
 local L = ns.L
 
 local MAX_ZONE_ENTRIES = 100
-local NAME_DELAY = 0.2
 local expanded = {}
 
 local profileText, summaryText, chipBar, sortBar, footer, scrollBox
-local asked, refreshPending = {}, false
 
-local function scheduleRefresh()
-    if refreshPending then
-        return
-    end
-    refreshPending = true
-    C_Timer.After(NAME_DELAY, function()
-        refreshPending = false
-        ns.MainFrame.refresh()
-    end)
-end
-
-local function askName(kind, id)
-    local key = kind .. id
-    if not asked[key] then
-        asked[key] = true
-        ns.Names.onReady(kind, id, scheduleRefresh)
-    end
-end
+local askName = ns.NameAsker.new(function()
+    ns.MainFrame.refresh()
+end)
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
