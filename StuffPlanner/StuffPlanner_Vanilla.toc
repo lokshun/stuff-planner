@@ -71,6 +71,7 @@ Engine\Distance.lua
 Engine\Travel.lua
 Engine\Planner.lua
 Engine\Calibration.lua
+Engine\Session.lua
 Engine\Tiers.lua
 Engine\Recompute.lua
 Engine\Bearing.lua

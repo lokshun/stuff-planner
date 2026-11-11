@@ -11,7 +11,8 @@
 --     Planner.LEGACY en unités, priorité / effort, sans seconds ni opts.travel), gardé jusqu'à la recette T9.2.
 --     opts.travel(mapID, x, y) -> secondes | nil : trajet du joueur jusqu'au donneur de la première étape
 --     restante (data.npc, x, y en 0–1) ; nil, absent ou sans donneur : hops × TRAVEL.
---     effort = seconds (en secondes). opts.step() appelé après chaque candidat
+--     effort = seconds (en secondes) ; trip = part du trajet dans seconds (Session ; nil hors secondes et pour
+--     l'artisanat). opts.step() appelé après chaque candidat
 --     (coroutine.yield pour étaler le calcul sur plusieurs images) ; opts.pause() appelé une fois avant
 --     le tri final (yield sans condition : le tri ne partage pas son image).
 --   opts.reference = true : paliers passés du Parcours, « comme si on y était ». Gain = score de l'objet
@@ -157,7 +158,7 @@ local function questEffort(source, player, data, opts, tuning)
     end
     local hops = hopsTo(quest.mapID, player, data, tuning)
     local trip = travel(hops, tuning, opts, starterOf(steps, data))
-    return #steps * tuning.QUEST_STEP + trip, questXP(steps, player, data), hops, #steps
+    return #steps * tuning.QUEST_STEP + trip, questXP(steps, player, data), hops, #steps, trip
 end
 
 local function runs(source, tuning)
@@ -169,7 +170,8 @@ end
 local function instanceEffort(source, player, data, opts, tuning, perRun)
     local instance = data.instance and data.instance(source.id)
     local hops = hopsTo(instance and instance.mapID, player, data, tuning)
-    return perRun * runs(source, tuning) + travel(hops, tuning, opts), 0, hops
+    local trip = travel(hops, tuning, opts)
+    return perRun * runs(source, tuning) + trip, 0, hops, nil, trip
 end
 
 local function effortOf(source, player, data, opts, tuning)
@@ -216,14 +218,15 @@ local function evaluate(candidate, delta, player, data, opts, tuning)
     if not delta or delta.abs <= 0 then
         return nil
     end
-    local effort, xp, hops, steps = effortOf(candidate.source, player, data, opts, tuning)
+    local effort, xp, hops, steps, trip = effortOf(candidate.source, player, data, opts, tuning)
     if not effort or effort <= 0 then
         return nil
     end
     local level = obtainLevel(data.item(candidate.itemID), candidate.source, data)
     local gain = delta.abs * lifetime(level, player, tuning)
     return { effort = effort, seconds = tuning.SECONDS and effort or nil, xp = xp, hops = hops, steps = steps,
-        level = level, priority = (gain + tuning.ALPHA * xp) / cost(effort, tuning) }
+        level = level, priority = (gain + tuning.ALPHA * xp) / cost(effort, tuning),
+        trip = tuning.SECONDS and trip or nil }
 end
 
 -- Ligne d'un candidat en mode référence ; nil si écarté.
