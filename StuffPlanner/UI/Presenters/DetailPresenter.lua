@@ -2,8 +2,9 @@
 -- Champs affichés de la fiche d'une quête et des épingles de carte. Charger après RowPresenter.lua.
 -- Pur : noms par ns.Names, gains par ns.Scoring.delta, nombres par ns.Format.
 --   ns.DetailPresenter.build(questID, player, profile, data [, opts]) -> view | nil (quête inconnue)
---     opts.isDone(questID) -> bool (prérequis faits), opts.isInLog ; profile nil : aucun gain affiché
---     view = {questID, title, levelText, zoneText, giverText, mapID,
+--     opts.isDone(questID) -> bool (prérequis faits), opts.isInLog ; profile nil : aucun gain affiché ;
+--     opts.seconds (RouteResults.secondsOf) -> durationText (L.DETAIL_DURATION, Format.duration) | nil
+--     view = {questID, title, levelText, zoneText, durationText, giverText, mapID,
 --             waypoint = {questID, mapID, x, y, title, giver, npcID} | nil (donneur placé par data.npc(quest.starter),
 --               giver = son nom ; suite à faire : donneur de sa première quête disponible, questID = elle),
 --             chain = {{questID, text, color, start}...} | nil : étapes restantes (Chains.remaining, quête
@@ -148,6 +149,7 @@ function DetailPresenter.build(questID, player, profile, data, opts)
         title = title,
         levelText = levelText(quest),
         zoneText = quest.mapID and ns.Names.zone(quest.mapID) or "",
+        durationText = opts.seconds and L.DETAIL_DURATION:format(ns.Format.duration(opts.seconds)) or nil,
         giverText = L.DETAIL_NO_GIVER,
         mapID = quest.mapID,
         rewards = rowsFor(quest.rewards, quest, player, profile, data, false),

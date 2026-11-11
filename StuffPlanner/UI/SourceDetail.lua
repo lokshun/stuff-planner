@@ -166,7 +166,7 @@ function SourceDetail.refresh()
     end
     local data = ns.Data
     currentView = data.ready() and ns.SourcePresenter.build(currentItem, currentSource, ns.Player.snapshot(),
-        ns.Profiles.active(), data) or nil
+        ns.Profiles.active(), data, ns.RouteResults.secondsOf(currentSource)) or nil
     if not currentView then
         panel:Hide()
         return

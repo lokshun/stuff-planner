@@ -18,6 +18,8 @@
 -- Trajet : FollowTravel.estimator() au lancement du calcul (position du joueur à ce moment) ; ancien calcul
 --   d'effort (Planner.LEGACY) si debug.legacyEffort (/splan debug effort, recette T9.2).
 --   ns.RouteResults.invalidate() -> classement oublié, SP_ROUTE_UPDATED (l'onglet redemande get())
+--   ns.RouteResults.secondsOf(source) -> secondes de la ligne du Parcours pour cette source (type, id ;
+--     entrées et alternatives de tous les paliers, la plus courte) | nil ; ne lance pas le calcul (fiches)
 
 local _, ns = ...
 
@@ -123,6 +125,32 @@ function RouteResults.current(level)
         return nil
     end
     return tier.entries, tier.alternatives
+end
+
+local function shorter(best, row, source)
+    local other = row.source
+    if row.seconds and other and other.type == source.type and other.id == source.id then
+        return math.min(best or math.huge, row.seconds)
+    end
+    return best
+end
+
+function RouteResults.secondsOf(source)
+    if dirty or not tiers or not source then
+        return nil
+    end
+    local best
+    for _, tier in ipairs(tiers) do
+        for _, row in ipairs(tier.entries) do
+            best = shorter(best, row, source)
+        end
+        for _, list in pairs(tier.alternatives or {}) do
+            for _, row in ipairs(list) do
+                best = shorter(best, row, source)
+            end
+        end
+    end
+    return best
 end
 
 function RouteResults.busy()

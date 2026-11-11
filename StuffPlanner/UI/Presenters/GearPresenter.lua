@@ -15,7 +15,8 @@
 --            upgrade = RowPresenter.resultRow | nil (premier gain > 0 de l'emplacement) ; hors zone :
 --              RowPresenter.present de la ligne du palier + questID (source quête), itemSource, outside = true,
 --            upgradeGain (delta.abs) | nil, gainLabel, gainColor (de upgrade, "" sans),
---            detailText, detailColor (nom de upgrade · son detailText, préfixé L.GEAR_ROUTE hors zone ;
+--            detailText, detailColor (nom de upgrade · son detailText, préfixé L.GEAR_ROUTE · durée
+--              (Format.duration de row.seconds, upgrade.durationText) hors zone ;
 --              sinon L.GEAR_ESTIMATED ou L.GEAR_NO_UPGRADE)}
 --            raid = RowPresenter.present + itemSource, gain | nil : meilleur objet de raid (zone ou palier)
 --              s'il fait mieux que upgrade (raids jamais en upgrade) ; raidGain, raidGainLabel, raidGainColor,
@@ -84,6 +85,7 @@ local function routeUpgrades(best, route, data)
             local row = ns.RowPresenter.present(entry, data)
             row.questID = entry.source and entry.source.type == "quest" and entry.source.id or nil
             row.outside, row.itemSource, row.gain = true, entry.source, entry.delta.abs
+            row.durationText = ns.Format.duration(entry.seconds)
             best[slot] = row
         end
     end
@@ -201,7 +203,11 @@ local function describe(row)
         parts[#parts + 1] = upgrade.detailText
     end
     local text = table.concat(parts, SEPARATOR)
-    row.detailText = upgrade.outside and (L.GEAR_ROUTE .. SEPARATOR .. text) or text
+    if upgrade.outside then
+        local prefix = upgrade.durationText and (L.GEAR_ROUTE .. SEPARATOR .. upgrade.durationText) or L.GEAR_ROUTE
+        text = prefix .. SEPARATOR .. text
+    end
+    row.detailText = text
     row.detailColor = colors.text
 end
 

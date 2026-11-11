@@ -4,6 +4,9 @@
 --     decimals vaut 1 par défaut
 --   ns.Format.number(value [, locale [, decimals]]) -> string ; 1234 -> "1 234" (frFR), "1,234" (enUS) ;
 --     decimals vaut 0 par défaut
+--   ns.Format.duration(seconds [, L]) -> « ~12 min » | nil (seconds nil ou infini) ; L = ns.L par défaut
+--     (DURATION_UNDER_MINUTE sous 60 s, DURATION_MINUTES sous l'heure, sinon DURATION_HOURS ou
+--     DURATION_HOURS_MINUTES, minutes arrondies à 5)
 -- locale vaut GetLocale() par défaut ; une langue inconnue suit enUS.
 -- Les séparateurs d'espace sont des espaces ordinaires, pas insécables.
 
@@ -58,4 +61,24 @@ end
 
 function Format.number(value, locale, decimals)
     return formatFixed(value, decimals or 0, conventionsFor(locale))
+end
+
+function Format.duration(seconds, L)
+    if not seconds or seconds == math.huge then
+        return nil
+    end
+    L = L or ns.L
+    if seconds < 60 then
+        return L.DURATION_UNDER_MINUTE
+    end
+    local minutes = math.floor(seconds / 60 + 0.5)
+    if minutes < 60 then
+        return L.DURATION_MINUTES:format(minutes)
+    end
+    minutes = math.floor(seconds / 300 + 0.5) * 5
+    local hours, rest = math.floor(minutes / 60), minutes % 60
+    if rest == 0 then
+        return L.DURATION_HOURS:format(hours)
+    end
+    return L.DURATION_HOURS_MINUTES:format(hours, rest)
 end

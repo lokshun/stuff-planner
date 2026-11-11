@@ -98,6 +98,7 @@ local function create()
         level = text(theme.fonts.small, theme.colors.muted),
         state = text(theme.fonts.small),
         zone = text(theme.fonts.small, theme.colors.muted),
+        duration = text(theme.fonts.small, theme.colors.muted),
         instance = text(theme.fonts.small, theme.colors.instance),
         badge = text(theme.fonts.small, theme.colors.warning),
         giverHeader = text(theme.fonts.header, theme.colors.title),
@@ -178,6 +179,7 @@ local function render(view)
     W.setColor(texts.state, view.stateColor)
     placeOptional(place, texts.state, view.stateText, 2)
     placeOptional(place, texts.zone, view.zoneText, 2)
+    placeOptional(place, texts.duration, view.durationText, 2)
     placeOptional(place, texts.instance, view.instanceText, 2)
     placeOptional(place, texts.badge, view.badge, 2)
     place(texts.giverHeader, nil, pad)
@@ -211,7 +213,8 @@ function buildView(questID, withScores)
     local player = withScores and ns.Player.snapshot() or nil
     local profile = withScores and ns.Profiles.active() or nil
     return ns.DetailPresenter.build(questID, player, profile, data,
-        { isDone = ns.Compat.IsQuestCompleted, isInLog = ns.Compat.IsOnQuest })
+        { isDone = ns.Compat.IsQuestCompleted, isInLog = ns.Compat.IsOnQuest,
+            seconds = ns.RouteResults.secondsOf({ type = "quest", id = questID }) })
 end
 
 function QuestDetail.isShown()

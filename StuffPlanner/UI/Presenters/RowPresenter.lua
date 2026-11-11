@@ -30,8 +30,8 @@
 --   instanceTag(quest, data) -> text, color | nil : « Donjon » ou « Raid » si quest.instance (raid lu dans
 --     data.instance) ; lignes de quête et de butin d'instance (source dungeon, raid) : row.tagText,
 --     row.tagColor, placés après l'état dans detailText
---   effortText(entry) -> « Proche · 3 quêtes » (Distance.label de entry.hops, L.EFFORT_CHAIN si
---     entry.steps > 1) | nil ; entry = ligne de Planner.rank
+--   effortText(entry) -> « ~12 min · Proche · 3 quêtes » (Format.duration de entry.seconds, Distance.label
+--     de entry.hops, L.EFFORT_CHAIN si entry.steps > 1) | nil ; entry = ligne de Planner.rank
 --   alternative(entry, data, effortText?) -> present + questID (source quête), itemSource,
 --     effortText (donné, sinon effortText(entry)), lineText (effortText · detailText)
 --   Non confirmé : objet confidence 1 (stats estimées) ou quête confidence 2 (récompenses devinées).
@@ -213,7 +213,7 @@ end
 local DISTANCE_TEXT = { near = "EFFORT_NEAR", mid = "EFFORT_MID", far = "EFFORT_FAR" }
 
 function RowPresenter.effortText(entry)
-    local parts = {}
+    local parts = { ns.Format.duration(entry.seconds) }
     if entry.hops ~= nil then
         parts[#parts + 1] = L[DISTANCE_TEXT[ns.Distance.label(entry.hops)]]
     end

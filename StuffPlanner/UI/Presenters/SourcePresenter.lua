@@ -1,8 +1,9 @@
 -- CONTRAT
 -- Fiche d'une source d'objet hors quête (donjon, raid, artisanat). Pur : aucun appel d'API.
 -- Charger après RowPresenter.lua.
---   ns.SourcePresenter.build(itemID, source, player, profile, data) -> view | nil (quête ou nil)
---     source comme Data.sourcesOf ; profile nil = sans gain.
+--   ns.SourcePresenter.build(itemID, source, player, profile, data, seconds?) -> view | nil (quête ou nil)
+--     source comme Data.sourcesOf ; profile nil = sans gain ; seconds (RouteResults.secondsOf) : dernière
+--     ligne L.SOURCE_DETAIL_DURATION (Format.duration).
 --     view = {itemID, kind, title, subtitle, lines = {{label, text}...}, others = {texte...},
 --             item = RowPresenter.present + delta, mapID? (zone d'entrée), spellID? (recette),
 --             reagents = {{itemID, count, text}...} (artisanat)}
@@ -87,7 +88,7 @@ local function craftView(view, source, player)
     end
 end
 
-function SourcePresenter.build(itemID, source, player, profile, data)
+function SourcePresenter.build(itemID, source, player, profile, data, seconds)
     if not source or source.type == "quest" then
         return nil
     end
@@ -103,6 +104,9 @@ function SourcePresenter.build(itemID, source, player, profile, data)
         craftView(view, source, player)
     else
         instanceView(view, source, data)
+    end
+    if seconds then
+        view.lines[#view.lines + 1] = { label = L.SOURCE_DETAIL_DURATION, text = ns.Format.duration(seconds) }
     end
     return view
 end
