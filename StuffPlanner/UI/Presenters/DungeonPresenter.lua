@@ -1,12 +1,14 @@
 -- CONTRAT
 -- Objets utiles d'une instance, boss par boss, et espérance de gain d'un passage. Pur : aucun appel d'API.
---   ns.DungeonPresenter.build(instanceID, data, delta) -> view
+--   ns.DungeonPresenter.build(instanceID, data, delta, killed?) -> view
 --     data : instanceBosses, instanceItems, sourcesOf (façade Data) ; delta(itemID) -> {abs, pct, slot} | nil
---       (Results.delta) ; objet utile : abs > 0, source dungeon ou raid de cette instance.
+--       (Results.delta) ; objet utile : abs > 0, source dungeon ou raid de cette instance ;
+--       killed = {[npcID] = true} : boss tués, leurs objets hors de view.expected (espérance restante).
 --     view = {instanceID, bosses = {boss...}, trash = boss (npcID nil, butin hors boss),
 --             expected = espérance du passage, unknownChance = nombre d'objets utiles sans taux}
---     boss = {npcID, items = {item...}, expected} ; boss dans l'ordre de data.instanceBosses (gardés même
---       sans objet utile, pour cocher les boss tués), puis boss à butin absents de l'ordre, par npcID.
+--     boss = {npcID, killed (bool), items = {item...}, expected (même tué)} ; boss dans l'ordre de
+--       data.instanceBosses (gardés même sans objet utile, pour cocher les boss tués), puis boss à butin
+--       absents de l'ordre, par npcID.
 --     item = {itemID, chance (% | nil), abs, pct, slot, expected = abs × taux | nil sans taux} ;
 --       triés par espérance décroissante (sans taux en dernier), puis abs décroissant, puis itemID.
 --     Espérance (boss et passage) : par emplacement, seul le meilleur objet tombé compte, les chutes étant
@@ -67,11 +69,11 @@ local function expectation(items)
 end
 
 local function newBoss(npcID)
-    return { npcID = npcID, items = {}, expected = 0 }
+    return { npcID = npcID, items = {}, expected = 0, killed = false }
 end
 
 local function collect(instanceID, data, delta)
-    local byBoss, trash, all, unknown = {}, newBoss(nil), {}, 0
+    local byBoss, trash, unknown = {}, newBoss(nil), 0
     for _, itemID in ipairs(data.instanceItems(instanceID)) do
         local gain = delta(itemID)
         if gain and gain.abs > 0 then
@@ -86,13 +88,12 @@ local function collect(instanceID, data, delta)
                         byBoss[source.npcID] = boss
                     end
                     boss.items[#boss.items + 1] = item
-                    all[#all + 1] = item
                     unknown = unknown + (p and 0 or 1)
                 end
             end
         end
     end
-    return byBoss, trash, all, unknown
+    return byBoss, trash, unknown
 end
 
 local function finish(boss)
@@ -101,8 +102,24 @@ local function finish(boss)
     return boss
 end
 
-function DungeonPresenter.build(instanceID, data, delta)
-    local byBoss, trash, all, unknown = collect(instanceID, data, delta)
+local function remaining(bosses, trash, killed)
+    local items = {}
+    for _, boss in ipairs(bosses) do
+        boss.killed = killed[boss.npcID] == true
+        if not boss.killed then
+            for _, item in ipairs(boss.items) do
+                items[#items + 1] = item
+            end
+        end
+    end
+    for _, item in ipairs(trash.items) do
+        items[#items + 1] = item
+    end
+    return expectation(items)
+end
+
+function DungeonPresenter.build(instanceID, data, delta, killed)
+    local byBoss, trash, unknown = collect(instanceID, data, delta)
     local bosses, listed = {}, {}
     for _, npcID in ipairs(data.instanceBosses(instanceID) or {}) do
         if not listed[npcID] then
@@ -124,7 +141,7 @@ function DungeonPresenter.build(instanceID, data, delta)
         instanceID = instanceID,
         bosses = bosses,
         trash = finish(trash),
-        expected = expectation(all),
+        expected = remaining(bosses, trash, killed or {}),
         unknownChance = unknown,
     }
 end

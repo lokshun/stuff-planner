@@ -44,6 +44,7 @@ CompatAuction.lua
 CompatQuest.lua
 CompatMap.lua
 CompatTravel.lua
+CompatInstance.lua
 CompatOptions.lua
 Debug\Pseudo.lua
 Debug\Perf.lua
@@ -108,6 +109,7 @@ Integrations\Prices.lua
 Follow.lua
 FollowTravel.lua
 SessionPlan.lua
+DungeonRun.lua
 Data\Timings.lua
 UI\MainFrame.lua
 UI\Chips.lua
@@ -141,6 +143,7 @@ UI\SourceDetail.lua
 UI\MapPins.lua
 UI\FloatingFrame.lua
 UI\FollowWindow.lua
+UI\DungeonPanel.lua
 UI\OptionsWidgets.lua
 UI\OptionsPanel.lua
 UI\MinimapButton.lua

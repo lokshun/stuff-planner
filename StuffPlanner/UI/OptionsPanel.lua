@@ -45,6 +45,7 @@ local function resetPositions()
     ns.MiniTracker.resetPosition()
     ns.Arrow.resetPosition()
     ns.FollowWindow.resetPosition()
+    ns.DungeonPanel.resetPosition()
 end
 
 local function welcome()
@@ -91,6 +92,8 @@ local function layout()
         W.header(nil, L.OPTIONS_SECTION_FOLLOW),
         W.checkbox(nil, "follow.window", labelOf("follow.window")),
         W.checkbox(nil, "follow.locked", labelOf("follow.locked")),
+        W.header(nil, L.OPTIONS_SECTION_DUNGEON),
+        W.checkbox(nil, "dungeon.panel", labelOf("dungeon.panel")),
         W.header(nil, L.OPTIONS_SECTION_PLANNER),
         W.checkbox(nil, "planner.calibrate", labelOf("planner.calibrate")),
     }
