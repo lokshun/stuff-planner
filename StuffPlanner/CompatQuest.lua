@@ -16,6 +16,8 @@
 --   QuestObjectives(id) -> {{text, finished}...} (C_QuestLog.GetQuestObjectives, sinon
 --     GetQuestLogLeaderBoard de sa ligne du journal) ; vide hors journal ou sans l'API
 --   DressUpItem(itemID) -> essayage dans la cabine du client (DressUpItemLink) ; sans effet sans elle
+--   AcceptedQuestID(...) -> questID | nil : arguments de QUEST_ACCEPTED, dernier retenu (Forever : questID ;
+--     Classic Era : index du journal, questID)
 -- PNJ : QuestInfoRewardsFrame.RewardButtons (repli QuestInfoRewardsFrameQuestInfoItemN),
 --   liens GetQuestItemLink. Journal : Classic Era QuestLogItem1..10 (QuestLog_UpdateQuestDetails),
 --   Forever QuestInfoFrame.rewardsFrame (QuestInfo_Display, questLog vrai) ; liens GetQuestLogItemLink.
@@ -231,4 +233,10 @@ function Compat.QuestLogRewards(questID)
         SelectQuestLogEntry(previous)
     end
     return choices, rewards
+end
+
+function Compat.AcceptedQuestID(...)
+    local count = select("#", ...)
+    local questID = count > 0 and select(count, ...) or nil
+    return type(questID) == "number" and questID or nil
 end

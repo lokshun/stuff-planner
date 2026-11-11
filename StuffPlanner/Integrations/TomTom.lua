@@ -19,6 +19,7 @@
 --     flèche, marque des cartes) ; déclenché par
 --     GOSSIP_SHOW, QUEST_GREETING, QUEST_DETAIL, QUEST_PROGRESS, QUEST_COMPLETE, PNJ lu par UnitGUID("npc"))
 --     repère posé par le suivi (ns.Follow.owns) : gardé, le suivi passe lui-même à l'étape suivante
+--   ns.Waypoint.dialogNpc() -> identifiant du PNJ en discussion (UnitGUID("npc"), créature ou véhicule) | nil
 --   Message SP_WAYPOINT_CHANGED après chaque pose ou retrait effectif.
 -- TomTom : AddWaypoint(mapID, x, y, opts) -> uid, RemoveWaypoint(uid), IsValidWaypoint(uid).
 -- Flèche : ns.Arrow.show(key, mapID, x, y, title, giver) -> bool, ns.Arrow.hide(key).
@@ -154,7 +155,7 @@ function Waypoint.reached(npcID)
     return true
 end
 
-local function dialogNpc()
+function Waypoint.dialogNpc()
     local unitType, id = (UnitGUID("npc") or ""):match("^(%a+)%-%d+%-%d+%-%d+%-%d+%-(%d+)%-")
     return (unitType == "Creature" or unitType == "Vehicle") and tonumber(id) or nil
 end
@@ -164,5 +165,5 @@ for _, event in ipairs({ "GOSSIP_SHOW", "QUEST_GREETING", "QUEST_DETAIL", "QUEST
     events:RegisterEvent(event)
 end
 events:SetScript("OnEvent", function()
-    Waypoint.reached(dialogNpc())
+    Waypoint.reached(Waypoint.dialogNpc())
 end)

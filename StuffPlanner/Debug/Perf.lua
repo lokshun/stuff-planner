@@ -7,7 +7,8 @@
 --   ns.Perf.stats(name) -> {slices, total, max} du dernier calcul fini | nil
 -- Calculs mesurés : "load" (Loader), "zone" (Results), "route" (RouteTab) ; l'appelant teste ns.Perf.
 -- /splan perf : mémoire (Compat.AddOnMemory) après collectgarbage, comparée au budget, et avant (déchets
---   compris) ; puis les derniers calculs, comparés aux budgets.
+--   compris) ; puis les derniers calculs, comparés aux budgets ; puis, si ns.Timings est chargé, les
+--   médianes du joueur (Timings.medians : durée Format.duration, trajet en rapport ×1.25, nombre de mesures).
 -- /splan debug pseudo : bascule StuffPlannerDB.debug.pseudo ; actif, ns.Pseudo.apply(ns.L) à
 --   l'initialisation de l'addon : effet après /reload.
 -- /splan debug effort : bascule StuffPlannerDB.debug.legacyEffort (ancien effort du Parcours, RouteResults),
@@ -90,11 +91,32 @@ local function runLine(run)
     return L.PERF_RUN:format(label, ms(stats.max), sliceBudget, ms(stats.total), stats.slices, status(ok))
 end
 
+local TIMING_LABELS = {
+    quest = "PERF_TIMING_QUEST", dungeon = "PERF_TIMING_DUNGEON", raid = "PERF_TIMING_RAID",
+    travel = "PERF_TIMING_TRAVEL",
+}
+
+local function timingLine(row)
+    local label = L[TIMING_LABELS[row.kind]]
+    if not row.median then
+        return L.PERF_TIMING_NONE:format(label)
+    end
+    local value = row.kind == "travel" and L.PERF_TIMING_RATIO:format(Format.number(row.median, nil, 2))
+        or Format.duration(row.median)
+    return L.PERF_TIMING:format(label, value, row.count)
+end
+
 local function showPerf()
     print(L.PERF_HEADER)
     print(memoryLine())
     for _, run in ipairs(RUNS) do
         print(runLine(run))
+    end
+    if ns.Timings then
+        print(L.PERF_TIMINGS:format(ns.Calibration.WINDOW))
+        for _, row in ipairs(ns.Timings.medians()) do
+            print(timingLine(row))
+        end
     end
 end
 

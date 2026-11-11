@@ -70,6 +70,7 @@ Engine\FollowSteps.lua
 Engine\Distance.lua
 Engine\Travel.lua
 Engine\Planner.lua
+Engine\Calibration.lua
 Engine\Tiers.lua
 Engine\Recompute.lua
 Engine\Bearing.lua
@@ -98,6 +99,7 @@ UI\Arrow.lua
 Integrations\TomTom.lua
 Follow.lua
 FollowTravel.lua
+Data\Timings.lua
 UI\MainFrame.lua
 UI\Chips.lua
 UI\RowActions.lua
