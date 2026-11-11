@@ -16,7 +16,8 @@
 -- SP_PROFILE_CHANGED : classement oublié, recalculé au prochain get().
 -- Candidats (Planner.candidates, toute la base) gardés d'un calcul à l'autre, refaits après SP_DATA_READY.
 -- Trajet : FollowTravel.estimator() au lancement du calcul (position du joueur à ce moment) ; ancien calcul
---   d'effort (Planner.LEGACY) si debug.legacyEffort (/splan debug effort, recette T9.2).
+--   d'effort (Planner.LEGACY) si debug.legacyEffort (/splan debug effort, recette T9.2) ; sinon, option
+--   planner.calibrate : opts.tuning = Calibration.tuning(Timings.samples()), changement d'option = invalidate.
 --   ns.RouteResults.invalidate() -> classement oublié, SP_ROUTE_UPDATED (l'onglet redemande get())
 --   ns.RouteResults.secondsOf(source) -> secondes de la ligne du Parcours pour cette source (type, id ;
 --     entrées et alternatives de tous les paliers, la plus courte) | nil ; ne lance pas le calcul (fiches)
@@ -40,13 +41,23 @@ local function tick()
     end
 end
 
+-- Ancien calcul (recette T9.2), sinon constantes mesurées du joueur (planner.calibrate), sinon défauts.
+local function tuningOf()
+    if ns.DB.peek("account", "debug", "legacyEffort") then
+        return { SECONDS = false }
+    end
+    if ns.Options.get("planner.calibrate") and ns.Timings then
+        return ns.Calibration.tuning(ns.Timings.samples(), ns.Planner.TUNING)
+    end
+end
+
 -- Corps de la coroutine : paliers calculés.
 local function work(player, profile, travel)
     local data = ns.Data
     local itemIDs = data.itemIDs()
     local list = candidates or ns.Planner.candidates(itemIDs, data, tick)
     candidates = list
-    local tuning = ns.DB.peek("account", "debug", "legacyEffort") and { SECONDS = false } or nil
+    local tuning = tuningOf()
     local opts = { isDone = ns.Compat.IsQuestCompleted, step = tick, pause = coroutine.yield, includeRaids = true,
         travel = travel, tuning = tuning }
     local rows = ns.Planner.rank(list, player, profile, data, opts)
@@ -172,3 +183,8 @@ ns:On("SP_DATA_READY", function()
     invalidate()
 end)
 ns:On("SP_PROFILE_CHANGED", invalidate)
+ns:On("SP_OPTION_CHANGED", function(key)
+    if key == "planner.calibrate" then
+        RouteResults.invalidate()
+    end
+end)

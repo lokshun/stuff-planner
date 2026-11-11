@@ -2,12 +2,12 @@
 Fusionne les exports des joueurs (/splan export, StuffPlanner/Data/Export.lua) en couche Overlay.
   decode(text), ExportError : réexportés de tools/export_codec.py
   read_exports(paths) -> chaînes SP1, une par ligne non vide, sans doublon, dans l'ordre des fichiers
-  merge(exports) -> Merged(overlay, conflicts, rejected, loot) ; exports = liste de listes
+  merge(exports) -> Merged(overlay, conflicts, rejected, loot, timings) ; exports = liste de listes
     d'enregistrements décodés. Par export, la dernière valeur non nulle de chaque champ (level, mapID,
     rewards, choices) d'une quête l'emporte ; entre exports, vote à la majorité, égalité = champ omis.
     overlay = {"quests": {questID: {champ: valeur}}, "items": {itemID: {"stats": {clé: valeur}}}} ;
     "items" absent sans objet ; kind "log" (lu dans le journal) : choices et rewards seulement ; stats lues en jeu (kind "item", ItemProbe) : dernière par export, vote
-    entre exports comme un champ. Butins comptés, pas fusionnés.
+    entre exports comme un champ. Butins et médianes (kind "timing") comptés, pas fusionnés.
   report_lines(merged, exports, illegible) -> lignes du rapport : bilan, puis un conflit par ligne
   load_overlay(path) / save_overlay(path, overlay) : overlay.json (clés en texte dans le fichier)
 Usage : python tools/merge_exports.py [fichiers...] [--json tools/overlay.json] [--out StuffPlanner_Data]
@@ -47,6 +47,7 @@ class Merged:
     conflicts: list = field(default_factory=list)
     rejected: int = 0
     loot: int = 0
+    timings: int = 0
 
 
 def read_exports(paths):
@@ -110,6 +111,9 @@ def _latest(records, merged):
         merged.rejected += 1
         return quests, items
     for record in records:
+        if isinstance(record, dict) and record.get("kind") == "timing":
+            merged.timings += 1
+            continue
         if isinstance(record, dict) and record.get("kind") == ITEM_KIND:
             stats = _clean_stats(record)
             if stats is None:

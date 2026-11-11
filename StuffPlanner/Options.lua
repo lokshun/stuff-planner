@@ -37,6 +37,7 @@ local CATALOG = {
     { key = "follow.window", default = true, invert = true, path = { "ui", "follow", "hidden" } },
     { key = "follow.locked", default = false, path = { "ui", "follow", "locked" } },
     { key = "waypoint.preferTomTom", default = true, invert = true, path = { "ui", "waypointNoTomTom" } },
+    { key = "planner.calibrate", default = true, invert = true, path = { "planner", "calibrateDisabled" } },
 }
 
 local byKey, keys = {}, {}

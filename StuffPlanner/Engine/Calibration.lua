@@ -8,6 +8,9 @@
 --     (créée au besoin) ; sorte inconnue, NaN ou hors bornes : refusée, samples intact
 --   ns.Calibration.median(list) -> number | nil (liste vide ou nil) ; list n'est pas modifiée
 --   ns.Calibration.medians(samples) -> {{kind, median?, count}...} dans l'ordre de KINDS ; samples nil : vide
+--   ns.Calibration.tuning(samples, defaults) -> {clé = valeur} | nil (pour Planner, opts.tuning) : sortes à
+--     MIN_COUNT mesures au moins ; quest -> QUEST_STEP, dungeon -> DUNGEON_RUN, raid -> RAID_RUN = médiane
+--     bornée de x0,5 à x2 de defaults ; travel -> TRAVEL_FACTOR = médiane bornée de 0,5 à 2 ; rien : nil
 
 local _, ns = ...
 
@@ -22,6 +25,10 @@ Calibration.BOUNDS = {
     travel = { 0.25, 4 },
 }
 Calibration.WINDOW = 25
+Calibration.MIN_COUNT = 5
+
+local KEYS = { quest = "QUEST_STEP", dungeon = "DUNGEON_RUN", raid = "RAID_RUN", travel = "TRAVEL_FACTOR" }
+local LOW, HIGH = 0.5, 2
 
 function Calibration.add(samples, kind, value)
     local bounds = Calibration.BOUNDS[kind]
@@ -60,4 +67,17 @@ function Calibration.medians(samples)
         rows[i] = { kind = kind, median = Calibration.median(list), count = list and #list or 0 }
     end
     return rows
+end
+
+function Calibration.tuning(samples, defaults)
+    local out
+    for _, kind in ipairs(Calibration.KINDS) do
+        local list = samples and samples[kind]
+        if list and #list >= Calibration.MIN_COUNT then
+            local base = kind == "travel" and 1 or defaults[KEYS[kind]]
+            out = out or {}
+            out[KEYS[kind]] = math.max(base * LOW, math.min(base * HIGH, Calibration.median(list)))
+        end
+    end
+    return out
 end

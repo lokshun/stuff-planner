@@ -2,7 +2,8 @@
 -- Transforme les observations en chaîne à copier, pour merge_exports.py. Charger après Collector.lua.
 --   ns.Export.encode(records) -> "SP1:" + EncodeForPrint(CompressDeflate(AceSerializer)) ;
 --     seuls les champs du contrat de Collector et d'ItemProbe (itemID, stats) sortent : aucun nom
---     de personnage. /splan export : observations du collecteur puis stats lues par ItemProbe
+--     de personnage. /splan export : observations du collecteur, stats lues par ItemProbe, puis médianes
+--     du chronométrage {kind = "timing", measure = Calibration.KINDS, median, count} (Timings.medians)
 --   ns.Export.decode(str) -> records | nil, err ; err est un code, pas un texte à afficher
 -- Commande /splan export : affiche la chaîne dans un champ à copier, refermé par Échap ou Entrée.
 
@@ -16,7 +17,8 @@ local Export = {}
 ns.Export = Export
 
 local PREFIX = "SP1:"
-local FIELDS = { "kind", "questID", "level", "npcID", "mapID", "x", "y", "choices", "rewards", "itemID", "stats" }
+local FIELDS = { "kind", "questID", "level", "npcID", "mapID", "x", "y", "choices", "rewards", "itemID", "stats",
+    "measure", "median", "count" }
 
 local function keepKnownFields(record)
     local kept = {}
@@ -83,6 +85,11 @@ ns:RegisterCommand("export", function()
     end
     for _, record in ipairs(ns.ItemProbe and ns.ItemProbe.records() or {}) do
         records[#records + 1] = record
+    end
+    for _, row in ipairs(ns.Timings and ns.Timings.medians() or {}) do
+        if row.median then
+            records[#records + 1] = { kind = "timing", measure = row.kind, median = row.median, count = row.count }
+        end
     end
     if #records == 0 then
         print(L.EXPORT_EMPTY)

@@ -54,6 +54,7 @@ Planner.TUNING = {
     MIN_CHANCE = 1,
     CRAFT = 120,
     CRAFT_UNKNOWN = 3600,
+    TRAVEL_FACTOR = 1, -- trajet réel / prévu (Calibration)
 }
 
 -- Ancien calcul (unités arbitraires).
@@ -128,13 +129,14 @@ end
 
 -- Trajet : opts.travel vers target ({mapID, x, y}) en secondes, sinon par zones.
 local function travel(hops, tuning, opts, target)
+    local factor = tuning.SECONDS and tuning.TRAVEL_FACTOR or 1
     if tuning.SECONDS and opts.travel and target and target.mapID then
         local seconds = opts.travel(target.mapID, target.x, target.y)
         if seconds then
-            return seconds
+            return seconds * factor
         end
     end
-    return (hops or 0) * tuning.TRAVEL
+    return (hops or 0) * tuning.TRAVEL * factor
 end
 
 -- Donneur de la première étape restante, s'il est placé.
