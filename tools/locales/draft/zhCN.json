@@ -236,5 +236,14 @@
   "OPTION_WAYPOINT_PREFERTOMTOM": "已加载 TomTom 时使用 TomTom",
   "OPTION_ARROW_SCALE": "箭头大小",
   "OPTION_ARROW_ARRIVAL": "到达距离",
-  "OPTION_ARROW_COLOR": "箭头颜色"
+  "OPTION_ARROW_COLOR": "箭头颜色",
+  "DETAIL_FOLLOW": "跟随",
+  "DETAIL_UNFOLLOW": "停止跟随",
+  "FOLLOW_PICKUP": "接受：%s",
+  "FOLLOW_PICKUP_ANY": "接受任务",
+  "FOLLOW_OBJECTIVE": "目标：%s",
+  "FOLLOW_OBJECTIVE_ANY": "完成目标",
+  "FOLLOW_TURNIN": "交付：%s",
+  "FOLLOW_TURNIN_ANY": "交付任务",
+  "FOLLOW_DONE": "Stuff Planner：任务链已完成（%s）。"
 }

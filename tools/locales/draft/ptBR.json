@@ -237,5 +237,14 @@
   "OPTION_WAYPOINT_PREFERTOMTOM": "Usar o TomTom quando estiver carregado",
   "OPTION_ARROW_SCALE": "Tamanho da seta",
   "OPTION_ARROW_ARRIVAL": "Distância de chegada",
-  "OPTION_ARROW_COLOR": "Cor da seta"
+  "OPTION_ARROW_COLOR": "Cor da seta",
+  "DETAIL_FOLLOW": "Seguir",
+  "DETAIL_UNFOLLOW": "Parar de seguir",
+  "FOLLOW_PICKUP": "Aceitar: %s",
+  "FOLLOW_PICKUP_ANY": "Aceitar a missão",
+  "FOLLOW_OBJECTIVE": "Objetivo: %s",
+  "FOLLOW_OBJECTIVE_ANY": "Cumprir o objetivo",
+  "FOLLOW_TURNIN": "Entregar: %s",
+  "FOLLOW_TURNIN_ANY": "Entregar a missão",
+  "FOLLOW_DONE": "Stuff Planner: cadeia de missões concluída (%s)."
 }

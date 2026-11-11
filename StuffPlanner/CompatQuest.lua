@@ -11,6 +11,10 @@
 --   QuestLogRewards(questID) -> choices, rewards ({itemID...} triés) | nil (hors journal, objet pas
 --     en cache, API absente) ; sélectionne la quête (C_QuestLog.SetSelectedQuest, sinon
 --     SelectQuestLogEntry), lit GetQuestLogItemLink, puis rend la sélection précédente
+--   IsQuestComplete(id) -> bool : quête du journal prête à rendre (C_QuestLog.IsComplete, sinon
+--     GetQuestLogTitle, 7e retour à 1) ; false hors journal ou sans l'API
+--   QuestObjectives(id) -> {{text, finished}...} (C_QuestLog.GetQuestObjectives, sinon
+--     GetQuestLogLeaderBoard de sa ligne du journal) ; vide hors journal ou sans l'API
 --   DressUpItem(itemID) -> essayage dans la cabine du client (DressUpItemLink) ; sans effet sans elle
 -- PNJ : QuestInfoRewardsFrame.RewardButtons (repli QuestInfoRewardsFrameQuestInfoItemN),
 --   liens GetQuestItemLink. Journal : Classic Era QuestLogItem1..10 (QuestLog_UpdateQuestDetails),
@@ -94,6 +98,48 @@ function Compat.IsOnQuest(id)
         return index ~= nil and index > 0
     end
     return false
+end
+
+local function logIndex(questID)
+    if not (GetNumQuestLogEntries and GetQuestLogTitle) then
+        return nil
+    end
+    for index = 1, GetNumQuestLogEntries() or 0 do
+        local _, _, _, isHeader, _, isComplete, _, id = GetQuestLogTitle(index)
+        if not isHeader and id == questID then
+            return index, isComplete
+        end
+    end
+    return nil
+end
+
+function Compat.IsQuestComplete(id)
+    if C_QuestLog and C_QuestLog.IsComplete then
+        return C_QuestLog.IsComplete(id) == true
+    end
+    local _, isComplete = logIndex(id)
+    return isComplete == 1
+end
+
+function Compat.QuestObjectives(id)
+    local list = {}
+    if C_QuestLog and C_QuestLog.GetQuestObjectives then
+        for _, objective in ipairs(C_QuestLog.GetQuestObjectives(id) or {}) do
+            list[#list + 1] = { text = objective.text, finished = objective.finished == true }
+        end
+        return list
+    end
+    local index = logIndex(id)
+    if not (index and GetNumQuestLeaderBoards and GetQuestLogLeaderBoard) then
+        return list
+    end
+    for i = 1, GetNumQuestLeaderBoards(index) or 0 do
+        local text, _, finished = GetQuestLogLeaderBoard(i, index)
+        if text then
+            list[#list + 1] = { text = text, finished = finished == true or finished == 1 }
+        end
+    end
+    return list
 end
 
 function Compat.DressUpItem(itemID)

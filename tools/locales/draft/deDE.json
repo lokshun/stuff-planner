@@ -237,5 +237,14 @@
   "OPTION_WAYPOINT_PREFERTOMTOM": "TomTom verwenden, wenn es geladen ist",
   "OPTION_ARROW_SCALE": "Pfeilgröße",
   "OPTION_ARROW_ARRIVAL": "Ankunftsentfernung",
-  "OPTION_ARROW_COLOR": "Pfeilfarbe"
+  "OPTION_ARROW_COLOR": "Pfeilfarbe",
+  "DETAIL_FOLLOW": "Folgen",
+  "DETAIL_UNFOLLOW": "Nicht mehr folgen",
+  "FOLLOW_PICKUP": "Annehmen: %s",
+  "FOLLOW_PICKUP_ANY": "Quest annehmen",
+  "FOLLOW_OBJECTIVE": "Ziel: %s",
+  "FOLLOW_OBJECTIVE_ANY": "Ziel erfüllen",
+  "FOLLOW_TURNIN": "Abgeben: %s",
+  "FOLLOW_TURNIN_ANY": "Quest abgeben",
+  "FOLLOW_DONE": "Stuff Planner: Questreihe abgeschlossen (%s)."
 }

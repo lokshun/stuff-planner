@@ -18,6 +18,7 @@
 --   ns.Waypoint.reached(npcID) -> bool : PNJ visé atteint, repère retiré en entier (Waypoint.clear : TomTom,
 --     flèche, marque des cartes) ; déclenché par
 --     GOSSIP_SHOW, QUEST_GREETING, QUEST_DETAIL, QUEST_PROGRESS, QUEST_COMPLETE, PNJ lu par UnitGUID("npc"))
+--     repère posé par le suivi (ns.Follow.owns) : gardé, le suivi passe lui-même à l'étape suivante
 --   Message SP_WAYPOINT_CHANGED après chaque pose ou retrait effectif.
 -- TomTom : AddWaypoint(mapID, x, y, opts) -> uid, RemoveWaypoint(uid), IsValidWaypoint(uid).
 -- Flèche : ns.Arrow.show(key, mapID, x, y, title, giver) -> bool, ns.Arrow.hide(key).
@@ -146,7 +147,7 @@ end
 
 function Waypoint.reached(npcID)
     local mark = Waypoint.current()
-    if npcID == nil or not mark or mark.npcID ~= npcID then
+    if npcID == nil or not mark or mark.npcID ~= npcID or (ns.Follow and ns.Follow.owns(mark.key)) then
         return false
     end
     Waypoint.clear(mark.key)

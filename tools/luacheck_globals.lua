@@ -55,6 +55,8 @@ return {
     "GetQuestLogIndexByID",
     "GetNumQuestLogEntries",
     "GetQuestLogTitle",
+    "GetNumQuestLeaderBoards",
+    "GetQuestLogLeaderBoard",
     "GetQuestLogSelection",
     "SelectQuestLogEntry",
     "GetNumQuestLogChoices",

@@ -19,6 +19,10 @@
 --             questState, stateText, stateColor (Chains.questState, RowPresenter.state ;
 --               niveau ignoré sans player)}
 --     mapID = carte du donneur (de la première quête de la suite s'il y en a), sinon celle de la quête.
+--   ns.DetailPresenter.waypointButton(view, followed, placed) -> {mode, label, enabled}
+--     suite de quêtes (view.chain) ou quête suivie : mode "follow", L.DETAIL_UNFOLLOW si
+--     followed == view.questID, sinon L.DETAIL_FOLLOW ; sinon mode "waypoint",
+--     L.DETAIL_WAYPOINT_CLEAR si placed, grisé sans view.waypoint.
 --   ns.DetailPresenter.pins(entries, data) -> {{questID, mapID, x, y, itemID, delta}...}
 --     entries = Chat.bestInZone (triées) ; une épingle par quête, son premier objet ; donneur placé seul.
 
@@ -197,4 +201,16 @@ function DetailPresenter.pins(entries, data)
         end
     end
     return pins
+end
+
+function DetailPresenter.waypointButton(view, followed, placed)
+    if view.chain or followed == view.questID then
+        local label = followed == view.questID and L.DETAIL_UNFOLLOW or L.DETAIL_FOLLOW
+        return { mode = "follow", label = label, enabled = true }
+    end
+    return {
+        mode = "waypoint",
+        label = placed and L.DETAIL_WAYPOINT_CLEAR or L.DETAIL_WAYPOINT,
+        enabled = placed or view.waypoint ~= nil,
+    }
 end

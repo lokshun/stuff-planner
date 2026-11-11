@@ -240,5 +240,14 @@
   "OPTION_WAYPOINT_PREFERTOMTOM": "Использовать TomTom, если он загружен",
   "OPTION_ARROW_SCALE": "Размер стрелки",
   "OPTION_ARROW_ARRIVAL": "Расстояние прибытия",
-  "OPTION_ARROW_COLOR": "Цвет стрелки"
+  "OPTION_ARROW_COLOR": "Цвет стрелки",
+  "DETAIL_FOLLOW": "Следовать",
+  "DETAIL_UNFOLLOW": "Не следовать",
+  "FOLLOW_PICKUP": "Взять: %s",
+  "FOLLOW_PICKUP_ANY": "Взять задание",
+  "FOLLOW_OBJECTIVE": "Цель: %s",
+  "FOLLOW_OBJECTIVE_ANY": "Выполнить цель",
+  "FOLLOW_TURNIN": "Сдать: %s",
+  "FOLLOW_TURNIN_ANY": "Сдать задание",
+  "FOLLOW_DONE": "Stuff Planner: цепочка заданий завершена (%s)."
 }

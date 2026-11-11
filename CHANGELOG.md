@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Changes
+- Quest chains: the quest detail button now reads "Follow". The arrow then guides you step by step
+  (pick up, objective, turn in) through every quest of the chain, and resumes after a reload.
 - Item tooltips now show the Stuff Planner gain for every equippable item, including world drops
   that are not in the database and random-suffix items ("of the Monkey"), read from the item link.
 - When the suggested upgrade is a crafted item, its alternatives now start with the best quest reward for

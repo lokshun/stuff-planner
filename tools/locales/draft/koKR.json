@@ -236,5 +236,14 @@
   "OPTION_WAYPOINT_PREFERTOMTOM": "TomTom을 불러왔으면 사용",
   "OPTION_ARROW_SCALE": "화살표 크기",
   "OPTION_ARROW_ARRIVAL": "도착 거리",
-  "OPTION_ARROW_COLOR": "화살표 색상"
+  "OPTION_ARROW_COLOR": "화살표 색상",
+  "DETAIL_FOLLOW": "따라가기",
+  "DETAIL_UNFOLLOW": "따라가기 중지",
+  "FOLLOW_PICKUP": "수락: %s",
+  "FOLLOW_PICKUP_ANY": "퀘스트 수락",
+  "FOLLOW_OBJECTIVE": "목표: %s",
+  "FOLLOW_OBJECTIVE_ANY": "목표 달성",
+  "FOLLOW_TURNIN": "완료: %s",
+  "FOLLOW_TURNIN_ANY": "퀘스트 완료",
+  "FOLLOW_DONE": "Stuff Planner: 연계 퀘스트 완료 (%s)."
 }

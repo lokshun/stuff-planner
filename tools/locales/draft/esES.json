@@ -237,5 +237,14 @@
   "OPTION_WAYPOINT_PREFERTOMTOM": "Usar TomTom cuando esté cargado",
   "OPTION_ARROW_SCALE": "Tamaño de la flecha",
   "OPTION_ARROW_ARRIVAL": "Distancia de llegada",
-  "OPTION_ARROW_COLOR": "Color de la flecha"
+  "OPTION_ARROW_COLOR": "Color de la flecha",
+  "DETAIL_FOLLOW": "Seguir",
+  "DETAIL_UNFOLLOW": "Dejar de seguir",
+  "FOLLOW_PICKUP": "Aceptar: %s",
+  "FOLLOW_PICKUP_ANY": "Aceptar la misión",
+  "FOLLOW_OBJECTIVE": "Objetivo: %s",
+  "FOLLOW_OBJECTIVE_ANY": "Cumplir el objetivo",
+  "FOLLOW_TURNIN": "Entregar: %s",
+  "FOLLOW_TURNIN_ANY": "Entregar la misión",
+  "FOLLOW_DONE": "Stuff Planner: cadena de misiones completada (%s)."
 }

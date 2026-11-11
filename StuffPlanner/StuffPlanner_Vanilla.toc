@@ -87,6 +87,7 @@ UI\Presenters\SourcePresenter.lua
 UI\Chat.lua
 UI\Arrow.lua
 Integrations\TomTom.lua
+Follow.lua
 UI\MainFrame.lua
 UI\Chips.lua
 UI\RowActions.lua
@@ -108,6 +109,7 @@ UI\Tooltip.lua
 UI\QuestFrameHint.lua
 UI\DetailWidgets.lua
 UI\QuestTooltip.lua
+UI\WaypointButton.lua
 UI\QuestDetail.lua
 UI\SourceDetail.lua
 UI\MapPins.lua

@@ -1,7 +1,7 @@
 -- CONTRAT
 -- Fiche d'une quête (DetailPresenter.build) : panneau accolé à droite de la fenêtre principale,
 -- contenu défilant (DetailWidgets). Charger après DetailWidgets.lua, DetailPresenter.lua et
--- Integrations/TomTom.lua, QuestTooltip.lua.
+-- Integrations/TomTom.lua, QuestTooltip.lua, WaypointButton.lua.
 --   ns.QuestDetail.show(questID) -> ouvre la fenêtre principale (onglet gardé) puis la fiche ; hors combat
 --   ns.QuestDetail.hide(), isShown(), refresh()
 --   ns.QuestDetail.waypoint(questID) -> bool : repère vers le donneur (ns.Waypoint, clé questID) ou, si une
@@ -9,13 +9,13 @@
 --     false sans position
 -- Survol d'une quête de la suite ou des prérequis : ns.QuestTooltip (détails de cette quête).
 -- Contenu : titre, niveau, état (journal, niveau requis, prérequis), zone, badge, donneur, bouton
---   Repère (« Retirer le repère » tant que celui de la quête existe), bouton Carte
+--   Repère ou Suivre pour une suite de quêtes (UI/WaypointButton.lua), bouton Carte
 --   (Compat.OpenWorldMap, puis fenêtre principale cachée), récompenses, choix (meilleur signalé),
 --   suite de quêtes restante (sinon prérequis faits) ; ligne « Commence par » sous le donneur.
 --   Survol d'un objet : info-bulle du client.
 -- Enfant de la fenêtre principale : cachée, déplacée et mise à l'échelle avec elle (Échap compris).
 -- Rafraîchie sur SP_PLAYER_CHANGED, SP_PROFILE_CHANGED, SP_DATA_READY, SP_QUEST_OBSERVED,
--- SP_QUEST_LOG_CHANGED et à l'arrivée des noms ; bouton Repère suivi sur SP_WAYPOINT_CHANGED.
+-- SP_QUEST_LOG_CHANGED et à l'arrivée des noms ; bouton Repère suivi sur SP_WAYPOINT_CHANGED, SP_FOLLOW_CHANGED.
 
 local _, ns = ...
 
@@ -83,28 +83,8 @@ local function hideLine(line)
     line.hover:Hide()
 end
 
--- Clé du repère : la quête qui commence la suite (view.waypoint.questID), sinon la quête elle-même.
-local function markOf(view)
-    return view.waypoint and view.waypoint.questID or view.questID
-end
-
 local function updateWaypointButton()
-    local placed = currentView ~= nil and ns.Waypoint.has(markOf(currentView))
-    waypointButton:SetText(placed and L.DETAIL_WAYPOINT_CLEAR or L.DETAIL_WAYPOINT)
-    waypointButton:SetEnabled(placed or (currentView ~= nil and currentView.waypoint ~= nil))
-end
-
-local function toggleWaypoint()
-    if not currentView then
-        return
-    end
-    local target = currentView.waypoint
-    if ns.Waypoint.has(markOf(currentView)) then
-        ns.Waypoint.clear(markOf(currentView))
-    elseif target then
-        ns.Waypoint.set(target.mapID, target.x, target.y, target.title, target.questID, target.giver, target.npcID)
-    end
-    updateWaypointButton()
+    waypointButton:update(currentView)
 end
 
 local function create()
@@ -133,8 +113,7 @@ local function create()
     texts.choices:SetText(L.DETAIL_CHOICES)
     texts.prereqs:SetText(L.DETAIL_PREREQS)
     texts.nothing:SetText(L.DETAIL_NOTHING)
-    waypointButton = W.button(content, L.DETAIL_WAYPOINT_CLEAR)
-    waypointButton:SetScript("OnClick", toggleWaypoint)
+    waypointButton = ns.WaypointButton.new(content)
     mapButton = W.button(content, L.DETAIL_MAP)
     mapButton:SetScript("OnClick", function()
         W.openMap(currentView and currentView.mapID, currentView and currentView.waypoint)
@@ -293,6 +272,11 @@ ns:On("SP_PROFILE_CHANGED", QuestDetail.refresh)
 ns:On("SP_QUEST_OBSERVED", QuestDetail.refresh)
 ns:On("SP_QUEST_LOG_CHANGED", QuestDetail.refresh)
 ns:On("SP_DATA_READY", QuestDetail.refresh)
+ns:On("SP_FOLLOW_CHANGED", function()
+    if waypointButton and QuestDetail.isShown() then
+        updateWaypointButton()
+    end
+end)
 ns:On("SP_WAYPOINT_CHANGED", function()
     if waypointButton and QuestDetail.isShown() then
         updateWaypointButton()
