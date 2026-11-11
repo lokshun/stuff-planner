@@ -1,7 +1,9 @@
 -- CONTRAT
 -- Lignes Stuff Planner dans les info-bulles d'objet (Compat.HookItemTooltip) : gain par rapport
 -- à l'objet porté, 3 stats qui pèsent le plus, avertissement si stats estimées (TooltipPresenter).
--- Charger après TooltipPresenter.lua, Scoring.lua et Manager.lua.
+-- Tout objet équipable : hors base (butin de monde) ou à suffixe aléatoire, stats lues par le lien
+-- (LiveItem.fields, seulement si LiveItem.needed).
+-- Charger après TooltipPresenter.lua, Scoring.lua, LiveItem.lua et Manager.lua.
 -- Rien en combat, avant SP_DATA_READY, sans profil actif ni si le réglage tooltip.enabled est coupé.
 -- Instantané du joueur gardé jusqu'à SP_PLAYER_CHANGED : le cache de Scoring reste valable d'une info-bulle à l'autre.
 
@@ -20,7 +22,7 @@ local function addLine(tooltip, text, color)
     tooltip:AddLine(text, color.r, color.g, color.b)
 end
 
-local function addLines(tooltip, itemID)
+local function addLines(tooltip, itemID, link)
     if InCombatLockdown() or not ns.Data.ready() or not ns.Options.get("tooltip.enabled") then
         return
     end
@@ -28,7 +30,8 @@ local function addLines(tooltip, itemID)
     if not profile then
         return
     end
-    local view = ns.TooltipPresenter.build(itemID, snapshot(), profile, ns.Data)
+    local live = ns.LiveItem.needed(itemID, link, ns.Data) and ns.LiveItem.fields(link) or nil
+    local view = ns.TooltipPresenter.build(itemID, snapshot(), profile, ns.Data, live)
     if not view then
         return
     end

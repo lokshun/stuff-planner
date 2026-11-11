@@ -30,6 +30,7 @@ return {
     "GetInventoryItemQuality",
     "GetInventoryItemTexture",
     "GetItemStats",
+    "GetItemInfoInstant",
     "GetLocale",
     "GetLootSlotLink",
     "GetLootSourceInfo",

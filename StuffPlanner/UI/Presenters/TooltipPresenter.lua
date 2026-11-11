@@ -1,7 +1,9 @@
 -- CONTRAT
 -- Texte ajouté aux info-bulles d'objet et choix de la meilleure récompense de quête.
 -- Pur : aucun appel d'API. Charger après RowPresenter.lua (ns.Scoring lu à l'appel).
---   ns.TooltipPresenter.build(itemID, player, profile, data) -> view | nil
+--   ns.TooltipPresenter.build(itemID, player, profile, data [, live]) -> view | nil
+--     live = LiveItem.fields(link) : objet lu en jeu, remplace la base (Scoring.deltaFields, ses stats,
+--       jamais d'avertissement) ;
 --     nil si Scoring.delta ne donne rien (objet inconnu, non équipable…) ;
 --     view = {gain = L.TOOLTIP_GAIN (points et pourcentage signés ; sans flèche, absente de la
 --               police des info-bulles), gainColor,
@@ -75,12 +77,17 @@ local function gainText(delta)
     return L.TOOLTIP_GAIN:format(parts)
 end
 
-function TooltipPresenter.build(itemID, player, profile, data)
-    local delta = ns.Scoring.delta(itemID, player, profile, data)
+function TooltipPresenter.build(itemID, player, profile, data, live)
+    local delta
+    if live then
+        delta = ns.Scoring.deltaFields(live, player, profile, data, live.key)
+    else
+        delta = ns.Scoring.delta(itemID, player, profile, data)
+    end
     if not delta then
         return nil
     end
-    local item = data.item(itemID) or {}
+    local item = live or data.item(itemID) or {}
     local _, _, color = ns.RowPresenter.gain(delta)
     local view = {
         gain = gainText(delta),

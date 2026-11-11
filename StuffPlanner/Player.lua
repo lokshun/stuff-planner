@@ -3,8 +3,9 @@
 --   ns.Player.snapshot() -> {class, race, raceID, faction, level, mapID, equipped={[slot]=itemID},
 --     spellHit, meleeHit, professions={[id]=skill}} ; class et race en jetons anglais, raceID du client ;
 --     mapID nil si carte inconnue ; toucher en points de pourcentage
---   equippedStats={[slot]={[StatKey]=value}} : objets portés absents de la base (Data prête),
---     stats lues par Compat.GetItemStats + StatParser.fromApi ; vide avant Data prête
+--   equippedStats={[slot]={[StatKey]=value}} : objets portés absents de la base ou à suffixe aléatoire
+--     (Data prête), stats lues par Compat.GetItemStats + StatParser.fromApi ; vide avant Data prête
+--   equippedTypes={[slot]=InventoryType} : objets portés absents de la base (Compat.GetItemInfoInstant)
 -- Table neuve à chaque appel : la modifier n'affecte ni l'état ni les autres instantanés.
 -- Message SP_PLAYER_CHANGED, sans argument, regroupé sur niveau, zone et équipement,
 -- jamais émis en combat. Les changements de métier n'émettent rien.
@@ -57,23 +58,30 @@ local function readEquipped()
     return equipped
 end
 
--- Stats des objets portés que la base ne connaît pas (butin de monde, objets masqués).
+-- Stats des objets portés que la base ne connaît pas (butin de monde, objets masqués) ou dont le
+-- suffixe aléatoire change les stats ; type d'emplacement des objets hors base.
 local function readEquippedStats(equipped)
-    local result = {}
+    local result, types = {}, {}
     local data = ns.Data
     if not (data and data.ready() and ns.StatParser) then
-        return result
+        return result, types
     end
     for slot, itemID in pairs(equipped) do
-        local link = not data.item(itemID) and GetInventoryItemLink("player", slot)
-        if link then
+        local known = data.item(itemID) ~= nil
+        local link = GetInventoryItemLink("player", slot)
+        if link and (not known or ns.ItemLink.suffix(link) ~= 0) then
             local stats = ns.StatParser.fromApi(Compat.GetItemStats(link))
             if next(stats) then
                 result[slot] = stats
             end
         end
+        local info = link and not known and Compat.GetItemInfoInstant(link)
+        local inventoryType = info and ns.ItemLink.inventoryType(info.equipLoc)
+        if inventoryType then
+            types[slot] = inventoryType
+        end
     end
-    return result
+    return result, types
 end
 
 local function readProfessions()
@@ -93,6 +101,7 @@ function Player.snapshot()
     local mapID = Compat.PlayerMapPosition()
     local meleeHit, spellHit = Compat.GetHitModifiers()
     local equipped = readEquipped()
+    local equippedStats, equippedTypes = readEquippedStats(equipped)
     return {
         class = class,
         race = race,
@@ -101,7 +110,8 @@ function Player.snapshot()
         level = UnitLevel("player"),
         mapID = mapID,
         equipped = equipped,
-        equippedStats = readEquippedStats(equipped),
+        equippedStats = equippedStats,
+        equippedTypes = equippedTypes,
         spellHit = spellHit,
         meleeHit = meleeHit,
         professions = readProfessions(),

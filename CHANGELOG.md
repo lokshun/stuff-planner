@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Changes
+- Item tooltips now show the Stuff Planner gain for every equippable item, including world drops
+  that are not in the database and random-suffix items ("of the Monkey"), read from the item link.
 - When the suggested upgrade is a crafted item, its alternatives now start with the best quest reward for
   that slot (Route and Gear tabs), even if the quest takes more effort.
 

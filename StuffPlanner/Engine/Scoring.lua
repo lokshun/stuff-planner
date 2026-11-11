@@ -1,6 +1,6 @@
 -- CONTRAT
 -- Score d'objet et gain par rapport à l'équipement porté. Pur : aucun appel à l'API WoW.
--- Charger après Engine/Proficiency.lua.
+-- Charger après Engine/Proficiency.lua et Engine/Masks.lua.
 --   score(stats, weights, ctx) -> number ; somme de stats[clé] * weights[clé] ;
 --     ctx.caps = {[clé]=plafond}, ctx.base = {[clé]=total sans l'objet} : seule la part
 --     sous le plafond compte (score marginal)
@@ -15,13 +15,14 @@
 --     Totaux de plafond : HIT = player.meleeHit, SPELL_HIT = player.spellHit, moins les objets
 --     retirés. Résultat en cache par (itemID, empreinte de weights et caps) : table partagée,
 --     à ne pas modifier. Le cache se vide quand player n'est plus la même table.
+--   deltaFields(fields, player, profile, data [, key]) -> comme delta, pour des champs donnés
+--     ({slot, itemClass, itemSubClass, classMask?, stats} : objet lu en jeu, hors base ou à suffixe) ;
+--     cache par (key, empreinte) si key est donnée, aucun sinon.
+--     player.equippedTypes = {[slot]=InventoryType} facultatif : objets portés hors base (deux-mains).
 --   invalidate() -> vide le cache (instantané modifié sur place).
 --   dependsOn(itemID, data) -> {slot...} : emplacements portés dont dépend delta (anneaux,
 --     bijoux : les deux ; armes, boucliers, mains gauches : 16 et 17) ; {} si inconnu.
---   hasClass(classMask, class) -> bool ; classMask nil = toute classe.
---   hasRace(raceMask, raceID, faction) -> bool ; raceMask nil = toute race. Bit de la race (Skyborne
---     95, 96 aux bits 32, 33) ; race inconnue : vrai si le masque a une race de `faction`, ou sans faction.
---   allows(quest, player) -> bool : hasClass et hasRace de la quête pour player (class, raceID, faction).
+--   hasClass, hasRace, allows : alias de ns.Masks (Engine/Masks.lua).
 
 local _, ns = ...
 
@@ -46,11 +47,7 @@ local PAIRED = { [11] = true, [12] = true }
 -- Classe -> niveau d'apprentissage de la double arme (Classic).
 local DUAL_WIELD = { ROGUE = 10, WARRIOR = 20, HUNTER = 20 }
 
--- Identifiants de classe du client (bit du classMask = 2^(id-1)).
-local CLASS_IDS = {
-    WARRIOR = 1, PALADIN = 2, HUNTER = 3, ROGUE = 4, PRIEST = 5,
-    SHAMAN = 7, MAGE = 8, WARLOCK = 9, DRUID = 11,
-}
+
 
 -- Totaux du joueur connus par l'instantané, pour les plafonds.
 local PLAYER_TOTALS = { HIT = "meleeHit", SPELL_HIT = "spellHit" }
@@ -91,53 +88,9 @@ local function fingerprint(profile)
     return sortedPairs(profile.weights) .. "|" .. sortedPairs(profile.caps)
 end
 
-function Scoring.hasClass(classMask, class)
-    if not classMask then
-        return true
-    end
-    local id = CLASS_IDS[class]
-    if not id then
-        return false
-    end
-    local bitValue = 2 ^ (id - 1)
-    return classMask % (bitValue * 2) >= bitValue
-end
-
--- Identifiants de race du client -> bit du raceMask (au-delà de 32 bits : arithmétique, pas `bit`).
-local RACE_BITS = {
-    [1] = 2 ^ 0, [2] = 2 ^ 1, [3] = 2 ^ 2, [4] = 2 ^ 3, [5] = 2 ^ 4, [6] = 2 ^ 5, [7] = 2 ^ 6, [8] = 2 ^ 7,
-    [95] = 2 ^ 32, [96] = 2 ^ 33,
-}
-local FACTION_RACES = { Alliance = { 1, 3, 4, 7, 95 }, Horde = { 2, 5, 6, 8, 96 } }
-
-local function hasBit(mask, bitValue)
-    return mask % (bitValue * 2) >= bitValue
-end
-
-function Scoring.hasRace(raceMask, raceID, faction)
-    if not raceMask then
-        return true
-    end
-    local bitValue = RACE_BITS[raceID]
-    if bitValue then
-        return hasBit(raceMask, bitValue)
-    end
-    local races = FACTION_RACES[faction]
-    if not races then
-        return true
-    end
-    for _, id in ipairs(races) do
-        if hasBit(raceMask, RACE_BITS[id]) then
-            return true
-        end
-    end
-    return false
-end
-
-function Scoring.allows(quest, player)
-    return Scoring.hasClass(quest.classMask, player.class)
-        and Scoring.hasRace(quest.raceMask, player.raceID, player.faction)
-end
+Scoring.hasClass = ns.Masks.hasClass
+Scoring.hasRace = ns.Masks.hasRace
+Scoring.allows = ns.Masks.allows
 
 local function equippedStats(slot, player, data)
     local stats = player.equippedStats and player.equippedStats[slot]
@@ -213,6 +166,10 @@ local function pairedOptions(itemID, slots, player)
 end
 
 local function wearsTwoHand(player, data)
+    local worn = player.equippedTypes and player.equippedTypes[MAIN_HAND_SLOT]
+    if worn then
+        return worn == TWO_HAND
+    end
     local itemID = player.equipped[MAIN_HAND_SLOT]
     local fields = itemID and data.item(itemID)
     return fields ~= nil and fields.slot == TWO_HAND
@@ -240,15 +197,14 @@ local function canUse(fields, player)
         and Scoring.hasClass(fields.classMask, player.class)
 end
 
-local function compute(itemID, player, profile, data)
-    local fields = data.item(itemID)
+local function compute(itemID, fields, player, profile, data)
     local slots = fields and SLOTS[fields.slot]
     if not slots or not canUse(fields, player) then
         return nil
     end
     local options
     if PAIRED[fields.slot] then
-        options = pairedOptions(itemID, slots, player)
+        options = pairedOptions(itemID or fields.id, slots, player)
     elseif slots[1] == MAIN_HAND_SLOT or slots[1] == OFF_HAND_SLOT then
         options = weaponOptions(fields, slots, player, data)
     else
@@ -257,17 +213,28 @@ local function compute(itemID, player, profile, data)
     return bestOf(options, fields.stats, player, profile, data)
 end
 
-function Scoring.delta(itemID, player, profile, data)
+local function cachedDelta(key, itemID, fields, player, profile, data)
     if player ~= cachedPlayer then
         cache, cachedPlayer = {}, player
     end
-    local key = itemID .. "|" .. fingerprint(profile)
+    key = key .. "|" .. fingerprint(profile)
     local cached = cache[key]
     if cached == nil then
-        cached = compute(itemID, player, profile, data) or false
+        cached = compute(itemID, fields, player, profile, data) or false
         cache[key] = cached
     end
     return cached or nil
+end
+
+function Scoring.delta(itemID, player, profile, data)
+    return cachedDelta(itemID, itemID, data.item(itemID), player, profile, data)
+end
+
+function Scoring.deltaFields(fields, player, profile, data, key)
+    if key == nil then
+        return compute(nil, fields, player, profile, data)
+    end
+    return cachedDelta("live:" .. key, nil, fields, player, profile, data)
 end
 
 function Scoring.invalidate()

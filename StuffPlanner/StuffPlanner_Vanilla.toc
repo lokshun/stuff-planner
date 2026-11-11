@@ -37,6 +37,7 @@ Locales\Format.lua
 Core.lua
 Options.lua
 Compat.lua
+CompatItem.lua
 CompatQuest.lua
 CompatMap.lua
 CompatOptions.lua
@@ -55,6 +56,9 @@ Engine\StatKeys.lua
 Engine\StatParser.lua
 Data\ItemProbe.lua
 Engine\Proficiency.lua
+Engine\Masks.lua
+Engine\ItemLink.lua
+Data\LiveItem.lua
 Engine\Scoring.lua
 Engine\Chains.lua
 Engine\Distance.lua

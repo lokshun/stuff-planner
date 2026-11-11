@@ -2,9 +2,7 @@
 -- Seul fichier autorisé à appeler les API qui diffèrent entre Forever et Classic Era.
 -- Détection par fonctionnalité, à chaque appel. Sans l'API : réponse vide, jamais d'erreur.
 --   ns.Compat.client() -> "forever" | "vanilla"
---   GetItemStats(link) -> {[apiKey]=value}, vide si inconnu
---   GetTooltipLines(link) -> {string...}, texte de gauche, vide si objet pas encore en cache
---   HookItemTooltip(fn) -> fn(tooltip, itemID) à chaque info-bulle d'objet
+--   Objets et info-bulles d'objet : CompatItem.lua.
 --   GetQuestTitle(id), GetItemName(id), GetZoneName(mapID) -> string | nil
 --   GetSpellName(id), GetInstanceName(instanceID), GetCreatureName(npcID) -> string | nil
 --   GetItemIcon(id) -> FileDataID | nil ; GetInventorySlotTexture(slotName) -> texture d'emplacement vide | nil
@@ -21,92 +19,17 @@
 --   GetHitModifiers() -> melee, spell ; 0 si inconnu
 --   GetSkillRanks() -> {[skillID]=rank} ; vide sur Classic Era, qui ne donne pas d'identifiant
 --   SetFrameTitle(frame, text), SetFramePortrait(frame, texture) -> cadre PortraitFrameTemplate
--- Classic Era : C_TooltipInfo y est vide et TooltipDataProcessor absent, d'où les replis.
 
 local _, ns = ...
 
 local Compat = {}
 ns.Compat = Compat
 
-local MAX_SCAN_LINES = 30
-local SCAN_TOOLTIP = "StuffPlannerScanTooltip"
-
-local scanTooltip
-
 function Compat.client()
     if C_Item and C_Item.GetItemStats then
         return "forever"
     end
     return "vanilla"
-end
-
-function Compat.GetItemStats(link)
-    local stats
-    if C_Item and C_Item.GetItemStats then
-        stats = C_Item.GetItemStats(link)
-    elseif GetItemStats then
-        stats = GetItemStats(link)
-    end
-    return stats or {}
-end
-
--- Info-bulle nommée à modèle (global StuffPlannerScanTooltip) : un cadre anonyme à AddFontStrings
--- déversait ses lignes sous les info-bulles du jeu sur Classic Era (recette T5.5, 2026-11-03).
-local function scanLines(link)
-    scanTooltip = scanTooltip or CreateFrame("GameTooltip", SCAN_TOOLTIP, nil, "GameTooltipTemplate")
-    scanTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
-    scanTooltip:ClearLines()
-    scanTooltip:SetHyperlink(link)
-    local lines = {}
-    for i = 1, math.min(scanTooltip:NumLines(), MAX_SCAN_LINES) do
-        local left = _G[SCAN_TOOLTIP .. "TextLeft" .. i]
-        local text = left and left:GetText()
-        if text then
-            lines[#lines + 1] = text
-        end
-    end
-    scanTooltip:Hide()
-    return lines
-end
-
-function Compat.GetTooltipLines(link)
-    if not (C_TooltipInfo and C_TooltipInfo.GetHyperlink) then
-        return scanLines(link)
-    end
-    local lines = {}
-    local data = C_TooltipInfo.GetHyperlink(link)
-    for _, line in ipairs(data and data.lines or {}) do
-        if line.leftText then
-            lines[#lines + 1] = line.leftText
-        end
-    end
-    return lines
-end
-
-local function hookScript(tooltip, fn)
-    if not tooltip then
-        return
-    end
-    tooltip:HookScript("OnTooltipSetItem", function(self)
-        local _, link = self:GetItem()
-        local itemID = link and tonumber(link:match("item:(%d+)"))
-        if itemID then
-            fn(self, itemID)
-        end
-    end)
-end
-
-function Compat.HookItemTooltip(fn)
-    if TooltipDataProcessor then
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
-            if data and data.id then
-                fn(tooltip, data.id)
-            end
-        end)
-    else
-        hookScript(GameTooltip, fn)
-        hookScript(ItemRefTooltip, fn)
-    end
 end
 
 -- Premier texte non vide rendu par l'une des fonctions présentes : sur Forever, une fonction peut
