@@ -82,6 +82,7 @@ UI\Presenters\RowPresenter.lua
 UI\Presenters\Filters.lua
 UI\Presenters\TrackerPresenter.lua
 UI\Presenters\FollowPresenter.lua
+UI\Presenters\ArrowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
 UI\Presenters\GearPresenter.lua
 UI\Presenters\ProfilePresenter.lua

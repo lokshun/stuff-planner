@@ -8,7 +8,8 @@
 - A small steps window lists the followed chain (done, current, upcoming, objective progress); click a step
   to aim the arrow and open the map. Options: show and lock the window.
 - While following, the arrow leads to a known flight master when flying is faster, and to the boat or
-  zeppelin when the next step is on another continent. Open a flight map once to record your flight paths.
+  zeppelin when that is faster (Rut'theran and the Undercity–Grom'gol zeppelin included). Discovered flight
+  paths are read directly (on Classic Era, open a flight map once to record them).
   The arrow also shows the target zone and how many zones away it is.
 - Item tooltips now show the Stuff Planner gain for every equippable item, including world drops
   that are not in the database and random-suffix items ("of the Monkey"), read from the item link.

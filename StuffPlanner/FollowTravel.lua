@@ -3,10 +3,12 @@
 -- CompatTravel.lua, Engine/Travel.lua, Data/Transports.lua, Data/Names.lua et Follow.lua.
 --   ns.FollowTravel.leg(step) -> {id, mapID, x, y, label} | nil (marche directe, en vol, position inconnue)
 --     fly : maître de vol de départ, L.TRAVEL_FLY (départ, arrivée) ; boat, zeppelin : quai, L.TRAVEL_BOAT,
---     L.TRAVEL_ZEPPELIN (zone d'arrivée)
---   ns.FollowTravel.nodes() -> points de vol connus en coordonnées monde
--- Points de vol connus : relevés à TAXIMAP_OPENED (Compat.TaxiNodes), gardés dans
---   StuffPlannerCharDB.taxi = {[nodeID] = {name, mapID, x, y}} (ouvrir la carte de vol une fois par continent).
+--     L.TRAVEL_ZEPPELIN (zone d'arrivée) ; aucun chemin : nil (flèche directe)
+--   ns.FollowTravel.nodes() -> points de vol connus en coordonnées monde, région (ns.TravelRegions) comprise
+--   ns.FollowTravel.reset() -> oublie les positions calculées (nouveaux points de vol)
+-- Points de vol connus : Compat.KnownTaxiNodes sur Kalimdor et les Royaumes de l'Est (sans ouvrir la carte
+--   de vol) ; sans cette API, ceux relevés à TAXIMAP_OPENED (Compat.TaxiNodes) dans
+--   StuffPlannerCharDB.taxi = {[nodeID] = {name, mapID, x, y}}.
 -- Toutes les TICK s pendant un suivi, hors combat : si le trajet de l'étape repérée change, Follow.refresh.
 -- Positions monde : HereBeDragons-2.0 ; absent : aucun trajet (flèche directe).
 
@@ -18,6 +20,7 @@ local FollowTravel = {}
 ns.FollowTravel = FollowTravel
 
 local TICK = 0.5
+local CONTINENTS = { 1414, 1415 }
 local LABELS = { boat = "TRAVEL_BOAT", zeppelin = "TRAVEL_ZEPPELIN" }
 
 local worldNodes, worldTransports, lastID
@@ -26,30 +29,65 @@ local function hbd()
     return LibStub and LibStub("HereBeDragons-2.0", true)
 end
 
+local function faction()
+    local _, name = UnitFactionGroup("player")
+    return name
+end
+
 local function saved()
     StuffPlannerCharDB = StuffPlannerCharDB or {}
     StuffPlannerCharDB.taxi = StuffPlannerCharDB.taxi or {}
     return StuffPlannerCharDB.taxi
 end
 
-local function world(lib, mapID, x, y, extra)
+local function regionOf(mapID)
+    return mapID and ns.TravelRegions and ns.TravelRegions[mapID] or nil
+end
+
+local function world(lib, mapID, x, y, extra, region)
     local wx, wy, instance = lib:GetWorldCoordinatesFromZone(x, y, mapID)
     if not wx then
         return nil
     end
     extra.instance, extra.x, extra.y, extra.mapID, extra.mx, extra.my = instance, wx, wy, mapID, x, y
+    extra.region = region or regionOf(mapID)
     return extra
+end
+
+local function knownNodes()
+    local list, api = {}, false
+    for _, continent in ipairs(CONTINENTS) do
+        local nodes = ns.Compat.KnownTaxiNodes(continent, faction())
+        if nodes then
+            api = true
+            for _, node in ipairs(nodes) do
+                list[#list + 1] = node
+            end
+        end
+    end
+    if not api then
+        for id, node in pairs(saved()) do
+            list[#list + 1] = { nodeID = id, name = node.name, mapID = node.mapID, x = node.x, y = node.y }
+        end
+    end
+    return list
 end
 
 function FollowTravel.nodes()
     local lib = hbd()
     if not worldNodes and lib then
         worldNodes = {}
-        for id, node in pairs(saved()) do
-            worldNodes[#worldNodes + 1] = world(lib, node.mapID, node.x, node.y, { id = id, name = node.name })
+        for _, node in ipairs(knownNodes()) do
+            local region = regionOf(ns.Compat.MapAt(node.mapID, node.x, node.y))
+            worldNodes[#worldNodes + 1] = world(lib, node.mapID, node.x, node.y,
+                { id = node.nodeID, name = node.name }, region)
         end
     end
     return worldNodes or {}
+end
+
+function FollowTravel.reset()
+    worldNodes, worldTransports, lastID = nil, nil, nil
 end
 
 local function transports(lib)
@@ -75,11 +113,11 @@ local function legOf(leg)
         return { id = "fly:" .. tostring(first.id), mapID = first.mapID, x = first.mx, y = first.my,
             label = L.TRAVEL_FLY:format(first.name, leg.dest.name) }
     end
-    local transport = leg.transport
     local key = LABELS[leg.kind]
     if not key then
         return nil
     end
+    local transport = leg.transport
     return { id = transport.id, mapID = transport.from.mapID, x = transport.from.mx, y = transport.from.my,
         label = L[key]:format(ns.Names.zone(transport.to.mapID)) }
 end
@@ -94,9 +132,8 @@ function FollowTravel.leg(step)
     if not (px and target) then
         return nil
     end
-    local _, faction = UnitFactionGroup("player")
-    local leg = ns.Travel.next({ instance = instance, x = px, y = py }, target, FollowTravel.nodes(),
-        transports(lib), { faction = faction })
+    local from = { instance = instance, x = px, y = py, region = regionOf(ns.Compat.PlayerMapPosition()) }
+    local leg = ns.Travel.next(from, target, FollowTravel.nodes(), transports(lib), { faction = faction() })
     if not leg or leg.kind == "walk" then
         return nil
     end

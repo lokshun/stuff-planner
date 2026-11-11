@@ -1,89 +1,135 @@
 -- CONTRAT
--- Prochaine étape d'un trajet : marche, vol (maître de vol connu) ou transport vers un autre continent.
--- Pur : aucun appel à l'API WoW. Positions en coordonnées monde (mètres-yards, HereBeDragons).
+-- Prochaine étape d'un trajet : marche, vol (points de vol connus) ou transport. Pur : aucun appel à
+-- l'API WoW. Positions en coordonnées monde (yards, HereBeDragons).
 --   ns.Travel.next(from, to, nodes, transports [, opts]) -> leg | nil (from ou to nil)
---     from, to = {instance, x, y} ; nodes = {{id, name, instance, x, y}...} (points de vol connus)
---     transports = {{id, kind = "boat" | "zeppelin" | "portal", faction?, from = point, to = point}...}
---     opts.faction : transports d'une autre faction écartés
---     leg = {kind = "walk"} | {kind = "walk", unreachable = true} (autre continent, aucun transport)
---         | {kind = "fly", target = nœud de départ, dest = nœud d'arrivée, transport?}
+--     point = {instance, x, y, region?} : region = île (Teldrassil) ; à pied seulement dans la même
+--       instance et la même région (nil = terre principale)
+--     nodes = {{id, name, instance, x, y, region?}...} (points de vol connus, reliés entre eux sur un même
+--       continent) ; transports = {{id, kind = "boat" | "zeppelin" | "portal", faction?, from, to}...}
+--       (un sens, dans le même continent ou non) ; opts.faction : transports d'une autre faction écartés
+--     leg = {kind = "walk"} | {kind = "walk", unreachable = true} (aucun chemin)
+--         | {kind = "fly", target = nœud de départ, dest = nœud d'arrivée, transport? (pris ensuite)}
 --         | {kind = transport.kind, target = transport.from, transport}
---   Même continent : vol si marche(→ départ) + vol / TUNING.fly + TUNING.overhead + marche(arrivée →)
---     < TUNING.ratio × marche directe ; départ = nœud le plus proche du joueur, arrivée = le plus proche
---     de la cible, différents. Autre continent : transport au plus court (marche jusqu'au quai + du quai
---     d'arrivée à la cible) ; le trajet jusqu'au quai suit la règle du même continent (vol gardé).
---   ns.Travel.TUNING = {walk, fly (yards/s), overhead (s), ratio} : constantes provisoires.
+--   Plus court chemin (Dijkstra) en secondes : marche distance / TUNING.walk ; vol distance / TUNING.fly
+--     + TUNING.overhead ; transport TUNING.transport ; vol et transport divisés par TUNING.ratio (on ne
+--     quitte la marche que si on y gagne). leg = première étape non à pied du chemin, sinon marche.
+--   ns.Travel.TUNING = {walk, fly (yards/s), overhead, transport (s), ratio} : constantes provisoires.
 
 local _, ns = ...
 
 local Travel = {}
 ns.Travel = Travel
 
-Travel.TUNING = { walk = 7, fly = 30, overhead = 60, ratio = 0.85 }
+Travel.TUNING = { walk = 7, fly = 30, overhead = 60, transport = 120, ratio = 0.85 }
+
+local INFINITE = math.huge
 
 local function distance(a, b)
     local dx, dy = a.x - b.x, a.y - b.y
     return math.sqrt(dx * dx + dy * dy)
 end
 
-local function nearest(point, nodes)
-    local best, bestDistance
+local function walkable(a, b)
+    return a.instance == b.instance and a.region == b.region
+end
+
+-- Sommets : 1 = départ, 2 = arrivée, puis nœuds de vol, puis extrémités des transports.
+local function graph(from, to, nodes, transports, faction)
+    local vertices = { { point = from }, { point = to } }
     for _, node in ipairs(nodes) do
-        if node.instance == point.instance then
-            local d = distance(point, node)
-            if not bestDistance or d < bestDistance then
-                best, bestDistance = node, d
+        vertices[#vertices + 1] = { point = node, node = node }
+    end
+    for _, transport in ipairs(transports) do
+        if not transport.faction or not faction or transport.faction == faction then
+            local arrival = { point = transport.to }
+            vertices[#vertices + 1] = { point = transport.from, transport = transport, arrival = arrival }
+            vertices[#vertices + 1] = arrival
+        end
+    end
+    return vertices
+end
+
+-- Coût et genre de l'arête u -> v, ou nil.
+local function edge(u, v)
+    local tuning = Travel.TUNING
+    if u.arrival == v then
+        return tuning.transport / tuning.ratio, "transport"
+    end
+    local a, b = u.point, v.point
+    if u.node and v.node and a.instance == b.instance then
+        local walking = walkable(a, b) and distance(a, b) / tuning.walk or INFINITE
+        local flying = (distance(a, b) / tuning.fly + tuning.overhead) / tuning.ratio
+        if flying < walking then
+            return flying, "fly"
+        end
+    end
+    if walkable(a, b) then
+        return distance(a, b) / tuning.walk, "walk"
+    end
+    return nil
+end
+
+local function shortest(vertices)
+    local cost, previous, kinds, done = { [1] = 0 }, {}, {}, {}
+    while true do
+        local u, best = nil, INFINITE
+        for index in ipairs(vertices) do
+            if not done[index] and (cost[index] or INFINITE) < best then
+                u, best = index, cost[index]
+            end
+        end
+        if not u or u == 2 then
+            return previous, kinds, u == 2
+        end
+        done[u] = true
+        for v in ipairs(vertices) do
+            if not done[v] then
+                local weight, kind = edge(vertices[u], vertices[v])
+                if weight and best + weight < (cost[v] or INFINITE) then
+                    cost[v], previous[v], kinds[v] = best + weight, u, kind
+                end
             end
         end
     end
-    return best
 end
 
-local function sameContinent(from, to, nodes)
-    local tuning = Travel.TUNING
-    local first, last = nearest(from, nodes), nearest(to, nodes)
-    if first and last and first ~= last then
-        local walking = distance(from, to) / tuning.walk
-        local flying = (distance(from, first) + distance(last, to)) / tuning.walk
-            + distance(first, last) / tuning.fly + tuning.overhead
-        if flying < tuning.ratio * walking then
-            return { kind = "fly", target = first, dest = last }
+local function firstLeg(vertices, previous, kinds)
+    local path = {}
+    local v = 2
+    while previous[v] do
+        table.insert(path, 1, { from = previous[v], to = v, kind = kinds[v] })
+        v = previous[v]
+    end
+    for index, step in ipairs(path) do
+        if step.kind == "fly" then
+            local last = index
+            while path[last + 1] and path[last + 1].kind == "fly" do
+                last = last + 1
+            end
+            local leg = { kind = "fly", target = vertices[step.from].node, dest = vertices[path[last].to].node }
+            for later = last + 1, #path do
+                if path[later].kind == "transport" then
+                    leg.transport = vertices[path[later].from].transport
+                    break
+                end
+            end
+            return leg
+        elseif step.kind == "transport" then
+            local transport = vertices[step.from].transport
+            return { kind = transport.kind, target = transport.from, transport = transport }
         end
     end
     return { kind = "walk" }
-end
-
-local function bestTransport(from, to, transports, faction)
-    local best, bestCost
-    for _, transport in ipairs(transports) do
-        local usable = transport.from.instance == from.instance and transport.to.instance == to.instance
-            and (not transport.faction or not faction or transport.faction == faction)
-        if usable then
-            local cost = distance(from, transport.from) + distance(transport.to, to)
-            if not bestCost or cost < bestCost then
-                best, bestCost = transport, cost
-            end
-        end
-    end
-    return best
 end
 
 function Travel.next(from, to, nodes, transports, opts)
     if not (from and to) then
         return nil
     end
-    nodes = nodes or {}
-    if from.instance == to.instance then
-        return sameContinent(from, to, nodes)
-    end
-    local transport = bestTransport(from, to, transports or {}, opts and opts.faction)
-    if not transport then
+    local vertices = graph(from, to, nodes or {}, transports or {}, opts and opts.faction)
+    local previous, kinds, found = shortest(vertices)
+    if not found then
         return { kind = "walk", unreachable = true }
     end
-    local leg = sameContinent(from, transport.from, nodes)
-    if leg.kind == "fly" then
-        leg.transport = transport
-        return leg
-    end
-    return { kind = transport.kind, target = transport.from, transport = transport }
+    return firstLeg(vertices, previous, kinds)
 end

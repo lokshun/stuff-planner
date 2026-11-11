@@ -1,6 +1,6 @@
 -- CONTRAT
 -- Flèche intégrée vers un repère, utilisée quand TomTom n'est pas chargé (Integrations/TomTom.lua).
--- Charger après Bearing.lua, Distance.lua, Theme.lua, CompatMap.lua et CompatTravel.lua, avant
+-- Charger après Bearing.lua, ArrowPresenter.lua, Theme.lua, CompatMap.lua et CompatTravel.lua, avant
 -- Integrations/TomTom.lua.
 --   ns.Arrow.show(key, mapID, x, y, title [, giver]) -> bool ; x, y en 0–1 ; giver : nom du donneur,
 --     sous le titre ; false si la flèche est coupée
@@ -13,8 +13,8 @@
 -- (Bearing.arrived) ou sur une autre carte.
 -- Réglages ns.Options : arrow.enabled, arrow.scale, arrow.arrival, arrow.color ("direction" : vert
 -- devant, rouge derrière ; "gold" : couleur du thème), arrow.locked (pas de glisser).
--- Zone de la cible si le joueur est ailleurs : L.ARROW_ZONE (nom, zones traversées : ns.Distance.hops),
--- L.ARROW_ZONE_FAR sans chemin ; en vol (Compat.OnTaxi) : flèche masquée, L.ARROW_ON_TAXI.
+-- Zone de la cible si le joueur est ailleurs : ArrowPresenter.zoneLine ; en vol (Compat.OnTaxi) :
+-- flèche masquée, L.ARROW_ON_TAXI.
 -- Rafraîchie à 10 Hz, figée en combat. Clic gauche maintenu : déplacer ; clic droit : cacher.
 -- Sauvegarde : StuffPlannerDB.ui.arrow = {point, relativePoint, x, y} (+ réglages ci-dessus).
 -- Texture : Media/Arrow3D.tga (tools/gen_arrow.py), 16 x 8 vues 3D ; image et teinte par ns.Bearing.
@@ -66,10 +66,8 @@ local function zoneLine()
         return ""
     end
     if target.zoneFrom ~= playerMap then
-        local hops = ns.Distance.hops(playerMap, target.mapID, ns.Data)
-        local name = ns.Names.zone(target.mapID)
         target.zoneFrom = playerMap
-        target.zoneLine = hops and L.ARROW_ZONE:format(name, hops) or L.ARROW_ZONE_FAR:format(name)
+        target.zoneLine = ns.ArrowPresenter.zoneLine(playerMap, target.mapID, ns.Data)
     end
     return target.zoneLine
 end
