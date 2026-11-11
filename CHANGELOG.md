@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+- When the suggested upgrade is a crafted item, its alternatives now start with the best quest reward for
+  that slot (Route and Gear tabs), even if the quest takes more effort.
+
 ## 1.4.2 — 2026-11-09
 
 ### Changes

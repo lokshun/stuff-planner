@@ -12,7 +12,8 @@
 --     rangé dans le palier de son level, même choix par emplacement ; lignes des autres paliers ignorées.
 --     alternatives = {[itemID d'une entrée] = {row...}} : jusqu'à ALTERNATIVES autres lignes du même
 --     groupe, gain > 0, effort plus faible que l'entrée ; effort croissant, puis gain, puis itemID ;
---     vide si past.
+--     vide si past. Entrée d'artisanat (source.type "craft") : la quête de plus fort gain du groupe
+--     (gain > 0, tout effort) est placée en tête.
 --   current(tiers, level) -> palier de build contenant level | nil (absent, vide ou tiers nil) ;
 --     un palier passé ne contient jamais le niveau du joueur
 
@@ -85,16 +86,37 @@ local function byEffort(a, b)
     return a.itemID < b.itemID
 end
 
--- Lignes plus faciles que list[index], hors des count premières (choisies).
-local function easier(list, index, count)
-    local chosen, out = list[index], {}
+local function isQuest(row)
+    return row.source ~= nil and row.source.type == "quest"
+end
+
+-- Quête de plus fort gain hors des count premières lignes (choisies) | nil.
+local function bestQuest(list, count)
+    local best
     for i = count + 1, #list do
         local row = list[i]
-        if row.delta.abs > 0 and row.effort and chosen.effort and row.effort < chosen.effort then
+        if isQuest(row) and row.delta.abs > 0 and (not best or row.delta.abs > best.delta.abs
+            or (row.delta.abs == best.delta.abs and row.itemID < best.itemID)) then
+            best = row
+        end
+    end
+    return best
+end
+
+-- Lignes plus faciles que list[index], hors des count premières (choisies) ; artisanat : quête en tête.
+local function easier(list, index, count)
+    local chosen, out = list[index], {}
+    local quest = chosen.source and chosen.source.type == "craft" and bestQuest(list, count) or nil
+    for i = count + 1, #list do
+        local row = list[i]
+        if row ~= quest and row.delta.abs > 0 and row.effort and chosen.effort and row.effort < chosen.effort then
             out[#out + 1] = row
         end
     end
     table.sort(out, byEffort)
+    if quest then
+        table.insert(out, 1, quest)
+    end
     for i = #out, Tiers.ALTERNATIVES + 1, -1 do
         out[i] = nil
     end

@@ -23,7 +23,8 @@
 --            alternatives = {RowPresenter.alternative…} | nil : autres objets de l'emplacement (gain > 0, hors
 --              raid et objet proposé), MAX_ALTERNATIVES au plus : zone d'abord (L.EFFORT_NEAR, par gain),
 --              puis palier courant et ses alternatives (routeAlternatives = Tiers alternatives), par effort ;
---              expandKey = slot, expanded = expanded[slot] == true
+--              expandKey = slot, expanded = expanded[slot] == true ; upgrade d'artisanat : quête de plus
+--              fort gain en tête
 --   ns.GearPresenter.summary(rows) -> {count, total, text} (L.GEAR_SUMMARY | L.GEAR_NONE)
 --   ns.GearPresenter.filter(rows, onlyUpgrades) -> lignes avec upgrade ou raid (toutes si faux), ordre gardé
 --   ns.GearPresenter.sortByGain(rows) -> copie triée : plus fort gain (upgradeGain ou raidGain) d'abord,
@@ -141,6 +142,15 @@ local function alternativesOf(slot, chosen, entries, route, routeAlternatives, d
         end
     end
     table.sort(found, byEase)
+    local quest
+    for i, row in ipairs(chosen.sourceKind == "craft" and found or {}) do
+        if row.questID and (not quest or row.gain > found[quest].gain) then
+            quest = i
+        end
+    end
+    if quest then
+        table.insert(found, 1, table.remove(found, quest))
+    end
     for i = #found, MAX_ALTERNATIVES + 1, -1 do
         found[i] = nil
     end
