@@ -283,6 +283,8 @@
   "OPTIONS_SECTION_BADGES": "Gewinn-Abzeichen",
   "OPTION_BADGES_BAGS": "Gewinn auf Gegenständen in den Taschen anzeigen",
   "OPTION_BADGES_MERCHANT": "Gewinn auf Gegenständen von Händlern anzeigen",
+  "OPTION_BADGES_AUCTION": "Gewinn in der Auktionshausliste anzeigen",
+  "TOOLTIP_PER_GOLD": "%s pro Gold im Auktionshaus",
   "ARROW_ZONE": "Zone: %s (%d Zonen)",
   "ARROW_ZONE_FAR": "Zone: %s",
   "ARROW_ON_TAXI": "Im Flug",

@@ -1,15 +1,17 @@
 -- CONTRAT
 -- Texte ajouté aux info-bulles d'objet et choix de la meilleure récompense de quête.
 -- Pur : aucun appel d'API. Charger après RowPresenter.lua (ns.Scoring lu à l'appel).
---   ns.TooltipPresenter.build(itemID, player, profile, data [, live]) -> view | nil
+--   ns.TooltipPresenter.build(itemID, player, profile, data [, live [, price]]) -> view | nil
 --     live = LiveItem.fields(link) : objet lu en jeu, remplace la base (Scoring.deltaFields, ses stats,
---       jamais d'avertissement) ;
+--       jamais d'avertissement) ; price = prix d'hôtel des ventes en cuivre (Prices.get) | nil ;
 --     nil si Scoring.delta ne donne rien (objet inconnu, non équipable…) ;
 --     view = {gain = L.TOOLTIP_GAIN (points et pourcentage signés ; sans flèche, absente de la
 --               police des info-bulles), gainColor,
 --             details = {L.TOOLTIP_STAT...} : 3 stats au plus dont valeur * poids pèse le plus
 --               (valeur absolue décroissante, puis clé), plafonds ignorés,
---             warning = L.TOOLTIP_UNCONFIRMED | nil (objet confidence 1), warningColor}
+--             warning = L.TOOLTIP_UNCONFIRMED | nil (objet confidence 1), warningColor,
+--             perGold = L.TOOLTIP_PER_GOLD (pourcentage ÷ prix en pièces d'or, 2 décimales sous 1) |
+--               nil (sans prix, gain ≤ 0 ou sans pourcentage)}
 --   ns.TooltipPresenter.bestChoice(itemIDs, player, profile, data) -> index | nil
 --     itemIDs = {itemID | false...} ; indice du plus grand gain > 0, le premier si égalité
 
@@ -77,7 +79,18 @@ local function gainText(delta)
     return L.TOOLTIP_GAIN:format(parts)
 end
 
-function TooltipPresenter.build(itemID, player, profile, data, live)
+local COPPER_PER_GOLD = 10000
+
+local function perGold(delta, price)
+    if not (price and price > 0 and delta.pct and delta.abs > 0) then
+        return nil
+    end
+    local value = delta.pct / (price / COPPER_PER_GOLD)
+    local text = ns.Format.percent(value / 100, nil, value < 1 and 2 or 1)
+    return L.TOOLTIP_PER_GOLD:format("+" .. text)
+end
+
+function TooltipPresenter.build(itemID, player, profile, data, live, price)
     local delta
     if live then
         delta = ns.Scoring.deltaFields(live, player, profile, data, live.key)
@@ -93,6 +106,7 @@ function TooltipPresenter.build(itemID, player, profile, data, live)
         gain = gainText(delta),
         gainColor = color,
         details = details(item.stats, profile.weights or {}),
+        perGold = perGold(delta, price),
     }
     if item.confidence == ESTIMATED_ITEM then
         view.warning, view.warningColor = L.TOOLTIP_UNCONFIRMED, ns.Theme.colors.warning

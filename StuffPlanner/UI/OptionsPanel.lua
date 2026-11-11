@@ -66,6 +66,7 @@ local function layout()
         W.header(nil, L.OPTIONS_SECTION_BADGES),
         W.checkbox(nil, "badges.bags", labelOf("badges.bags")),
         W.checkbox(nil, "badges.merchant", labelOf("badges.merchant")),
+        W.checkbox(nil, "badges.auction", labelOf("badges.auction")),
         W.header(nil, L.OPTIONS_SECTION_TRACKER),
         W.checkbox(nil, "tracker.shown", labelOf("tracker.shown")),
         W.checkbox(nil, "tracker.locked", labelOf("tracker.locked")),

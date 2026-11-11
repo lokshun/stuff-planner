@@ -282,6 +282,8 @@
   "OPTIONS_SECTION_BADGES": "향상 표시",
   "OPTION_BADGES_BAGS": "가방 속 아이템에 향상도 표시",
   "OPTION_BADGES_MERCHANT": "상인이 판매하는 아이템에 향상도 표시",
+  "OPTION_BADGES_AUCTION": "경매장 목록에 향상도 표시",
+  "TOOLTIP_PER_GOLD": "경매장 금화당 %s",
   "ARROW_ZONE": "지역: %s (%d개 지역)",
   "ARROW_ZONE_FAR": "지역: %s",
   "ARROW_ON_TAXI": "비행 중",

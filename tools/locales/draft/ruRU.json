@@ -286,6 +286,8 @@
   "OPTIONS_SECTION_BADGES": "Значки улучшений",
   "OPTION_BADGES_BAGS": "Показывать улучшение на предметах в сумках",
   "OPTION_BADGES_MERCHANT": "Показывать улучшение на товарах торговцев",
+  "OPTION_BADGES_AUCTION": "Показывать улучшение в списке аукциона",
+  "TOOLTIP_PER_GOLD": "%s за золотой на аукционе",
   "ARROW_ZONE": "Зона: %s (%d зон)",
   "ARROW_ZONE_FAR": "Зона: %s",
   "ARROW_ON_TAXI": "В полете",

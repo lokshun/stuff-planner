@@ -283,6 +283,8 @@
   "OPTIONS_SECTION_BADGES": "Selos de melhoria",
   "OPTION_BADGES_BAGS": "Mostrar a melhoria nos itens das bolsas",
   "OPTION_BADGES_MERCHANT": "Mostrar a melhoria nos itens vendidos por mercadores",
+  "OPTION_BADGES_AUCTION": "Mostrar a melhoria na lista da casa de leilões",
+  "TOOLTIP_PER_GOLD": "%s por peça de ouro no leilão",
   "ARROW_ZONE": "Zona: %s (%d zonas)",
   "ARROW_ZONE_FAR": "Zona: %s",
   "ARROW_ON_TAXI": "Em voo",

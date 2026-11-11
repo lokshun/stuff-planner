@@ -283,6 +283,8 @@
   "OPTIONS_SECTION_BADGES": "Insignias de mejora",
   "OPTION_BADGES_BAGS": "Mostrar la mejora en los objetos de las bolsas",
   "OPTION_BADGES_MERCHANT": "Mostrar la mejora en los objetos que venden los comerciantes",
+  "OPTION_BADGES_AUCTION": "Mostrar la mejora en la lista de la casa de subastas",
+  "TOOLTIP_PER_GOLD": "%s por pieza de oro en la subasta",
   "ARROW_ZONE": "Zona: %s (%d zonas)",
   "ARROW_ZONE_FAR": "Zona: %s",
   "ARROW_ON_TAXI": "En vuelo",

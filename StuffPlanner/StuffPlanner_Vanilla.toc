@@ -40,6 +40,7 @@ Options.lua
 Compat.lua
 CompatItem.lua
 CompatBags.lua
+CompatAuction.lua
 CompatQuest.lua
 CompatMap.lua
 CompatTravel.lua
@@ -101,6 +102,7 @@ UI\Presenters\SourcePresenter.lua
 UI\Chat.lua
 UI\Arrow.lua
 Integrations\TomTom.lua
+Integrations\Prices.lua
 Follow.lua
 FollowTravel.lua
 SessionPlan.lua
@@ -126,6 +128,7 @@ UI\Tooltip.lua
 UI\ItemBadge.lua
 UI\BagBadges.lua
 UI\MerchantBadges.lua
+UI\AuctionBadges.lua
 UI\QuestFrameHint.lua
 UI\DetailWidgets.lua
 UI\QuestTooltip.lua

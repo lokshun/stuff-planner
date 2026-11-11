@@ -283,6 +283,8 @@
   "OPTIONS_SECTION_BADGES": "提升標記",
   "OPTION_BADGES_BAGS": "在背包物品上顯示提升",
   "OPTION_BADGES_MERCHANT": "在商人販售的物品上顯示提升",
+  "OPTION_BADGES_AUCTION": "在拍賣場列表中顯示提升",
+  "TOOLTIP_PER_GOLD": "拍賣場每金幣 %s",
   "ARROW_ZONE": "區域：%s（%d個區域）",
   "ARROW_ZONE_FAR": "區域：%s",
   "ARROW_ON_TAXI": "飛行中",
