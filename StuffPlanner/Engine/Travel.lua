@@ -18,13 +18,17 @@
 --     entre eux calculées une fois ; ns.Travel.route(graph, from, to) -> comme next, sur ce graphe (seules
 --     les arêtes du départ et de l'arrivée sont calculées). next = prepare puis route. Graphe valable tant
 --     que nodes, transports et TUNING ne changent pas.
+--   ns.Travel.seconds(from, to, nodes, transports [, opts]) -> secondes du chemin choisi par next, sans le
+--     ratio (durée réelle) ; ns.Travel.routeSeconds(graph, from, to [, opts]) : idem sur un graphe préparé.
+--     Sans position (from ou to sans x/y) ou sans chemin : opts.hops (Distance.hops) × TUNING.zoneSeconds,
+--     opts.hops absent = Distance.MAX_HOPS (3).
 
 local _, ns = ...
 
 local Travel = {}
 ns.Travel = Travel
 
-Travel.TUNING = { walk = 7, fly = 30, overhead = 60, transport = 120, ratio = 0.85 }
+Travel.TUNING = { walk = 7, fly = 30, overhead = 60, transport = 120, ratio = 0.85, zoneSeconds = 180 }
 
 local INFINITE = math.huge
 
@@ -53,29 +57,30 @@ local function staticVertices(nodes, transports, faction)
     return vertices
 end
 
--- Coût et genre de l'arête u -> v, ou nil.
+-- Coût (biaisé par ratio), genre et durée réelle de l'arête u -> v, ou nil.
 local function edge(u, v)
     local tuning = Travel.TUNING
     if u.arrival == v then
-        return tuning.transport / tuning.ratio, "transport"
+        return tuning.transport / tuning.ratio, "transport", tuning.transport
     end
     local a, b = u.point, v.point
     if u.node and v.node and a.instance == b.instance then
         local walking = walkable(a, b) and distance(a, b) / tuning.walk or INFINITE
-        local flying = (distance(a, b) / tuning.fly + tuning.overhead) / tuning.ratio
-        if flying < walking then
-            return flying, "fly"
+        local real = distance(a, b) / tuning.fly + tuning.overhead
+        if real / tuning.ratio < walking then
+            return real / tuning.ratio, "fly", real
         end
     end
     if walkable(a, b) then
-        return distance(a, b) / tuning.walk, "walk"
+        local seconds = distance(a, b) / tuning.walk
+        return seconds, "walk", seconds
     end
     return nil
 end
 
 local FIRST_STATIC = 3 -- 1 = départ, 2 = arrivée
 
--- Arêtes entre sommets fixes : edges[i][j] = {weight, kind} | false (indices de graph.static).
+-- Arêtes entre sommets fixes : edges[i][j] = {weight, kind, real} | false (indices de graph.static).
 function Travel.prepare(nodes, transports, opts)
     local static = staticVertices(nodes or {}, transports or {}, opts and opts.faction)
     local edges = {}
@@ -83,8 +88,8 @@ function Travel.prepare(nodes, transports, opts)
         edges[i] = {}
         for j, v in ipairs(static) do
             if i ~= j then
-                local weight, kind = edge(u, v)
-                edges[i][j] = weight and { weight, kind } or false
+                local weight, kind, real = edge(u, v)
+                edges[i][j] = weight and { weight, kind, real } or false
             end
         end
     end
@@ -95,15 +100,16 @@ local function weightOf(graph, vertices, u, v)
     if u >= FIRST_STATIC and v >= FIRST_STATIC then
         local cached = graph.edges[u - 2][v - 2]
         if cached then
-            return cached[1], cached[2]
+            return cached[1], cached[2], cached[3]
         end
         return nil
     end
     return edge(vertices[u], vertices[v])
 end
 
+-- Dijkstra du départ (1) à l'arrivée (2) : prédécesseurs, genres, trouvé, durée réelle du chemin.
 local function shortest(graph, vertices)
-    local cost, previous, kinds, done = { [1] = 0 }, {}, {}, {}
+    local cost, real, previous, kinds, done = { [1] = 0 }, { [1] = 0 }, {}, {}, {}
     while true do
         local u, best = nil, INFINITE
         for index in ipairs(vertices) do
@@ -112,14 +118,14 @@ local function shortest(graph, vertices)
             end
         end
         if not u or u == 2 then
-            return previous, kinds, u == 2
+            return previous, kinds, u == 2, real[2]
         end
         done[u] = true
         for v in ipairs(vertices) do
             if not done[v] then
-                local weight, kind = weightOf(graph, vertices, u, v)
+                local weight, kind, seconds = weightOf(graph, vertices, u, v)
                 if weight and best + weight < (cost[v] or INFINITE) then
-                    cost[v], previous[v], kinds[v] = best + weight, u, kind
+                    cost[v], previous[v], kinds[v], real[v] = best + weight, u, kind, real[u] + seconds
                 end
             end
         end
@@ -155,15 +161,20 @@ local function firstLeg(vertices, previous, kinds)
     return { kind = "walk" }
 end
 
-function Travel.route(graph, from, to)
-    if not (from and to) then
-        return nil
-    end
+local function search(graph, from, to)
     local vertices = { { point = from }, { point = to } }
     for _, vertex in ipairs(graph.static) do
         vertices[#vertices + 1] = vertex
     end
-    local previous, kinds, found = shortest(graph, vertices)
+    local previous, kinds, found, seconds = shortest(graph, vertices)
+    return vertices, previous, kinds, found, seconds
+end
+
+function Travel.route(graph, from, to)
+    if not (from and to) then
+        return nil
+    end
+    local vertices, previous, kinds, found = search(graph, from, to)
     if not found then
         return { kind = "walk", unreachable = true }
     end
@@ -175,4 +186,31 @@ function Travel.next(from, to, nodes, transports, opts)
         return nil
     end
     return Travel.route(Travel.prepare(nodes, transports, opts), from, to)
+end
+
+local function byZones(opts)
+    local hops = opts and opts.hops or (ns.Distance and ns.Distance.MAX_HOPS) or 3
+    return hops * Travel.TUNING.zoneSeconds
+end
+
+local function located(point)
+    return point and point.x and point.y
+end
+
+function Travel.routeSeconds(graph, from, to, opts)
+    if not (located(from) and located(to)) then
+        return byZones(opts)
+    end
+    local _, _, _, found, seconds = search(graph, from, to)
+    if not found then
+        return byZones(opts)
+    end
+    return seconds
+end
+
+function Travel.seconds(from, to, nodes, transports, opts)
+    if not (located(from) and located(to)) then
+        return byZones(opts)
+    end
+    return Travel.routeSeconds(Travel.prepare(nodes, transports, opts), from, to, opts)
 end
