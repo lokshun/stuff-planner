@@ -94,6 +94,7 @@ UI\Presenters\ArrowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
 UI\Presenters\BadgePresenter.lua
 UI\Presenters\ZoneToastPresenter.lua
+UI\Presenters\DungeonPresenter.lua
 UI\Presenters\GearPresenter.lua
 UI\Presenters\ProfilePresenter.lua
 UI\Presenters\DetailPresenter.lua
