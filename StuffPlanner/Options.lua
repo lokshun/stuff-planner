@@ -22,6 +22,7 @@ local CATALOG = {
     { key = "tooltip.enabled", default = true, invert = true, path = { "ui", "tooltipDisabled" } },
     { key = "questHint.enabled", default = true, invert = true, path = { "ui", "questHintDisabled" } },
     { key = "badges.bags", default = true, invert = true, path = { "ui", "badges", "bagsHidden" } },
+    { key = "badges.merchant", default = true, invert = true, path = { "ui", "badges", "merchantHidden" } },
     { key = "tracker.shown", default = true, invert = true, path = { "ui", "tracker", "hidden" } },
     { key = "tracker.lines", default = 3, min = 1, max = 5, step = 1, path = { "ui", "tracker", "lines" } },
     { key = "tracker.locked", default = false, path = { "ui", "tracker", "locked" } },

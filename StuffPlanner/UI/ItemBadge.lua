@@ -7,6 +7,8 @@
 --   ns.ItemBadge.hide(button) : pastille retirée tout de suite, demande en attente oubliée.
 --   ns.ItemBadge.refreshAll() : toutes les pastilles posées sont recalculées (file).
 --   ns.ItemBadge.pending() -> nombre de boutons en attente (tests, débogage)
+--   ns.ItemBadge.scheduler(fn) -> schedule() : fn appelé une fois à l'image suivante (rafales
+--     regroupées) ; en combat, reporté à la fin du combat (une seule reprise inscrite)
 -- Pastille absente avant SP_DATA_READY, sans profil actif, ou si l'objet n'est pas une amélioration.
 -- Objet hors base pas encore en cache : pas de pastille, le prochain show relit (LiveItem).
 -- SP_RESULTS_UPDATED (nouvel instantané, profil, stats confirmées) → refreshAll.
@@ -146,6 +148,29 @@ function ItemBadge.pending()
         count = count + 1
     end
     return count
+end
+
+function ItemBadge.scheduler(fn)
+    local frame = CreateFrame("Frame")
+    frame:Hide()
+    local waiting = false
+    local function schedule()
+        frame:Show()
+    end
+    local function afterCombat()
+        waiting = false
+        schedule()
+    end
+    frame:SetScript("OnUpdate", function()
+        frame:Hide()
+        if not InCombatLockdown() then
+            fn()
+        elseif not waiting then
+            waiting = true
+            ns:RunOutOfCombat(afterCombat)
+        end
+    end)
+    return schedule
 end
 
 ns:On("SP_RESULTS_UPDATED", ItemBadge.refreshAll)

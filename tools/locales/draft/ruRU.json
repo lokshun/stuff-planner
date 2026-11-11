@@ -285,6 +285,7 @@
   "OPTION_PLANNER_CALIBRATE": "Подстраивать длительность под ваш темп (после 5 замеров)",
   "OPTIONS_SECTION_BADGES": "Значки улучшений",
   "OPTION_BADGES_BAGS": "Показывать улучшение на предметах в сумках",
+  "OPTION_BADGES_MERCHANT": "Показывать улучшение на товарах торговцев",
   "ARROW_ZONE": "Зона: %s (%d зон)",
   "ARROW_ZONE_FAR": "Зона: %s",
   "ARROW_ON_TAXI": "В полете",

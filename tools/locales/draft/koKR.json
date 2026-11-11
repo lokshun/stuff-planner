@@ -281,6 +281,7 @@
   "OPTION_PLANNER_CALIBRATE": "자신의 속도에 맞춰 소요 시간 조정 (측정 5회 이후)",
   "OPTIONS_SECTION_BADGES": "향상 표시",
   "OPTION_BADGES_BAGS": "가방 속 아이템에 향상도 표시",
+  "OPTION_BADGES_MERCHANT": "상인이 판매하는 아이템에 향상도 표시",
   "ARROW_ZONE": "지역: %s (%d개 지역)",
   "ARROW_ZONE_FAR": "지역: %s",
   "ARROW_ON_TAXI": "비행 중",

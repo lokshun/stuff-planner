@@ -125,6 +125,7 @@ UI\MiniTracker.lua
 UI\Tooltip.lua
 UI\ItemBadge.lua
 UI\BagBadges.lua
+UI\MerchantBadges.lua
 UI\QuestFrameHint.lua
 UI\DetailWidgets.lua
 UI\QuestTooltip.lua

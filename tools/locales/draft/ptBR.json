@@ -282,6 +282,7 @@
   "OPTION_PLANNER_CALIBRATE": "Ajustar as durações ao seu ritmo (após 5 medições)",
   "OPTIONS_SECTION_BADGES": "Selos de melhoria",
   "OPTION_BADGES_BAGS": "Mostrar a melhoria nos itens das bolsas",
+  "OPTION_BADGES_MERCHANT": "Mostrar a melhoria nos itens vendidos por mercadores",
   "ARROW_ZONE": "Zona: %s (%d zonas)",
   "ARROW_ZONE_FAR": "Zona: %s",
   "ARROW_ON_TAXI": "Em voo",

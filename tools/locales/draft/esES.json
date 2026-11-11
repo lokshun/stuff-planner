@@ -282,6 +282,7 @@
   "OPTION_PLANNER_CALIBRATE": "Ajustar las duraciones a tu ritmo (tras 5 mediciones)",
   "OPTIONS_SECTION_BADGES": "Insignias de mejora",
   "OPTION_BADGES_BAGS": "Mostrar la mejora en los objetos de las bolsas",
+  "OPTION_BADGES_MERCHANT": "Mostrar la mejora en los objetos que venden los mercaderes",
   "ARROW_ZONE": "Zona: %s (%d zonas)",
   "ARROW_ZONE_FAR": "Zona: %s",
   "ARROW_ON_TAXI": "En vuelo",
