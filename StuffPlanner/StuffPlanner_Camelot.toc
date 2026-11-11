@@ -93,6 +93,7 @@ UI\Presenters\FollowPresenter.lua
 UI\Presenters\ArrowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
 UI\Presenters\BadgePresenter.lua
+UI\Presenters\ZoneToastPresenter.lua
 UI\Presenters\GearPresenter.lua
 UI\Presenters\ProfilePresenter.lua
 UI\Presenters\DetailPresenter.lua
@@ -129,6 +130,7 @@ UI\ItemBadge.lua
 UI\BagBadges.lua
 UI\MerchantBadges.lua
 UI\AuctionBadges.lua
+UI\ZoneToast.lua
 UI\QuestFrameHint.lua
 UI\DetailWidgets.lua
 UI\QuestTooltip.lua

@@ -7,6 +7,7 @@
 --     view = {pct = number | nil (emplacement vide : rien à comparer), color = Theme.colors.gain,
 --             text = « +12% » (une décimale sous 10 %, plafonné à 999 %, langue du client) | ""}
 --     nil : lien illisible, objet non lisible ou non équipable, gain nul ou négatif.
+--   ns.BadgePresenter.percentText(pct) -> « +12% » (mêmes règles que view.text) | "" si pct est nil
 
 local _, ns = ...
 
@@ -29,7 +30,7 @@ local function delta(link, player, profile, data, readLive)
     return ns.Scoring.delta(itemID, player, profile, data)
 end
 
-local function text(pct)
+function BadgePresenter.percentText(pct)
     if not pct then
         return ""
     end
@@ -43,5 +44,5 @@ function BadgePresenter.build(link, player, profile, data, readLive)
     if not result or result.abs <= EPSILON then
         return nil
     end
-    return { pct = result.pct, color = ns.Theme.colors.gain, text = text(result.pct) }
+    return { pct = result.pct, color = ns.Theme.colors.gain, text = BadgePresenter.percentText(result.pct) }
 end

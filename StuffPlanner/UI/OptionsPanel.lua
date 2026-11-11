@@ -69,6 +69,7 @@ local function layout()
         W.checkbox(nil, "badges.auction", labelOf("badges.auction")),
         W.header(nil, L.OPTIONS_SECTION_TRACKER),
         W.checkbox(nil, "tracker.shown", labelOf("tracker.shown")),
+        W.checkbox(nil, "toast.zone", labelOf("toast.zone")),
         W.checkbox(nil, "tracker.locked", labelOf("tracker.locked")),
         W.slider(nil, "tracker.lines", labelOf("tracker.lines"), integer),
         W.slider(nil, "tracker.alpha", labelOf("tracker.alpha"), percent),
