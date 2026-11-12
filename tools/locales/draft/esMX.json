@@ -331,6 +331,8 @@
   "JOURNAL_BAR": "Nivel %d: puntuación %s",
   "JOURNAL_NO_PROFILE": "Sin perfil activo: el diario sigue el perfil activo.",
   "JOURNAL_COMMAND_HELP": "muestra el diario de progreso (puntuación por nivel, últimas mejoras)",
+  "ALT_USEFUL": "Útil para %s (%s)",
+  "OPTION_TOOLTIP_ALTS": "Indicar a qué otro personaje mejoraría un objeto",
   "ARROW_ZONE": "Zona: %s (%d zonas)",
   "ARROW_ZONE_FAR": "Zona: %s",
   "ARROW_ON_TAXI": "En vuelo",

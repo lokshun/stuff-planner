@@ -93,6 +93,7 @@ RouteResults.lua
 UI\Theme.lua
 UI\NameAsker.lua
 UI\Presenters\SecondaryGain.lua
+UI\Presenters\AltGain.lua
 UI\Presenters\RowPresenter.lua
 UI\Presenters\WishlistPresenter.lua
 UI\Presenters\HistoryPresenter.lua
@@ -120,6 +121,7 @@ SessionPlan.lua
 DungeonRun.lua
 Data\Timings.lua
 Data\History.lua
+Data\Alts.lua
 UI\MainFrame.lua
 UI\Chips.lua
 UI\RowActions.lua

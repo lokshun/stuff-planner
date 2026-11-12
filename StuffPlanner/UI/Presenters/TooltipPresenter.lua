@@ -7,7 +7,7 @@
 --     nil si Scoring.delta ne donne rien (objet inconnu, non équipable…) ;
 --     view = {gain = L.TOOLTIP_GAIN (points et pourcentage signés ; sans flèche, absente de la
 --               police des info-bulles ; puis « · » SecondaryGain.text si le profil secondaire gagne),
---               gainColor,
+--               gainColor, upgrade = gain > 0 ici,
 --             details = {L.TOOLTIP_STAT...} : 3 stats au plus dont valeur * poids pèse le plus
 --               (valeur absolue décroissante, puis clé), plafonds ignorés,
 --             warning = L.TOOLTIP_UNCONFIRMED | nil (objet confidence 1), warningColor,
@@ -109,6 +109,7 @@ function TooltipPresenter.build(itemID, player, profile, data, live, price)
     local view = {
         gain = extra and gainText(delta) .. " · " .. extra or gainText(delta),
         gainColor = color,
+        upgrade = delta.abs > 0,
         details = details(item.stats, profile.weights or {}),
         perGold = perGold(delta, price),
     }

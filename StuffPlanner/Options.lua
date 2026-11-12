@@ -20,6 +20,7 @@ local CATALOG = {
     { key = "window.alpha", default = 1, min = 0.3, max = 1, step = 0.05, path = { "ui", "alpha" } },
     { key = "minimap.shown", default = true, invert = true, path = { "ui", "minimap", "hide" } },
     { key = "tooltip.enabled", default = true, invert = true, path = { "ui", "tooltipDisabled" } },
+    { key = "tooltip.alts", default = true, invert = true, path = { "ui", "tooltipAltsHidden" } },
     { key = "questHint.enabled", default = true, invert = true, path = { "ui", "questHintDisabled" } },
     { key = "badges.bags", default = true, invert = true, path = { "ui", "badges", "bagsHidden" } },
     { key = "badges.merchant", default = true, invert = true, path = { "ui", "badges", "merchantHidden" } },

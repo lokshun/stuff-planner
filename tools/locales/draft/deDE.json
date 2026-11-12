@@ -331,6 +331,8 @@
   "JOURNAL_BAR": "Stufe %d: Wertung %s",
   "JOURNAL_NO_PROFILE": "Kein aktives Profil: das Journal folgt dem aktiven Profil.",
   "JOURNAL_COMMAND_HELP": "zeigt das Fortschrittsjournal (Wertung je Stufe, letzte Verbesserungen)",
+  "ALT_USEFUL": "Nützlich für %s (%s)",
+  "OPTION_TOOLTIP_ALTS": "Anzeigen, welchen anderen Charakter ein Gegenstand verbessern würde",
   "ARROW_ZONE": "Zone: %s (%d Zonen)",
   "ARROW_ZONE_FAR": "Zone: %s",
   "ARROW_ON_TAXI": "Im Flug",

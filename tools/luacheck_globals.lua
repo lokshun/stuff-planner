@@ -89,6 +89,7 @@ return {
     "IsInInstance",
     "GetInstanceInfo",
     "UnitName",
+    "GetRealmName",
     "UnitLevel",
     "UnitRace",
     "WorldFrame",

@@ -330,6 +330,8 @@
   "JOURNAL_BAR": "레벨 %d: 점수 %s",
   "JOURNAL_NO_PROFILE": "활성 프로필 없음: 일지는 활성 프로필을 따릅니다.",
   "JOURNAL_COMMAND_HELP": "성장 일지 표시 (레벨별 점수, 최근 향상)",
+  "ALT_USEFUL": "%s에게 유용 (%s)",
+  "OPTION_TOOLTIP_ALTS": "아이템이 향상시킬 다른 캐릭터 표시",
   "ARROW_ZONE": "지역: %s (%d개 지역)",
   "ARROW_ZONE_FAR": "지역: %s",
   "ARROW_ON_TAXI": "비행 중",

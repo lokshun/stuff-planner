@@ -5,6 +5,7 @@
 --     sans profil secondaire : nil ; live (LiveItem.fields) : Scoring.deltaFields(live, player, profil, data,
 --     live.key) ; sinon Results.secondaryDelta(itemID) ; name = ProfilePresenter.shortName(profil)
 --   ns.SecondaryGain.text(delta, name) -> « +11 % (Soin) » (pourcentage, sinon points) | nil si gain ≤ 0
+--   ns.SecondaryGain.value(delta) -> « +11 % » (pourcentage, sinon points ; signe + seulement)
 --   ns.SecondaryGain.keep(delta, name) -> L.KEEP_FOR (nom) | nil si gain ≤ 0
 
 local _, ns = ...
@@ -39,13 +40,14 @@ function SecondaryGain.text(delta, name)
     if not improves(delta) then
         return nil
     end
-    local value
+    return ns.L.SECONDARY_GAIN:format(SecondaryGain.value(delta), name)
+end
+
+function SecondaryGain.value(delta)
     if delta.pct then
-        value = "+" .. ns.Format.percent(delta.pct / 100, nil, delta.pct < 10 and 1 or 0)
-    else
-        value = "+" .. ns.Format.number(delta.abs, nil, delta.abs < 1 and 2 or 1)
+        return "+" .. ns.Format.percent(delta.pct / 100, nil, delta.pct < 10 and 1 or 0)
     end
-    return ns.L.SECONDARY_GAIN:format(value, name)
+    return "+" .. ns.Format.number(delta.abs, nil, delta.abs < 1 and 2 or 1)
 end
 
 function SecondaryGain.keep(delta, name)

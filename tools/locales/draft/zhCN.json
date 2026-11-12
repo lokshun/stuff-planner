@@ -330,6 +330,8 @@
   "JOURNAL_BAR": "等级 %d：评分 %s",
   "JOURNAL_NO_PROFILE": "没有启用的配置：日志跟随启用的配置。",
   "JOURNAL_COMMAND_HELP": "显示成长日志（各等级评分、最近提升）",
+  "ALT_USEFUL": "对 %s 有用（%s）",
+  "OPTION_TOOLTIP_ALTS": "显示物品可提升你的哪个其他角色",
   "ARROW_ZONE": "区域：%s（%d个区域）",
   "ARROW_ZONE_FAR": "区域：%s",
   "ARROW_ON_TAXI": "飞行中",
