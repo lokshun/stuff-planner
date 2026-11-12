@@ -1,12 +1,76 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 — Unreleased
+
+### New interface
+- The main window was redesigned: an icon bar on the left opens the pages Now, Dungeons, Target list,
+  Route 1-60, Gear, Journal and Profile. The gear icon opens the settings, the "?" icon lists the commands
+  and tips.
+- Two window styles: "Notebook" (default) or Blizzard (Settings, then reload the interface).
+- Every item row looks and behaves the same everywhere. Right-click a row for its menu: open details, follow,
+  pin to the target list, try on, use or compare a profile.
+- One floating frame replaces the mini-tracker, the quest steps window and the dungeon panel. It shows one
+  mode at a time (dungeon, then followed chain, then zone); click its title to switch mode, right-click to
+  collapse.
+- The welcome guide has 4 steps and can be reopened with `/splan welcome`.
+
+### Time instead of effort
+- Priorities are now gain per minute of play: quest steps, travel (flight paths, boats and zeppelins
+  included), dungeon and raid runs are counted in seconds. Lists show the estimated time ("~12 min").
+- Stuff Planner measures your own pace (quests, dungeon runs, travel; AFK and offline time excluded) and
+  adjusts its estimates after 5 measures. Turn it off in Settings › Route.
+- Sessions on the Now page: pick 30 min, 1 h or 2 h and get a numbered plan that fits the time, then
+  "Follow the session" to be guided from quest to quest.
+
+### Gain wherever there is an item
+- Green arrows with the gain in your bags, at vendors and in the auction house browse list (Classic auction
+  house). With Auctionator or TradeSkillMaster, the item tooltip also shows the gain per gold coin.
+- Entering a new zone shows a short toast with its best upgrades (once per zone and per session); click it
+  to open the Now page.
+
+### Dungeon mode
+- Inside a dungeon or raid, the floating frame lists the bosses in order with their useful items (gain and
+  drop chance) and the expected gain left in the run. Killed bosses are checked automatically; click a boss to
+  check or uncheck it.
+- Group loot rolls show "Need: +x" or "Greed" above the roll frame (or in chat). Stuff Planner never rolls
+  for you.
+- The Dungeons page lists the instances with useful items for you: those at your level first (by expected
+  gain), the others after, dimmed. Click one for its bosses and items.
+
+### Profiles and goals
+- Secondary profile: right-click a profile in the grid to compare it. Gains for both profiles appear side by
+  side, and items only useful to the secondary profile are marked "keep for…".
+- Pawn scales can be imported in the Profile page ("( Pawn: v1: … )").
+- "My stats" now values stats by what they really give: crit, spell power, health, mana, dodge, parry, block,
+  defense (with the crit immunity cap at 60), and the share of INT, AGI and STR that turns into them.
+- Target list: Alt-click an item (or Pin in its details) to aim for it. The Target list page shows the
+  fastest source, the quests left and what is already obtained; it can be exported and imported.
+- Journal page: your score per level and your last upgrades, plus your other characters (same realm and
+  faction) with the items in your bags that would suit them. Item tooltips say "Useful to X" when an item is
+  better for one of your other characters.
+
+### Community
+- Optional sharing of quest reward confirmations with your guild and group (off by default, Settings ›
+  Sharing). Nothing is sent in combat; received data is never saved.
 
 ### Changes
 - The data collector now only keeps equippable loot (grey items, cloth and other junk are ignored), at most
   20 loot records per creature. Existing saved data is cleaned once on load: smaller saved variables and
   shorter `/splan export` strings.
-- Two unused libraries (AceDB-3.0, AceConsole-3.0) are no longer shipped.
+- Creature names are only saved when they are useful (quest givers, bosses) and differ from the built-in
+  names; older saved variables are cleaned on load.
+- Gains are shown in points everywhere.
+- Each language now loads only its own name files: less memory.
+- Two unused libraries (AceDB-3.0, AceConsole-3.0) are no longer shipped; AceComm-3.0 was added for sharing.
+- Faster: results are only recomputed when your character really changes (level, zone, gear, profile), and
+  travel times are only recomputed after you move.
+
+### Fixes
+- Journal, other characters: a bind-on-equip item you have already worn (so now bound) is no longer offered.
+- The row menu closes when clicking anywhere else.
+- Ring and trinket tooltips (two comparisons) open on the side of the screen with room, no longer over the
+  window.
+- A crafted suggestion or an empty slot always lists a quest reward first among its alternatives.
 
 ## 1.5.0 — 2026-11-11
 

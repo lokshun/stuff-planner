@@ -11,8 +11,12 @@
 --   ns:Commands() -> {{name, help}...} triées par nom (help = texte de ns.L)
 -- /splan sans argument ou inconnu affiche l'aide ; /splan attend la fin du combat.
 -- Menu des addons : commande show si elle existe, sinon l'aide.
--- Messages : SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED, SP_RESULTS_UPDATED,
---   SP_ITEMS_CONFIRMED.
+-- Messages du bus (émetteur, détail dans son CONTRAT) : SP_PLAYER_CHANGED, SP_QUEST_LOG_CHANGED (Player),
+--   SP_DATA_READY (Loader), SP_ITEMS_CONFIRMED (ItemProbe), SP_QUEST_OBSERVED (Collector, Share),
+--   SP_PROFILE_CHANGED, SP_SECONDARY_CHANGED (Manager), SP_RESULTS_UPDATED (Results), SP_ROUTE_UPDATED
+--   (RouteResults), SP_OPTION_CHANGED (Options), SP_FOLLOW_CHANGED, SP_FOLLOW_UPDATED (Follow),
+--   SP_WAYPOINT_CHANGED (TomTom), SP_DUNGEON_CHANGED (DungeonRun), SP_WISHLIST_CHANGED (WishlistStore),
+--   SP_HISTORY_CHANGED (History), SP_SELECTION_CHANGED (RowActions).
 
 local ADDON, ns = ...
 
