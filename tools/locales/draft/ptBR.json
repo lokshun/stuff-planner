@@ -321,7 +321,7 @@
   "WISHLIST_EXPORT": "Exportar",
   "WISHLIST_IMPORTED": "%d itens importados.",
   "WISHLIST_ERR": "Não é uma lista alvo (SPL1).",
-  "WISHLIST_ROW_HINT": "Clique: fonte - Clique direito: remover",
+  "WISHLIST_ROW_HINT": "Clique: fonte",
   "WISHLIST_PINNED": "Fixado: %s",
   "WISHLIST_UNPINNED": "Desafixado: %s",
   "JOURNAL_TITLE": "Diário de progresso",
@@ -349,5 +349,11 @@
   "OPTION_WINDOW_SKIN": "Estilo da janela",
   "OPTIONS_SKIN_NOTEBOOK": "Caderno do aventureiro",
   "OPTIONS_SKIN_BLIZZARD": "Blizzard",
-  "OPTIONS_RELOAD": "Recarregar a interface para aplicar"
+  "OPTIONS_RELOAD": "Recarregar a interface para aplicar",
+  "MENU_DETAILS": "Abrir a ficha",
+  "MENU_DRESSUP": "Provar",
+  "MENU_PROFILE_USE": "Usar este perfil",
+  "MENU_COMPARE": "Comparar (perfil secundário)",
+  "MENU_UNCOMPARE": "Parar de comparar",
+  "ROW_MENU_HINT": "Clique direito: menu"
 }

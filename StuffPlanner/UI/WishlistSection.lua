@@ -4,7 +4,7 @@
 -- Charger après Wishlist.lua, WishlistStore.lua, WishlistPresenter.lua, RowActions.lua et MainFrame.lua.
 --   ns.WishlistSection.create(parent) -> frame (ancré par l'appelant en haut à gauche, largeur du parent)
 --   ns.WishlistSection.render() -> hauteur (pixels) : ns.Section repliable (StuffPlannerDB.ui.wishlistCollapsed),
---     MAX_ROWS lignes ns.ItemRow au plus (clic : RowActions.click ; clic droit : retirée ; survol : objet),
+--     MAX_ROWS lignes ns.ItemRow au plus (clic : RowActions.click ; clic droit : menu ; survol : objet),
 --     invitation si vide ; dépliée : champ, boutons Importer / Exporter, statut.
 -- Obtenu : porté, ou Compat.GetItemCount > 0 (sacs et banque). Rafraîchi par ns.MainFrame.refresh sur
 -- SP_WISHLIST_CHANGED et BAG_UPDATE_DELAYED (onglet affiché seulement).
@@ -35,9 +35,6 @@ end)
 
 local ROW_OPTS = {
     height = ROW_HEIGHT, iconSize = 18, gainWidth = 0, compact = true, nameWidth = 170, check = true,
-    onRightClick = function(button)
-        ns.WishlistStore.remove(button.row.itemID)
-    end,
 }
 
 local function newRow(index)

@@ -320,7 +320,7 @@
   "WISHLIST_EXPORT": "导出",
   "WISHLIST_IMPORTED": "已导入 %d 件物品。",
   "WISHLIST_ERR": "不是目标清单字符串（SPL1）。",
-  "WISHLIST_ROW_HINT": "点击：来源 - 右键：移除",
+  "WISHLIST_ROW_HINT": "点击：来源",
   "WISHLIST_PINNED": "已固定：%s",
   "WISHLIST_UNPINNED": "已取消固定：%s",
   "JOURNAL_TITLE": "成长日志",
@@ -348,5 +348,11 @@
   "OPTION_WINDOW_SKIN": "窗口样式",
   "OPTIONS_SKIN_NOTEBOOK": "冒险者笔记",
   "OPTIONS_SKIN_BLIZZARD": "暴雪",
-  "OPTIONS_RELOAD": "重新载入界面以应用"
+  "OPTIONS_RELOAD": "重新载入界面以应用",
+  "MENU_DETAILS": "打开详情",
+  "MENU_DRESSUP": "试穿",
+  "MENU_PROFILE_USE": "使用此配置",
+  "MENU_COMPARE": "比较（次要配置）",
+  "MENU_UNCOMPARE": "停止比较",
+  "ROW_MENU_HINT": "右键：菜单"
 }

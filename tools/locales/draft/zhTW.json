@@ -321,7 +321,7 @@
   "WISHLIST_EXPORT": "匯出",
   "WISHLIST_IMPORTED": "已匯入 %d 件物品。",
   "WISHLIST_ERR": "不是目標清單字串（SPL1）。",
-  "WISHLIST_ROW_HINT": "點擊：來源 - 右鍵：移除",
+  "WISHLIST_ROW_HINT": "點擊：來源",
   "WISHLIST_PINNED": "已固定：%s",
   "WISHLIST_UNPINNED": "已取消固定：%s",
   "JOURNAL_TITLE": "成長日誌",
@@ -349,5 +349,11 @@
   "OPTION_WINDOW_SKIN": "視窗樣式",
   "OPTIONS_SKIN_NOTEBOOK": "冒險者筆記",
   "OPTIONS_SKIN_BLIZZARD": "暴雪",
-  "OPTIONS_RELOAD": "重新載入介面以套用"
+  "OPTIONS_RELOAD": "重新載入介面以套用",
+  "MENU_DETAILS": "開啟詳情",
+  "MENU_DRESSUP": "試穿",
+  "MENU_PROFILE_USE": "使用此設定檔",
+  "MENU_COMPARE": "比較（次要設定檔）",
+  "MENU_UNCOMPARE": "停止比較",
+  "ROW_MENU_HINT": "右鍵：選單"
 }

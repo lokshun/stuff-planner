@@ -54,6 +54,7 @@ return {
     "GetInventorySlotInfo",
     "IsControlKeyDown",
     "IsAltKeyDown",
+    "GetCursorPosition",
     "time",
     "GetItemCount",
     "ItemRefTooltip",

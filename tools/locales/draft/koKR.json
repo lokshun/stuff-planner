@@ -320,7 +320,7 @@
   "WISHLIST_EXPORT": "내보내기",
   "WISHLIST_IMPORTED": "아이템 %d개를 가져왔습니다.",
   "WISHLIST_ERR": "목표 목록 문자열(SPL1)이 아닙니다.",
-  "WISHLIST_ROW_HINT": "클릭: 획득처 - 오른쪽 클릭: 제거",
+  "WISHLIST_ROW_HINT": "클릭: 획득처",
   "WISHLIST_PINNED": "고정됨: %s",
   "WISHLIST_UNPINNED": "고정 해제됨: %s",
   "JOURNAL_TITLE": "성장 일지",
@@ -348,5 +348,11 @@
   "OPTION_WINDOW_SKIN": "창 스타일",
   "OPTIONS_SKIN_NOTEBOOK": "모험가의 수첩",
   "OPTIONS_SKIN_BLIZZARD": "블리자드",
-  "OPTIONS_RELOAD": "적용하려면 UI 다시 불러오기"
+  "OPTIONS_RELOAD": "적용하려면 UI 다시 불러오기",
+  "MENU_DETAILS": "상세 정보 열기",
+  "MENU_DRESSUP": "착용해 보기",
+  "MENU_PROFILE_USE": "이 프로필 사용",
+  "MENU_COMPARE": "비교 (보조 프로필)",
+  "MENU_UNCOMPARE": "비교 중지",
+  "ROW_MENU_HINT": "오른쪽 클릭: 메뉴"
 }

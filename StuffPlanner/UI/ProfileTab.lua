@@ -59,11 +59,19 @@ local gridActions = {
         ns.Profiles.deleteCustom(id)
         ns.MainFrame.refresh()
     end,
-    -- Clic droit : profil de comparaison ; sur le secondaire actuel, retiré ; profil actif refusé.
+    -- Clic droit : menu (RowMenuPresenter.profileEntries) : utiliser, comparer / ne plus comparer.
     secondary = function(id)
-        if ns.Profiles.setSecondary(ns.Profiles.secondaryID() ~= id and id or nil) then
-            ns.MainFrame.refresh()
-        end
+        local compared = ns.Profiles.secondaryID() == id
+        local entries = ns.RowMenuPresenter.profileEntries({
+            active = ns.Profiles.activeID() == id, secondary = compared,
+        })
+        ns.RowMenu.open(entries, function(key)
+            if key == "use" then
+                selectProfile(id)
+            elseif ns.Profiles.setSecondary(not compared and id or nil) then
+                ns.MainFrame.refresh()
+            end
+        end)
     end,
 }
 

@@ -11,6 +11,8 @@
 --   select(questID, itemID, reveal?) : sélection courante (une seule, gardée jusqu'au prochain clic),
 --     émet SP_SELECTION_CHANGED(reveal) ; rien sans itemID. reveal : les listes font défiler jusqu'à elle.
 --   isSelected(questID, itemID) -> bool : même objet et même quête (nil = sans quête)
+--   menu(questID, itemID, itemSource) : menu clic droit (RowMenuPresenter.entries, RowMenu.open) : fiche,
+--     repère, suivre / ne plus suivre (Follow), épingler / désépingler, essayer ; objet sélectionné
 --   mark(button, questID, itemID, height?) : cadre de sélection (créé au premier appel) affiché si
 --     isSelected ; height : cadre limité au haut du bouton (ligne dépliée : sans ses sous-lignes)
 
@@ -116,3 +118,47 @@ function RowActions.click(questID, itemID, itemSource)
         ns.SourceDetail.show(itemID, itemSource)
     end
 end
+
+local function showDetails(questID, itemID, itemSource)
+    if questID then
+        ns.QuestDetail.show(questID)
+    elseif itemID and itemSource then
+        ns.SourceDetail.show(itemID, itemSource)
+    end
+end
+
+local MENU_ACTIONS = {
+    details = showDetails,
+    waypoint = function(questID)
+        ns.QuestDetail.waypoint(questID)
+    end,
+    follow = function(questID)
+        ns.Follow.start(questID)
+    end,
+    unfollow = function()
+        ns.Follow.stop()
+    end,
+    pin = function(_, itemID)
+        RowActions.togglePin(itemID)
+    end,
+    dressup = function(_, itemID)
+        ns.Compat.DressUpItem(itemID)
+    end,
+}
+MENU_ACTIONS.unpin = MENU_ACTIONS.pin
+
+function RowActions.menu(questID, itemID, itemSource)
+    GameTooltip:Hide()
+    local entries = ns.RowMenuPresenter.entries({
+        questID = questID, itemID = itemID, itemSource = itemSource,
+        following = ns.Follow.current(), pinned = itemID ~= nil and ns.WishlistStore.has(itemID),
+    })
+    if #entries == 0 then
+        return
+    end
+    RowActions.select(questID, itemID)
+    ns.RowMenu.open(entries, function(key)
+        MENU_ACTIONS[key](questID, itemID, itemSource)
+    end)
+end
+

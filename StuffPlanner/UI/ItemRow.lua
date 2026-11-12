@@ -9,12 +9,14 @@
 --       top = icône centrée dans les rowHeight premiers pixels (ligne qui grandit vers le bas),
 --       check = coche à gauche de l'icône, markHeight = hauteur du cadre de sélection,
 --       onClick(button, mouseButton) : remplace RowActions.click(questID, itemID, itemSource), appelé
---         même sans ligne ; onRightClick(button) ; tooltip(button, row) : lignes sous l'objet }
+--         même sans ligne ; onRightClick(button) : remplace le menu RowActions.menu ;
+--         tooltip(button, row) : lignes sous l'objet }
 --   ns.ItemRow.new(parent, opts?) -> bouton construit (hauteur Theme.spacing.rowHeight, ou opts.height)
 --   ns.ItemRow.set(button, view) : view = {row?, questID, itemID, itemSource, link, icon, muted, name,
 --     nameColor, detail, detailColor, gain, gainColor, dimmed, checked, hint} ; champs absents = vides ;
 --     button.view = view, button.row = view.row or view, button.questID, button.itemID
--- Info-bulle : view.link (sinon item:<itemID>, sinon button.link) puis opts.tooltip, puis view.hint en gris.
+-- Info-bulle : view.link (sinon item:<itemID>, sinon button.link) puis opts.tooltip, puis view.hint en gris
+-- et L.ROW_MENU_HINT (menu clic droit, si la ligne a une quête ou un objet et pas d'onRightClick).
 -- muted : icône désaturée et pâlie (couleurs du texte au choix de l'appelant) ; dimmed : ligne pâlie.
 
 local _, ns = ...
@@ -38,8 +40,12 @@ end
 local function onClick(button, mouseButton)
     local opts, view = button.itemRowOpts, button.view
     if mouseButton == "RightButton" then
-        if opts.onRightClick and view then
-            opts.onRightClick(button)
+        if opts.onRightClick then
+            if view then
+                opts.onRightClick(button)
+            end
+        elseif view and (view.questID or view.itemID) then
+            ns.RowActions.menu(view.questID, view.itemID, view.itemSource)
         end
     elseif opts.onClick then
         opts.onClick(button, mouseButton)
@@ -68,9 +74,12 @@ local function onEnter(button)
     if button.itemRowOpts.tooltip and button.row then
         button.itemRowOpts.tooltip(button, button.row)
     end
-    local hint = button.view and button.view.hint
-    if hint then
-        GameTooltip:AddLine(hint, 0.6, 0.6, 0.6)
+    local view = button.view
+    if view and view.hint then
+        GameTooltip:AddLine(view.hint, 0.6, 0.6, 0.6)
+    end
+    if view and (view.questID or view.itemID) and not button.itemRowOpts.onRightClick then
+        GameTooltip:AddLine(ns.L.ROW_MENU_HINT, 0.6, 0.6, 0.6)
     end
     GameTooltip:Show()
 end

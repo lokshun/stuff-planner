@@ -321,7 +321,7 @@
   "WISHLIST_EXPORT": "Exportieren",
   "WISHLIST_IMPORTED": "%d Gegenstände importiert.",
   "WISHLIST_ERR": "Keine Zielliste (SPL1).",
-  "WISHLIST_ROW_HINT": "Klick: Quelle - Rechtsklick: entfernen",
+  "WISHLIST_ROW_HINT": "Klick: Quelle",
   "WISHLIST_PINNED": "Angeheftet: %s",
   "WISHLIST_UNPINNED": "Gelöst: %s",
   "JOURNAL_TITLE": "Fortschrittsjournal",
@@ -349,5 +349,11 @@
   "OPTION_WINDOW_SKIN": "Fensterstil",
   "OPTIONS_SKIN_NOTEBOOK": "Abenteuer-Notizbuch",
   "OPTIONS_SKIN_BLIZZARD": "Blizzard",
-  "OPTIONS_RELOAD": "Interface neu laden zum Anwenden"
+  "OPTIONS_RELOAD": "Interface neu laden zum Anwenden",
+  "MENU_DETAILS": "Details öffnen",
+  "MENU_DRESSUP": "Anprobieren",
+  "MENU_PROFILE_USE": "Dieses Profil verwenden",
+  "MENU_COMPARE": "Vergleichen (Zweitprofil)",
+  "MENU_UNCOMPARE": "Nicht mehr vergleichen",
+  "ROW_MENU_HINT": "Rechtsklick: Menü"
 }

@@ -115,6 +115,7 @@ UI\Presenters\ProfilePresenter.lua
 UI\Presenters\DetailPresenter.lua
 UI\Presenters\RoutePresenter.lua
 UI\Presenters\SessionPresenter.lua
+UI\Presenters\RowMenuPresenter.lua
 UI\Presenters\SourcePresenter.lua
 UI\Chat.lua
 UI\Arrow.lua
@@ -130,6 +131,7 @@ Data\History.lua
 Data\Alts.lua
 UI\MainFrame.lua
 UI\Chips.lua
+UI\RowMenu.lua
 UI\RowActions.lua
 UI\ZoneTab.lua
 UI\AltLines.lua

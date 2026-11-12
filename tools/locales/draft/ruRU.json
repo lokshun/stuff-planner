@@ -324,7 +324,7 @@
   "WISHLIST_EXPORT": "Экспорт",
   "WISHLIST_IMPORTED": "Импортировано предметов: %d",
   "WISHLIST_ERR": "Это не список целей (SPL1).",
-  "WISHLIST_ROW_HINT": "Щелчок: источник - ПКМ: убрать",
+  "WISHLIST_ROW_HINT": "Щелчок: источник",
   "WISHLIST_PINNED": "Закреплено: %s",
   "WISHLIST_UNPINNED": "Откреплено: %s",
   "JOURNAL_TITLE": "Журнал прогресса",
@@ -352,5 +352,11 @@
   "OPTION_WINDOW_SKIN": "Стиль окна",
   "OPTIONS_SKIN_NOTEBOOK": "Блокнот искателя приключений",
   "OPTIONS_SKIN_BLIZZARD": "Blizzard",
-  "OPTIONS_RELOAD": "Перезагрузить интерфейс для применения"
+  "OPTIONS_RELOAD": "Перезагрузить интерфейс для применения",
+  "MENU_DETAILS": "Открыть карточку",
+  "MENU_DRESSUP": "Примерить",
+  "MENU_PROFILE_USE": "Использовать этот профиль",
+  "MENU_COMPARE": "Сравнить (второй профиль)",
+  "MENU_UNCOMPARE": "Не сравнивать",
+  "ROW_MENU_HINT": "ПКМ: меню"
 }
