@@ -16,7 +16,8 @@
 -- Repère de l'étape courante : Waypoint.set(mapID, x, y, nom de la quête, questID, libellé d'étape, npcID) ;
 --   libellé L.FOLLOW_PICKUP/OBJECTIVE/TURNIN (PNJ, 1er objectif non fini) ou leur variante _ANY ;
 --   posé seulement si l'étape change ; étape sans position : repère retiré, suivi gardé. Rien de faisable :
---   repère sur view.upcoming (prise bloquée par le niveau seul : données parfois plus strictes que le jeu).
+--   repère sur view.upcoming (premier donneur, prise bloquée), libellé suivi du blocage (L.STATE_LEVEL,
+--   L.STATE_PREREQ) pour que le joueur sache pourquoi la quête n'est pas encore proposée.
 -- Suite terminée : L.FOLLOW_DONE dans la discussion, puis stop. Repère retiré par ailleurs (autre repère,
 --   bouton Retirer) : stop.
 -- Sauvegarde StuffPlannerCharDB.follow = {questID}, reprise à SP_DATA_READY.
@@ -93,7 +94,14 @@ local function stepLabel(step)
     end
     local name = step.npcID and ns.Names.npc(step.npcID)
     local labels = LABELS[step.kind]
-    return name and labels[1]:format(name) or labels[2]
+    local label = name and labels[1]:format(name) or labels[2]
+    if step.blocked == "level" then
+        local quest = ns.Data.quest(step.questID)
+        return label .. " (" .. L.STATE_LEVEL:format(quest and quest.reqLevel or 0) .. ")"
+    elseif step.blocked == "prereq" then
+        return label .. " (" .. L.STATE_PREREQ .. ")"
+    end
+    return label
 end
 
 local function clearMark()

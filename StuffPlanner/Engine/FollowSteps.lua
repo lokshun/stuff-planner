@@ -13,7 +13,8 @@
 --     Au journal : prise faite ; complète (isComplete) : objectif fait aussi. Hors journal : prise
 --       bloquée si un prérequis manque (« prereq ») ou si reqLevel > level (« level »).
 --     current = première étape non faite d'une quête non bloquée (journal ou prise possible).
---     upcoming = sans current : première prise bloquée par le niveau seul (repère du suivi) | nil
+--     upcoming = sans current : première prise bloquée (niveau ou prérequis : repère du
+--       suivi, toujours vers le premier donneur) | nil
 -- data = façade DataProvider (quest, npc). Tables renvoyées neuves.
 
 local _, ns = ...
@@ -75,7 +76,7 @@ function FollowSteps.build(final, data, state, level)
                 if index == next and not view.current then
                     step.state = "current"
                     view.current = #view.steps
-                elseif step.blocked == "level" and not view.upcoming then
+                elseif step.blocked and not view.upcoming then
                     view.upcoming = #view.steps
                 end
             end
