@@ -3,8 +3,8 @@
 -- (Wishlist.status, WishlistPresenter), obtenu coché ; import / export SPL1 (WishlistIO). Cadres seulement.
 -- Charger après Wishlist.lua, WishlistStore.lua, WishlistPresenter.lua, RowActions.lua et MainFrame.lua.
 --   ns.WishlistSection.create(parent) -> frame (ancré par l'appelant en haut à gauche, largeur du parent)
---   ns.WishlistSection.render() -> hauteur (pixels) : titre repliable (StuffPlannerDB.ui.wishlistCollapsed),
---     MAX_ROWS lignes au plus (clic : RowActions.click ; clic droit : retirée ; survol : info-bulle de l'objet),
+--   ns.WishlistSection.render() -> hauteur (pixels) : ns.Section repliable (StuffPlannerDB.ui.wishlistCollapsed),
+--     MAX_ROWS lignes ns.ItemRow au plus (clic : RowActions.click ; clic droit : retirée ; survol : objet),
 --     invitation si vide ; dépliée : champ, boutons Importer / Exporter, statut.
 -- Obtenu : porté, ou Compat.GetItemCount > 0 (sacs et banque). Rafraîchi par ns.MainFrame.refresh sur
 -- SP_WISHLIST_CHANGED et BAG_UPDATE_DELAYED (onglet affiché seulement).
@@ -18,16 +18,12 @@ ns.WishlistSection = WishlistSection
 
 local MAX_ROWS = 8
 local ROW_HEIGHT = 22
-local HEADER_HEIGHT = 18
 local BOX_HEIGHT = 20
-local CHECK_ICON = "Interface\\Buttons\\UI-CheckBox-Check"
+local SECTION = { key = "wishlistCollapsed", open = true, invert = true }
 
-local frame, header, empty, ioBox, importButton, exportButton, status
+local frame, section, empty, ioBox, importButton, exportButton, status
 local rows = {}
-
-local function ui()
-    return ns.DB.account("ui")
-end
+local rowTop = -ns.Section.HEIGHT
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
@@ -37,57 +33,17 @@ local askName = ns.NameAsker.new(function()
     ns.MainFrame.refresh()
 end)
 
-local function onRowClick(button, mouseButton)
-    local row = button.row
-    if not row then
-        return
-    end
-    if mouseButton == "RightButton" then
-        ns.WishlistStore.remove(row.itemID)
-    else
-        ns.RowActions.click(row.questID, row.itemID, row.itemSource)
-    end
-end
-
-local function onRowEnter(button)
-    if button.row then
-        GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
-        GameTooltip:SetHyperlink("item:" .. button.row.itemID)
-        GameTooltip:AddLine(L.WISHLIST_ROW_HINT, 0.6, 0.6, 0.6)
-        GameTooltip:Show()
-    end
-end
+local ROW_OPTS = {
+    height = ROW_HEIGHT, iconSize = 18, gainWidth = 0, compact = true, nameWidth = 170, check = true,
+    onRightClick = function(button)
+        ns.WishlistStore.remove(button.row.itemID)
+    end,
+}
 
 local function newRow(index)
-    local theme = ns.Theme
-    local button = CreateFrame("Button", nil, frame)
-    button:SetHeight(ROW_HEIGHT)
-    button:SetPoint("TOPLEFT", 0, -HEADER_HEIGHT - (index - 1) * ROW_HEIGHT)
+    local button = ns.ItemRow.new(frame, ROW_OPTS)
+    button:SetPoint("TOPLEFT", 0, rowTop - (index - 1) * ROW_HEIGHT)
     button:SetPoint("RIGHT")
-    button.check = button:CreateTexture(nil, "OVERLAY")
-    button.check:SetSize(16, 16)
-    button.check:SetPoint("LEFT")
-    button.check:SetTexture(CHECK_ICON)
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetSize(18, 18)
-    button.icon:SetPoint("LEFT", 18, 0)
-    button.name = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    button.name:SetPoint("LEFT", button.icon, "RIGHT", theme.spacing.gap, 0)
-    button.name:SetWidth(170)
-    button.name:SetJustifyH("LEFT")
-    button.name:SetWordWrap(false)
-    button.detail = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    button.detail:SetPoint("LEFT", button.name, "RIGHT", theme.spacing.gap, 0)
-    button.detail:SetPoint("RIGHT")
-    button.detail:SetJustifyH("LEFT")
-    button.detail:SetWordWrap(false)
-    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
-    button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    button:SetScript("OnClick", onRowClick)
-    button:SetScript("OnEnter", onRowEnter)
-    button:SetScript("OnLeave", function() GameTooltip:Hide() end)
     rows[index] = button
     return button
 end
@@ -128,21 +84,12 @@ end
 function WishlistSection.create(parent)
     local theme = ns.Theme
     frame = CreateFrame("Frame", nil, parent)
-    frame:SetHeight(HEADER_HEIGHT)
-    header = CreateFrame("Button", nil, frame)
-    header:SetPoint("TOPLEFT")
-    header:SetPoint("RIGHT")
-    header:SetHeight(HEADER_HEIGHT)
-    header.text = header:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    header.text:SetAllPoints()
-    header.text:SetJustifyH("LEFT")
-    setColor(header.text, theme.colors.title)
-    header:SetScript("OnClick", function()
-        ui().wishlistCollapsed = not ui().wishlistCollapsed or nil
+    frame:SetHeight(ns.Section.HEIGHT)
+    section = ns.Section.new(frame, SECTION, function()
         ns.MainFrame.refresh()
     end)
     empty = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    empty:SetPoint("TOPLEFT", 0, -HEADER_HEIGHT)
+    empty:SetPoint("TOPLEFT", 0, rowTop)
     empty:SetPoint("RIGHT")
     empty:SetJustifyH("LEFT")
     setColor(empty, theme.colors.muted)
@@ -170,18 +117,14 @@ end
 
 local function renderRow(index, row)
     local button = rows[index] or newRow(index)
-    button.row = row
     if not row then
+        button.row = nil
         button:Hide()
         return
     end
     askName("item", row.itemID)
-    button.check:SetShown(row.checked)
-    button.icon:SetTexture(row.icon)
-    button.name:SetText(row.name)
-    setColor(button.name, row.nameColor)
-    button.detail:SetText(row.detail)
-    setColor(button.detail, row.detailColor)
+    row.hint = L.WISHLIST_ROW_HINT
+    ns.ItemRow.set(button, row)
     button:Show()
 end
 
@@ -205,8 +148,9 @@ function WishlistSection.render()
         return 0
     end
     local view = currentView()
-    local collapsed = ui().wishlistCollapsed == true
-    header.text:SetText((collapsed and "+ " or "- ") .. view.title)
+    section.setTitle(view.title)
+    local open = section.place(0)
+    local collapsed = not open
     local shown = collapsed and 0 or math.min(#view.rows, MAX_ROWS)
     for index = 1, math.max(MAX_ROWS, #rows) do
         renderRow(index, index <= shown and view.rows[index] or nil)
@@ -216,7 +160,7 @@ function WishlistSection.render()
     for _, region in ipairs({ ioBox, importButton, exportButton, status }) do
         region:SetShown(not collapsed)
     end
-    local y = -HEADER_HEIGHT - shown * ROW_HEIGHT
+    local y = rowTop - shown * ROW_HEIGHT
     if not collapsed then
         if view.empty then
             y = y - 16

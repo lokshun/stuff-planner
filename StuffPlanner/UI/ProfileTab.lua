@@ -1,7 +1,7 @@
 -- CONTRAT
 -- Onglet « Profil », contenu défilant (UIPanelScrollFrameTemplate, barre cachée quand tout tient) :
 -- résumé du profil actif (ns.ProfileSummary ; « Modifier » ouvre « Mes stats » et y défile), puis
--- trois sections à en-tête repliable (flèche) : choix du profil (ns.ProfileGrid, ouverte par défaut),
+-- trois sections ns.Section repliables : choix du profil (ns.ProfileGrid, ouverte par défaut),
 -- « Mes stats » (ns.PriorityList), réglages avancés (poids du profil actif en barres ns.WeightBars,
 -- import/export d'une chaîne ProfileIO). Sections indépendantes.
 -- Charger après MainFrame.lua, Profiles/Manager.lua, ProfileIO.lua, ProfilePresenter.lua,
@@ -15,19 +15,13 @@ local _, ns = ...
 local L = ns.L
 
 local BUTTON_HEIGHT = 22
-local HEADER_HEIGHT = 20
-local ARROW_SIZE = 12
-local ARROW_TEXTURE = "Interface\\ChatFrame\\ChatFrameExpandArrow"
 local SCROLLBAR_SPACE = 24
 local IO_HEIGHT = 140 -- consigne, champ, boutons et message sous les barres
+local STATS = { key = "profileStats" }
 
 local scroll, content, summaryFrame
 local sections = {}
 local gridFrame, statsSection, advanced, barsFrame, ioBox, statusText
-
-local function settings()
-    return ns.DB.account("ui")
-end
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
@@ -37,23 +31,6 @@ local function setStatus(text, color)
     statusText:SetText(text or "")
     if color then
         setColor(statusText, color)
-    end
-end
-
-local function isOpen(section)
-    local saved = settings()[section.key]
-    if section.key == "profileGrid" then
-        return saved ~= false
-    end
-    return saved == true
-end
-
--- Flèche vers la droite (repliée) ou tournée d'un quart de tour vers le bas (ouverte).
-local function setArrow(arrow, open)
-    if open then
-        arrow:SetTexCoord(0, 1, 1, 1, 0, 0, 1, 0)
-    else
-        arrow:SetTexCoord(0, 0, 0, 1, 1, 0, 1, 1)
     end
 end
 
@@ -113,12 +90,10 @@ local function refresh()
     local theme = ns.Theme
     local y = -(ns.ProfileSummary.render(ns.ProfilePresenter.summary(ns.Profiles.active())) + theme.spacing.gap)
     for _, section in ipairs(sections) do
-        local open = isOpen(section)
         section.top = -y
-        section.header:ClearAllPoints()
-        section.header:SetPoint("TOPLEFT", content, "TOPLEFT", 0, y)
-        setArrow(section.arrow, open)
-        y = y - HEADER_HEIGHT - theme.spacing.gap
+        local open
+        open, y = section.place(y)
+        y = y - theme.spacing.gap
         section.body:SetShown(open)
         if open then
             section.body:ClearAllPoints()
@@ -129,31 +104,16 @@ local function refresh()
     content:SetHeight(math.max(1, -y))
 end
 
-local function addSection(key, title, body, render)
-    local theme = ns.Theme
-    local header = CreateFrame("Button", nil, content)
-    header:SetSize(content:GetWidth(), HEADER_HEIGHT)
-    local arrow = header:CreateTexture(nil, "ARTWORK")
-    arrow:SetSize(ARROW_SIZE, ARROW_SIZE)
-    arrow:SetPoint("LEFT")
-    arrow:SetTexture(ARROW_TEXTURE)
-    local text = header:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    text:SetPoint("LEFT", arrow, "RIGHT", theme.spacing.gap / 2, 0)
-    text:SetText(title)
-    local highlight = header:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.05)
-    local section = { key = key, header = header, arrow = arrow, body = body, render = render }
-    header:SetScript("OnClick", function()
-        settings()[key] = not isOpen(section)
-        refresh()
-    end)
+local function addSection(spec, title, body, render)
+    spec.title = title
+    local section = ns.Section.new(content, spec, refresh)
+    section.key, section.body, section.render = spec.key, body, render
     sections[#sections + 1] = section
 end
 
 -- « Modifier » du résumé : ouvre « Mes stats » et fait défiler jusqu'à son en-tête.
 local function editStats()
-    settings().profileStats = true
+    ns.Section.setOpen(STATS, true)
     refresh()
     for _, section in ipairs(sections) do
         if section.key == "profileStats" then
@@ -245,12 +205,12 @@ local function create(parent)
     summaryFrame = ns.ProfileSummary.create(content, editStats)
     summaryFrame:SetPoint("TOPLEFT")
     gridFrame = ns.ProfileGrid.create(content)
-    addSection("profileGrid", L.PROFILE_HEADER, gridFrame, renderGrid)
+    addSection({ key = "profileGrid", open = true }, L.PROFILE_HEADER, gridFrame, renderGrid)
     statsSection = ns.PriorityList.create(content)
     statsSection:SetSize(content:GetWidth(), ns.PriorityList.HEIGHT)
-    addSection("profileStats", L.PROFILE_MY_STATS, statsSection, renderStats)
+    addSection(STATS, L.PROFILE_MY_STATS, statsSection, renderStats)
     createAdvanced()
-    addSection("profileAdvanced", L.PROFILE_ADVANCED, advanced, renderAdvanced)
+    addSection({ key = "profileAdvanced" }, L.PROFILE_ADVANCED, advanced, renderAdvanced)
     return panel
 end
 
