@@ -1,15 +1,17 @@
 -- CONTRAT
 -- Texte ajouté aux info-bulles d'objet et choix de la meilleure récompense de quête.
--- Pur : aucun appel d'API. Charger après RowPresenter.lua (ns.Scoring lu à l'appel).
+-- Pur : aucun appel d'API. Charger après RowPresenter.lua et SecondaryGain.lua (ns.Scoring lu à l'appel).
 --   ns.TooltipPresenter.build(itemID, player, profile, data [, live [, price]]) -> view | nil
 --     live = LiveItem.fields(link) : objet lu en jeu, remplace la base (Scoring.deltaFields, ses stats,
 --       jamais d'avertissement) ; price = prix d'hôtel des ventes en cuivre (Prices.get) | nil ;
 --     nil si Scoring.delta ne donne rien (objet inconnu, non équipable…) ;
 --     view = {gain = L.TOOLTIP_GAIN (points et pourcentage signés ; sans flèche, absente de la
---               police des info-bulles), gainColor,
+--               police des info-bulles ; puis « · » SecondaryGain.text si le profil secondaire gagne),
+--               gainColor,
 --             details = {L.TOOLTIP_STAT...} : 3 stats au plus dont valeur * poids pèse le plus
 --               (valeur absolue décroissante, puis clé), plafonds ignorés,
 --             warning = L.TOOLTIP_UNCONFIRMED | nil (objet confidence 1), warningColor,
+--             keep = L.KEEP_FOR | nil (gain ≤ 0 ici, > 0 pour le profil secondaire), keepColor,
 --             perGold = L.TOOLTIP_PER_GOLD (pourcentage ÷ prix en pièces d'or, 2 décimales sous 1) |
 --               nil (sans prix, gain ≤ 0 ou sans pourcentage)}
 --   ns.TooltipPresenter.bestChoice(itemIDs, player, profile, data) -> index | nil
@@ -102,12 +104,17 @@ function TooltipPresenter.build(itemID, player, profile, data, live, price)
     end
     local item = live or data.item(itemID) or {}
     local _, _, color = ns.RowPresenter.gain(delta)
+    local second, name = ns.SecondaryGain.lookup(itemID, live, player, data)
+    local extra = second and ns.SecondaryGain.text(second, name)
     local view = {
-        gain = gainText(delta),
+        gain = extra and gainText(delta) .. " · " .. extra or gainText(delta),
         gainColor = color,
         details = details(item.stats, profile.weights or {}),
         perGold = perGold(delta, price),
     }
+    if delta.abs <= 0 and second then
+        view.keep, view.keepColor = ns.SecondaryGain.keep(second, name), ns.Theme.colors.instance
+    end
     if item.confidence == ESTIMATED_ITEM then
         view.warning, view.warningColor = L.TOOLTIP_UNCONFIRMED, ns.Theme.colors.warning
     end

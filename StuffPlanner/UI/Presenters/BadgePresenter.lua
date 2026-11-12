@@ -6,7 +6,9 @@
 --       base ou à suffixe aléatoire), le calcul passe alors par Scoring.deltaFields (clé = lien) ;
 --     view = {pct = number | nil (emplacement vide : rien à comparer), color = Theme.colors.gain,
 --             text = « +12% » (une décimale sous 10 %, plafonné à 999 %, langue du client) | ""}
---     nil : lien illisible, objet non lisible ou non équipable, gain nul ou négatif.
+--     nil : lien illisible, objet non lisible ou non équipable, gain nul ou négatif (ici et pour le profil
+--     secondaire). Gain ≤ 0 ici mais > 0 pour le profil secondaire (SecondaryGain) : view du secondaire,
+--     color = Theme.colors.instance (bleu), keep = L.KEEP_FOR (nom du profil).
 --   ns.BadgePresenter.percentText(pct) -> « +12% » (mêmes règles que view.text) | "" si pct est nil
 
 local _, ns = ...
@@ -25,9 +27,12 @@ local function delta(link, player, profile, data, readLive)
     end
     if ns.LiveItem.needed(itemID, link, data) then
         local live = readLive(link)
-        return live and ns.Scoring.deltaFields(live, player, profile, data, live.key) or nil
+        if not live then
+            return nil
+        end
+        return ns.Scoring.deltaFields(live, player, profile, data, live.key), itemID, live
     end
-    return ns.Scoring.delta(itemID, player, profile, data)
+    return ns.Scoring.delta(itemID, player, profile, data), itemID
 end
 
 function BadgePresenter.percentText(pct)
@@ -40,9 +45,18 @@ function BadgePresenter.percentText(pct)
 end
 
 function BadgePresenter.build(link, player, profile, data, readLive)
-    local result = delta(link, player, profile, data, readLive)
-    if not result or result.abs <= EPSILON then
+    local result, itemID, live = delta(link, player, profile, data, readLive)
+    if not result then
         return nil
     end
-    return { pct = result.pct, color = ns.Theme.colors.gain, text = BadgePresenter.percentText(result.pct) }
+    if result.abs > EPSILON then
+        return { pct = result.pct, color = ns.Theme.colors.gain, text = BadgePresenter.percentText(result.pct) }
+    end
+    local second, name = ns.SecondaryGain.lookup(itemID, live, player, data)
+    local keep = second and ns.SecondaryGain.keep(second, name)
+    if not keep then
+        return nil
+    end
+    return { pct = second.pct, color = ns.Theme.colors.instance, text = BadgePresenter.percentText(second.pct),
+             keep = keep }
 end

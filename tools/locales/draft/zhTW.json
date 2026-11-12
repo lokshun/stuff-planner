@@ -305,6 +305,8 @@
   "ROLL_CHAT": "%s：%s",
   "PROFILE_SECONDARY_HINT": "右鍵：與此設定比較",
   "PROFILE_SECONDARY_ON": "比較設定 · 右鍵：移除",
+  "SECONDARY_GAIN": "%s（%s）",
+  "KEEP_FOR": "留給%s",
   "ARROW_ZONE": "區域：%s（%d個區域）",
   "ARROW_ZONE_FAR": "區域：%s",
   "ARROW_ON_TAXI": "飛行中",

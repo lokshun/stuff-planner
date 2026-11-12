@@ -304,6 +304,8 @@
   "ROLL_CHAT": "%s: %s",
   "PROFILE_SECONDARY_HINT": "오른쪽 클릭: 이 프로필과 비교",
   "PROFILE_SECONDARY_ON": "비교 프로필 · 오른쪽 클릭: 해제",
+  "SECONDARY_GAIN": "%s (%s)",
+  "KEEP_FOR": "%s용으로 보관",
   "ARROW_ZONE": "지역: %s (%d개 지역)",
   "ARROW_ZONE_FAR": "지역: %s",
   "ARROW_ON_TAXI": "비행 중",

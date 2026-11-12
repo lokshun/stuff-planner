@@ -308,6 +308,8 @@
   "ROLL_CHAT": "%s: %s",
   "PROFILE_SECONDARY_HINT": "ПКМ: сравнить с этим профилем",
   "PROFILE_SECONDARY_ON": "Профиль для сравнения · ПКМ: убрать",
+  "SECONDARY_GAIN": "%s (%s)",
+  "KEEP_FOR": "Сохранить для: %s",
   "ARROW_ZONE": "Зона: %s (%d зон)",
   "ARROW_ZONE_FAR": "Зона: %s",
   "ARROW_ON_TAXI": "В полете",

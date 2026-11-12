@@ -87,6 +87,7 @@ Results.lua
 RouteResults.lua
 UI\Theme.lua
 UI\NameAsker.lua
+UI\Presenters\SecondaryGain.lua
 UI\Presenters\RowPresenter.lua
 UI\Presenters\Filters.lua
 UI\Presenters\TrackerPresenter.lua

@@ -17,8 +17,9 @@
 --            gainLabel (flèche puis valeur sans signe : « ▲ 2.5 », « ▼ 0.50 » ; gain nul : valeur seule ;
 --              "" sans delta ; non confirmé : rien de plus, le badge le dit), gainText garde le signe
 --              pour les textes sans flèche,
---            detailText (états colorés — état de quête puis badge — séparés par « · », puis
---              sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
+--            secondaryText (SecondaryGain.text du profil secondaire, lignes avec delta seulement) | nil,
+--            detailText (gain secondaire en bleu, états colorés — état de quête puis badge — séparés par « · »,
+--              puis sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
 --   gain(delta) -> arrow, gainText, gainColor ; mêmes règles que les champs de present
 --   state(questState, quest?) -> stateText, stateColor ("" et muted sans état)
 --   questRow(entry, data) -> present d'un résultat de Chat.bestInZone {itemID, questID, delta,
@@ -130,6 +131,9 @@ end
 
 local function detailText(row)
     local parts = {}
+    if row.secondaryText then
+        parts[#parts + 1] = ns.Theme.colorize(row.secondaryText, ns.Theme.colors.instance)
+    end
     if row.stateText ~= "" then
         parts[#parts + 1] = ns.Theme.colorize(row.stateText, row.stateColor)
     end
@@ -185,6 +189,9 @@ function RowPresenter.present(entry, data)
         row.badge, row.badgeColor = L.BADGE_UNCONFIRMED, ns.Theme.colors.warning
     end
     row.gainLabel = gainLabel(row)
+    if entry.delta and ns.SecondaryGain then
+        row.secondaryText = ns.SecondaryGain.text(ns.SecondaryGain.lookup(entry.itemID))
+    end
     row.detailText = detailText(row)
     row.dimmed = row.unavailable
     return row

@@ -24,6 +24,7 @@
 --     Résistances (toutes les clés de ns.StatKeyList) ; clés de order exclues, groupe vide retiré
 --   newName(base, ids, get) -> base si aucun profil personnalisé de ids n'a ce libellé, sinon
 --     L.PROFILE_NAME_NUMBERED (base, premier numéro libre à partir de 2)
+--   shortName(profile) -> nom court : spé (L.SPEC_<jeton>) d'un profil par défaut, libellé d'un personnalisé
 --   importError(code, detail?) -> message localisé (L.IMPORT_ERR_<code>, FORMAT si inconnu)
 
 local _, ns = ...
@@ -56,6 +57,13 @@ local function label(profile)
         return profile.name or (profile.order and L.PROFILE_MY_STATS or L.PROFILE_CUSTOM)
     end
     return L.PROFILE_OPTION:format(specName(profile.spec), phaseName(profile.phase))
+end
+
+function ProfilePresenter.shortName(profile)
+    if profile.spec == CUSTOM_SPEC then
+        return label(profile)
+    end
+    return specName(profile.spec)
 end
 
 function ProfilePresenter.options(ids, get, activeID)

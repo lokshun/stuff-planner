@@ -305,6 +305,8 @@
   "ROLL_CHAT": "%s: %s",
   "PROFILE_SECONDARY_HINT": "Rechtsklick: mit diesem Profil vergleichen",
   "PROFILE_SECONDARY_ON": "Vergleichsprofil · Rechtsklick: entfernen",
+  "SECONDARY_GAIN": "%s (%s)",
+  "KEEP_FOR": "Behalten für %s",
   "ARROW_ZONE": "Zone: %s (%d Zonen)",
   "ARROW_ZONE_FAR": "Zone: %s",
   "ARROW_ON_TAXI": "Im Flug",

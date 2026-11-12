@@ -304,6 +304,8 @@
   "ROLL_CHAT": "%s：%s",
   "PROFILE_SECONDARY_HINT": "右键：与此配置对比",
   "PROFILE_SECONDARY_ON": "对比配置 · 右键：移除",
+  "SECONDARY_GAIN": "%s（%s）",
+  "KEEP_FOR": "留给%s",
   "ARROW_ZONE": "区域：%s（%d个区域）",
   "ARROW_ZONE_FAR": "区域：%s",
   "ARROW_ON_TAXI": "飞行中",
