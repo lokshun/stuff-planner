@@ -2,6 +2,9 @@
 -- Sacs du joueur : liens et boutons d'objet, qui diffèrent entre Forever et Classic Era (suite de
 -- Compat.lua). Charger après Compat.lua. Sans l'API : réponse vide, jamais d'erreur.
 --   GetContainerItemLink(bag, slot) -> lien | nil (C_Container, sinon fonction globale)
+--   IsContainerItemBound(bag, slot) -> true | false | nil : exemplaire déjà lié (un objet lié quand équipé
+--     porté une fois l'est) ; C_Container.GetContainerItemInfo(...).isBound, sinon C_Item.IsBound
+--     (ItemLocation:CreateFromBagAndSlot) ; nil : emplacement vide ou API absente
 --   EachBagButton(fn) -> fn(button, bag, slot) pour chaque bouton d'objet des sacs ouverts :
 --     sacs réunis (ContainerFrameCombinedBags), sacs séparés ContainerFrame1..MAX_FRAMES ;
 --     cadre moderne : EnumerateValidItems et button:GetBagID() ; cadre classique : boutons
@@ -25,6 +28,25 @@ end
 function Compat.GetContainerItemLink(bag, slot)
     local getLink = (C_Container and C_Container.GetContainerItemLink) or _G.GetContainerItemLink
     return getLink and getLink(bag, slot) or nil
+end
+
+function Compat.IsContainerItemBound(bag, slot)
+    local getInfo = C_Container and C_Container.GetContainerItemInfo
+    if getInfo then
+        local info = getInfo(bag, slot)
+        if type(info) == "table" and info.isBound ~= nil then
+            return info.isBound == true
+        end
+    end
+    local isBound = C_Item and C_Item.IsBound
+    local location = ItemLocation and ItemLocation.CreateFromBagAndSlot
+    if isBound and location then
+        local ok, bound = pcall(isBound, location(ItemLocation, bag, slot))
+        if ok and bound ~= nil then
+            return bound == true
+        end
+    end
+    return nil
 end
 
 local function eachModern(frame, fn)

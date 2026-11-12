@@ -97,7 +97,7 @@ end)
 
 local function itemLine(item, npcID)
     askName("item", item.itemID)
-    local gain = item.pct and ns.BadgePresenter.percentText(item.pct) or points(item.abs)
+    local gain = points(item.abs)
     local chance = item.chance and ns.Format.percent(item.chance / 100, nil, item.chance < 1 and 1 or 0)
         or L.DUNGEON_CHANCE_UNKNOWN
     return { itemID = item.itemID, npcID = npcID, indent = INDENT, icon = ns.Names.itemIcon(item.itemID),

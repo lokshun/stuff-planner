@@ -64,12 +64,22 @@ local function linkOf(button)
     return button.link
 end
 
+-- Info-bulle du côté où l'écran a le plus de place : les comparaisons (deux pour un anneau ou un bijou)
+-- s'y étalent sans repousser l'info-bulle sur la fenêtre.
+local function anchorSide(button)
+    local scale = button:GetEffectiveScale()
+    local screen = UIParent:GetRight() * UIParent:GetEffectiveScale()
+    local left = (button:GetLeft() or 0) * scale
+    local right = screen - (button:GetRight() or 0) * scale
+    return right >= left and "ANCHOR_RIGHT" or "ANCHOR_LEFT"
+end
+
 local function onEnter(button)
     local link = linkOf(button)
     if not link then
         return
     end
-    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+    GameTooltip:SetOwner(button, anchorSide(button))
     GameTooltip:SetHyperlink(link)
     if button.itemRowOpts.tooltip and button.row then
         button.itemRowOpts.tooltip(button, button.row)

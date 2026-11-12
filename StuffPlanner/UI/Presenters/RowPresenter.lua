@@ -14,9 +14,8 @@
 --            stateColor,
 --            unavailable (bool : "level" ou "prereq"),
 --            slot (entry.delta.slot : emplacement comparé, nil sans delta),
---            gainLabel (flèche puis valeur sans signe : « ▲ 2.5 », « ▼ 0.50 » ; gain nul : valeur seule ;
---              "" sans delta ; non confirmé : rien de plus, le badge le dit), gainText garde le signe
---              pour les textes sans flèche,
+--            gainLabel (= gainText, points signés : « +2.5 », « -0.50 », « 0.00 » ; pas de flèche, absente
+--              de certaines polices ; "" sans delta ; non confirmé : rien de plus, le badge le dit),
 --            secondaryText (SecondaryGain.text du profil secondaire, lignes avec delta seulement) | nil,
 --            detailText (gain secondaire en bleu, états colorés — état de quête puis badge — séparés par « · »,
 --              puis sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
@@ -55,12 +54,11 @@ function RowPresenter.gain(delta)
         return "", "", theme.colors.neutral
     end
     local abs = delta.abs
-    local magnitude = math.abs(abs)
-    local text = ns.Format.number(magnitude, nil, magnitude < 1 and 2 or 1)
+    local text = ns.Format.points(abs)
     if abs > 0 then
-        return theme.arrows.up, "+" .. text, theme.colors.gain
+        return theme.arrows.up, text, theme.colors.gain
     elseif abs < 0 then
-        return theme.arrows.down, "-" .. text, theme.colors.loss
+        return theme.arrows.down, text, theme.colors.loss
     end
     return "", text, theme.colors.neutral
 end
@@ -112,16 +110,6 @@ function RowPresenter.state(state, quest)
 end
 
 local SEPARATOR = " · "
-
-local function gainLabel(row)
-    if row.gainText == "" then
-        return ""
-    end
-    if row.arrow == "" then
-        return row.gainText
-    end
-    return row.arrow .. " " .. row.gainText:gsub("^[+-]", "")
-end
 
 function RowPresenter.instanceTag(quest, data)
     if not (quest and quest.instance) then
@@ -190,7 +178,7 @@ function RowPresenter.present(entry, data)
     if row.unconfirmed then
         row.badge, row.badgeColor = L.BADGE_UNCONFIRMED, ns.Theme.colors.warning
     end
-    row.gainLabel = gainLabel(row)
+    row.gainLabel = row.gainText
     if entry.delta and ns.SecondaryGain then
         row.secondaryText = ns.SecondaryGain.text(ns.SecondaryGain.lookup(entry.itemID))
     end

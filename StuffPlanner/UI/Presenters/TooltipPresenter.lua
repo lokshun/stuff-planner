@@ -5,15 +5,15 @@
 --     live = LiveItem.fields(link) : objet lu en jeu, remplace la base (Scoring.deltaFields, ses stats,
 --       jamais d'avertissement) ; price = prix d'hôtel des ventes en cuivre (Prices.get) | nil ;
 --     nil si Scoring.delta ne donne rien (objet inconnu, non équipable…) ;
---     view = {gain = L.TOOLTIP_GAIN (points et pourcentage signés ; sans flèche, absente de la
+--     view = {gain = L.TOOLTIP_GAIN (points signés, Format.points ; sans flèche, absente de la
 --               police des info-bulles ; puis « · » SecondaryGain.text si le profil secondaire gagne),
 --               gainColor, upgrade = gain > 0 ici,
 --             details = {L.TOOLTIP_STAT...} : 3 stats au plus dont valeur * poids pèse le plus
 --               (valeur absolue décroissante, puis clé), plafonds ignorés,
 --             warning = L.TOOLTIP_UNCONFIRMED | nil (objet confidence 1), warningColor,
 --             keep = L.KEEP_FOR | nil (gain ≤ 0 ici, > 0 pour le profil secondaire), keepColor,
---             perGold = L.TOOLTIP_PER_GOLD (pourcentage ÷ prix en pièces d'or, 2 décimales sous 1) |
---               nil (sans prix, gain ≤ 0 ou sans pourcentage)}
+--             perGold = L.TOOLTIP_PER_GOLD (points ÷ prix en pièces d'or, Format.points) |
+--               nil (sans prix ou gain ≤ 0)}
 --   ns.TooltipPresenter.bestChoice(itemIDs, player, profile, data) -> index | nil
 --     itemIDs = {itemID | false...} ; indice du plus grand gain > 0, le premier si égalité
 
@@ -74,22 +74,16 @@ local function details(stats, weights)
 end
 
 local function gainText(delta)
-    local _, parts = ns.RowPresenter.gain(delta)
-    if delta.pct then
-        parts = parts .. " (" .. signed(ns.Format.percent(delta.pct / 100), delta.pct) .. ")"
-    end
-    return L.TOOLTIP_GAIN:format(parts)
+    return L.TOOLTIP_GAIN:format(ns.Format.points(delta.abs))
 end
 
 local COPPER_PER_GOLD = 10000
 
 local function perGold(delta, price)
-    if not (price and price > 0 and delta.pct and delta.abs > 0) then
+    if not (price and price > 0 and delta.abs > 0) then
         return nil
     end
-    local value = delta.pct / (price / COPPER_PER_GOLD)
-    local text = ns.Format.percent(value / 100, nil, value < 1 and 2 or 1)
-    return L.TOOLTIP_PER_GOLD:format("+" .. text)
+    return L.TOOLTIP_PER_GOLD:format(ns.Format.points(delta.abs / (price / COPPER_PER_GOLD)))
 end
 
 function TooltipPresenter.build(itemID, player, profile, data, live, price)

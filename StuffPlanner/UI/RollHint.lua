@@ -2,7 +2,7 @@
 -- Conseil au jet de butin de groupe : « Besoin : +12 % » (amélioration, BadgePresenter) ou « Cupidité ».
 -- Affichage seul : aucun jet n'est jamais fait par l'addon. Charger après BadgePresenter.lua, LiveItem.lua,
 -- Manager.lua et Results.lua.
---   ns.RollHint.text(link) -> L.ROLL_NEED (pourcentage) | L.ROLL_NEED_EMPTY (emplacement vide) | L.ROLL_GREED
+--   ns.RollHint.text(link) -> L.ROLL_NEED (gain en points) | L.ROLL_GREED
 --     (suivi de « · » view.keep si l'objet ne sert qu'au profil secondaire) ;
 --     nil sans lien, base pas prête ou sans profil actif
 --   ns.RollHint.show(rollID) : lien GetLootRollItemLink(rollID) ; texte posé au-dessus du cadre de jet affiché
@@ -37,9 +37,6 @@ function RollHint.text(link)
     end
     if view.keep then
         return L.ROLL_GREED .. " · " .. view.keep
-    end
-    if view.text == "" then
-        return L.ROLL_NEED_EMPTY
     end
     return L.ROLL_NEED:format(view.text)
 end

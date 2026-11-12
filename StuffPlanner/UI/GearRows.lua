@@ -5,7 +5,7 @@
 --   ns.GearRows.onToggle(fn) : fn(expandKey) au clic sur « [+N] » (alternatives, AltLines)
 --   ns.GearRows.baseHeight(row) -> hauteur sans les alternatives (BASE_HEIGHT, RAID_HEIGHT avec raid)
 -- Ligne : liseré vert si amélioration ; icône portée (sinon icône d'emplacement vide du jeu, grisée) ;
---   emplacement, nom ; gain ▲ à droite ; 2e ligne detailText ; 3e ligne si un raid fait mieux : raidText et
+--   emplacement, nom ; gain à droite ; 2e ligne detailText ; 3e ligne si un raid fait mieux : raidText et
 --   son gain, cliquable à part (fiche de la source, Ctrl : essayage) ; la hauteur est fixée par GearTab.
 -- Clic : RowActions.click sur l'amélioration (fiche, Maj : repère, Ctrl : essayage).
 -- Alternatives (AltLines) : bouton flèche à droite de la 1re ligne, gain à sa gauche.

@@ -8,7 +8,7 @@
 --     empty = L.ALTS_EMPTY sans autre personnage ; note = L.ALTS_NO_ITEM si aucun objet ne sert
 --     rows : par personnage (ordre d'alts) un en-tête {alt = true, name, class, detail (L.ALT_DETAIL · relevé),
 --       gain (L.ALT_ITEMS | "")}, puis ses objets {itemID, icon, name, nameColor (qualité), gain
---       (SecondaryGain.value), gainColor}, meilleur pourcentage d'abord (emplacement vide avant tout)
+--       (SecondaryGain.value), gainColor}, meilleur gain en points d'abord, puis itemID
 --     relevé : L.ALT_SEEN_TODAY le jour même, sinon L.ALT_SEEN_DAYS (jours entiers depuis record.at)
 
 local _, ns = ...
@@ -24,10 +24,6 @@ local function seen(at, now)
 end
 
 local function better(a, b)
-    local pa, pb = a.delta.pct or math.huge, b.delta.pct or math.huge
-    if pa ~= pb then
-        return pa > pb
-    end
     if a.delta.abs ~= b.delta.abs then
         return a.delta.abs > b.delta.abs
     end

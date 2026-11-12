@@ -8,6 +8,7 @@ return {
     "LE_PARTY_CATEGORY_INSTANCE",
     "C_Container",
     "C_Item",
+    "ItemLocation",
     "C_Map",
     "C_Spell",
     "GetSpellInfo",

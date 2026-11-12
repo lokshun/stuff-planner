@@ -4,7 +4,8 @@
 -- Charger après Theme.lua.
 --   ns.RowMenu.open(entries, onPick) : entries = {{key, label}...} (RowMenuPresenter) ; onPick(key) après
 --     fermeture ; rien en combat ni si entries est vide
---   ns.RowMenu.close() ; fermé aussi par Échap, clic hors du menu et entrée en combat
+--   ns.RowMenu.close() ; fermé aussi par Échap, clic hors du menu (écran bloquant, et GLOBAL_MOUSE_DOWN
+--     hors du menu quand le client le connaît) et entrée en combat
 
 local _, ns = ...
 
@@ -22,6 +23,10 @@ function RowMenu.close()
     end
 end
 
+local function isOpen()
+    return blocker ~= nil and blocker:IsShown()
+end
+
 local function onKeyDown(self, key)
     if key == "ESCAPE" then
         self:SetPropagateKeyboardInput(false)
@@ -35,6 +40,7 @@ local function create()
     blocker = CreateFrame("Button", nil, UIParent)
     blocker:SetAllPoints(UIParent)
     blocker:SetFrameStrata("FULLSCREEN_DIALOG")
+    blocker:EnableMouse(true)
     blocker:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     blocker:SetScript("OnClick", RowMenu.close)
     blocker:Hide()
@@ -111,4 +117,11 @@ end
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_REGEN_DISABLED")
-events:SetScript("OnEvent", RowMenu.close)
+pcall(events.RegisterEvent, events, "GLOBAL_MOUSE_DOWN")
+events:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_REGEN_DISABLED" then
+        RowMenu.close()
+    elseif isOpen() and not menu:IsMouseOver() then
+        RowMenu.close()
+    end
+end)

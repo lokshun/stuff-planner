@@ -4,6 +4,8 @@
 --     decimals vaut 1 par défaut
 --   ns.Format.number(value [, locale [, decimals]]) -> string ; 1234 -> "1 234" (frFR), "1,234" (enUS) ;
 --     decimals vaut 0 par défaut
+--   ns.Format.points(value [, locale]) -> gain en points signé : « +2,5 », « -0.50 », « 0.00 »
+--     (une décimale, deux sous 1 en valeur absolue)
 --   ns.Format.duration(seconds [, L]) -> « ~12 min » | nil (seconds nil ou infini) ; L = ns.L par défaut
 --     (DURATION_UNDER_MINUTE sous 60 s, DURATION_MINUTES sous l'heure, sinon DURATION_HOURS ou
 --     DURATION_HOURS_MINUTES, minutes arrondies à 5)
@@ -61,6 +63,17 @@ end
 
 function Format.number(value, locale, decimals)
     return formatFixed(value, decimals or 0, conventionsFor(locale))
+end
+
+function Format.points(value, locale)
+    local magnitude = math.abs(value)
+    local text = Format.number(magnitude, locale, magnitude < 1 and 2 or 1)
+    if value > 0 then
+        return "+" .. text
+    elseif value < 0 then
+        return "-" .. text
+    end
+    return text
 end
 
 function Format.duration(seconds, L)

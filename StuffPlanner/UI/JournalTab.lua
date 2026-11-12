@@ -52,9 +52,10 @@ end
 
 local function bagItems()
     local items = {}
-    ns.Compat.EachBagItem(function(link)
+    ns.Compat.EachBagItem(function(link, bag, slot)
         local itemID = tonumber(link:match("item:(%d+)"))
-        if itemID and TRADEABLE[ns.Compat.GetBindType(link) or -1] then
+        if itemID and TRADEABLE[ns.Compat.GetBindType(link) or -1]
+            and not ns.Compat.IsContainerItemBound(bag, slot) then
             local live = ns.LiveItem.needed(itemID, link, ns.Data) and ns.LiveItem.fields(link) or nil
             local fields = live or ns.Data.item(itemID)
             if fields then

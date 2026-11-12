@@ -49,7 +49,7 @@ local function initRow(button, row)
     elseif row.instanceID then
         ns.ItemRow.set(button, { row = row, icon = row.raid and RAID_ICON or DUNGEON_ICON, name = row.name,
             nameColor = row.current and theme.colors.gain or theme.colors.text, detail = row.detail,
-            gain = row.gain, gainColor = row.gainColor })
+            gain = row.gain, gainColor = row.gainColor, dimmed = row.dimmed })
     else
         ns.ItemRow.set(button, { row = row, itemID = row.itemID, icon = row.icon, name = row.name,
             nameColor = row.nameColor, detail = row.detail, gain = row.gain, gainColor = row.gainColor })
@@ -90,7 +90,8 @@ local function refresh()
         rows, summary = detailRows(openID)
         title = ns.Names.instance(openID) .. " · " .. summary
     else
-        rows = ns.InstanceListPresenter.list(ns.Data, ns.Results.delta, current)
+        local player = ns.Results.player()
+        rows = ns.InstanceListPresenter.list(ns.Data, ns.Results.delta, current, player and player.level)
         title = L.DUNGEON_PAGE_HINT
     end
     back:SetShown(openID ~= nil)
