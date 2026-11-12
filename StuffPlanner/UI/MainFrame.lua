@@ -13,7 +13,7 @@
 -- Commandes : /splan show (bascule, aussi par le menu des addons), /splan scale <0.6-1.5>.
 -- Sauvegarde : StuffPlannerDB.ui = {point, relativePoint, x, y, tab} ; échelle et opacité par ns.Options
 -- (window.scale, window.alpha), appliquées sur SP_OPTION_CHANGED. Engrenage : ns.OptionsPanel.open() ;
--- « ? » : info-bulle des gestes (clics des lignes, menu).
+-- « ? » : ns.HelpPanel.toggle() (gestes et commandes).
 -- Fermeture par Échap (OnKeyDown, sans nom global) ; cachée en combat, ouverte hors combat seulement.
 -- Créée au premier affichage : rien n'est construit tant que le joueur ne l'ouvre pas.
 
@@ -81,11 +81,12 @@ local function createButtons()
         GameTooltip:SetText(L.OPTIONS_OPEN)
         GameTooltip:Show()
     end)
-    iconButton(HELP_ICON, gear, -4, nil, function(self)
+    iconButton(HELP_ICON, gear, -4, function()
+        ns.HelpPanel.toggle()
+    end, function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(L.WINDOW_TITLE)
-        GameTooltip:AddLine(L.ROW_CLICK_HINT, 1, 1, 1, true)
-        GameTooltip:AddLine(L.ROW_MENU_HINT, 1, 1, 1, true)
+        GameTooltip:SetText(L.HELP_TITLE)
+        GameTooltip:AddLine(L.HELP_OPEN_HINT, 1, 1, 1, true)
         GameTooltip:Show()
     end)
 end

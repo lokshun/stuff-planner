@@ -8,6 +8,7 @@
 --   ns:RunOutOfCombat(fn) -> exécute maintenant, ou à PLAYER_REGEN_ENABLED en combat
 --   ns:RegisterCommand(name, fn, helpKey) -> sous-commande de /splan ; fn reçoit le reste
 --     de la ligne ; helpKey est une clé de ns.L
+--   ns:Commands() -> {{name, help}...} triées par nom (help = texte de ns.L)
 -- /splan sans argument ou inconnu affiche l'aide ; /splan attend la fin du combat.
 -- Menu des addons : commande show si elle existe, sinon l'aide.
 -- Messages : SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED, SP_RESULTS_UPDATED,
@@ -78,15 +79,19 @@ end)
 
 local commands = {}
 
-local function showHelp()
-    local names = {}
-    for name in pairs(commands) do
-        names[#names + 1] = name
+function ns:Commands() -- luacheck: ignore 212/self
+    local list = {}
+    for name, command in pairs(commands) do
+        list[#list + 1] = { name = name, help = L[command.helpKey] }
     end
-    table.sort(names)
+    table.sort(list, function(a, b) return a.name < b.name end)
+    return list
+end
+
+local function showHelp()
     print(L.HELP_HEADER)
-    for _, name in ipairs(names) do
-        print(L.HELP_LINE:format(name, L[commands[name].helpKey]))
+    for _, command in ipairs(ns:Commands()) do
+        print(L.HELP_LINE:format(command.name, command.help))
     end
 end
 

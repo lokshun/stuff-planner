@@ -107,6 +107,7 @@ UI\Presenters\Filters.lua
 UI\Presenters\TrackerPresenter.lua
 UI\Presenters\FollowPresenter.lua
 UI\Presenters\HudPresenter.lua
+UI\Presenters\HelpPresenter.lua
 UI\Presenters\ArrowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
 UI\Presenters\BadgePresenter.lua
@@ -156,6 +157,7 @@ UI\ProfileSummary.lua
 UI\WeightBars.lua
 UI\ProfileTab.lua
 UI\Onboarding.lua
+UI\HelpPanel.lua
 UI\Tooltip.lua
 UI\ItemBadge.lua
 UI\BagBadges.lua

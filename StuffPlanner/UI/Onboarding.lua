@@ -1,5 +1,6 @@
 -- CONTRAT
--- Assistant de bienvenue en 3 étapes : présentation, choix du profil de poids, surfaces de l'addon.
+-- Assistant de bienvenue en 4 étapes : présentation, choix du profil de poids, tour des pages, cadre
+-- flottant et surfaces (info-bulles, pastilles, halo, aide « ? »).
 -- Charger après Profiles/Manager.lua, ProfilePresenter.lua et Compat.lua.
 --   ns.Onboarding.show() -> ouvre l'assistant à l'étape 1 (hors combat seulement)
 -- Ouvert une fois par personnage, ONBOARD_DELAY s après PLAYER_LOGIN, hors combat ;
@@ -13,8 +14,8 @@ local L = ns.L
 local Onboarding = {}
 ns.Onboarding = Onboarding
 
-local WIDTH, HEIGHT = 400, 270
-local STEPS = 3
+local WIDTH, HEIGHT = 420, 300
+local STEPS = 4
 local ONBOARD_DELAY = 3
 local PORTRAIT = ns.ICON -- logo de l'addon
 local BUTTON_WIDTH, BUTTON_HEIGHT = 170, 22
