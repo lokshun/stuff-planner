@@ -363,5 +363,14 @@
   "DUNGEON_BACK": "‹ 인스턴스",
   "INSTANCE_LEVELS": "레벨 %d-%d",
   "INSTANCE_RAID": "공격대",
-  "INSTANCE_ITEMS": "유용한 아이템 %d개"
+  "INSTANCE_ITEMS": "유용한 아이템 %d개",
+  "TAB_JOURNAL": "일지",
+  "JOURNAL_PROGRESS": "성장",
+  "ALTS_TITLE": "다른 캐릭터",
+  "ALT_DETAIL": "레벨 %d %s",
+  "ALT_SEEN_TODAY": "오늘 확인",
+  "ALT_SEEN_DAYS": "%d일 전 확인",
+  "ALT_ITEMS": "%d개 보낼 것",
+  "ALTS_EMPTY": "이 서버와 진영의 다른 캐릭터가 아직 없습니다: 접속한 뒤 로그아웃하세요.",
+  "ALTS_NO_ITEM": "가방의 거래 가능한 아이템 중 그들에게 향상인 것이 없습니다."
 }

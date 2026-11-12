@@ -364,5 +364,14 @@
   "DUNGEON_BACK": "‹ Instanzen",
   "INSTANCE_LEVELS": "Stufe %d-%d",
   "INSTANCE_RAID": "Schlachtzug",
-  "INSTANCE_ITEMS": "%d nützliche Gegenstände"
+  "INSTANCE_ITEMS": "%d nützliche Gegenstände",
+  "TAB_JOURNAL": "Journal",
+  "JOURNAL_PROGRESS": "Fortschritt",
+  "ALTS_TITLE": "Andere Charaktere",
+  "ALT_DETAIL": "Stufe %d %s",
+  "ALT_SEEN_TODAY": "heute gesehen",
+  "ALT_SEEN_DAYS": "vor %d Tagen gesehen",
+  "ALT_ITEMS": "%d zu verschicken",
+  "ALTS_EMPTY": "Noch kein anderer Charakter dieses Realms und dieser Fraktion: mit ihm einloggen, dann ausloggen.",
+  "ALTS_NO_ITEM": "Kein handelbarer Gegenstand in deinen Taschen verbessert sie."
 }

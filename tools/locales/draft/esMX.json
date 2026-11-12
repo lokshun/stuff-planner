@@ -364,5 +364,14 @@
   "DUNGEON_BACK": "‹ Instancias",
   "INSTANCE_LEVELS": "Nv. %d-%d",
   "INSTANCE_RAID": "Banda",
-  "INSTANCE_ITEMS": "%d objetos útiles"
+  "INSTANCE_ITEMS": "%d objetos útiles",
+  "TAB_JOURNAL": "Diario",
+  "JOURNAL_PROGRESS": "Progreso",
+  "ALTS_TITLE": "Otros personajes",
+  "ALT_DETAIL": "Nivel %d %s",
+  "ALT_SEEN_TODAY": "visto hoy",
+  "ALT_SEEN_DAYS": "visto hace %d días",
+  "ALT_ITEMS": "%d para enviar",
+  "ALTS_EMPTY": "Aún no hay otro personaje de este reino y facción: conéctate con él y luego desconéctate.",
+  "ALTS_NO_ITEM": "Ningún objeto comerciable de tus bolsas los mejora."
 }

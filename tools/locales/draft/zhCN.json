@@ -363,5 +363,14 @@
   "DUNGEON_BACK": "‹ 副本",
   "INSTANCE_LEVELS": "等级 %d-%d",
   "INSTANCE_RAID": "团队副本",
-  "INSTANCE_ITEMS": "%d 件有用物品"
+  "INSTANCE_ITEMS": "%d 件有用物品",
+  "TAB_JOURNAL": "日志",
+  "JOURNAL_PROGRESS": "成长",
+  "ALTS_TITLE": "其他角色",
+  "ALT_DETAIL": "%d级 %s",
+  "ALT_SEEN_TODAY": "今天",
+  "ALT_SEEN_DAYS": "%d天前",
+  "ALT_ITEMS": "%d件可寄",
+  "ALTS_EMPTY": "尚无同服务器同阵营的其他角色：用其登录后再登出。",
+  "ALTS_NO_ITEM": "背包中没有可交易物品能提升他们。"
 }

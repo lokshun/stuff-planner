@@ -364,5 +364,14 @@
   "DUNGEON_BACK": "‹ Instâncias",
   "INSTANCE_LEVELS": "Nív. %d-%d",
   "INSTANCE_RAID": "Raide",
-  "INSTANCE_ITEMS": "%d itens úteis"
+  "INSTANCE_ITEMS": "%d itens úteis",
+  "TAB_JOURNAL": "Diário",
+  "JOURNAL_PROGRESS": "Progresso",
+  "ALTS_TITLE": "Outros personagens",
+  "ALT_DETAIL": "Nível %d %s",
+  "ALT_SEEN_TODAY": "visto hoje",
+  "ALT_SEEN_DAYS": "visto há %d dias",
+  "ALT_ITEMS": "%d para enviar",
+  "ALTS_EMPTY": "Nenhum outro personagem deste reino e facção ainda: entre com ele e depois saia.",
+  "ALTS_NO_ITEM": "Nenhum item negociável das suas bolsas os melhora."
 }

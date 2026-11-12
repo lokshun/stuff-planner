@@ -99,6 +99,7 @@ UI\ItemRow.lua
 UI\NameAsker.lua
 UI\Presenters\SecondaryGain.lua
 UI\Presenters\AltGain.lua
+UI\Presenters\AltListPresenter.lua
 UI\Presenters\RowPresenter.lua
 UI\Presenters\WishlistPresenter.lua
 UI\Presenters\HistoryPresenter.lua
@@ -142,6 +143,8 @@ UI\RouteTab.lua
 UI\GearRows.lua
 UI\WishlistTab.lua
 UI\DungeonTab.lua
+UI\HistoryChart.lua
+UI\JournalTab.lua
 UI\GearTab.lua
 UI\StatPicker.lua
 UI\PriorityRows.lua
@@ -170,7 +173,6 @@ UI\MapPins.lua
 UI\FloatingFrame.lua
 UI\FollowWindow.lua
 UI\DungeonPanel.lua
-UI\HistoryChart.lua
 UI\OptionsWidgets.lua
 UI\OptionsPanel.lua
 UI\MinimapButton.lua

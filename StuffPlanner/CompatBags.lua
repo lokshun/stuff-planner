@@ -6,6 +6,8 @@
 --     sacs réunis (ContainerFrameCombinedBags), sacs séparés ContainerFrame1..MAX_FRAMES ;
 --     cadre moderne : EnumerateValidItems et button:GetBagID() ; cadre classique : boutons
 --     « <cadre>Item1..size », sac = cadre:GetID() ; emplacement = button:GetID()
+--   EachBagItem(fn) -> fn(link, bag, slot) pour chaque objet du sac à dos (0) et des sacs équipés
+--     (1..NUM_BAG_SLOTS, 4 par défaut) ; nombre d'emplacements par C_Container, sinon fonction globale
 --   HookBagUpdates(fn) -> fn() à BAG_UPDATE_DELAYED et après chaque mise à jour d'un cadre de sac
 --     (ContainerFrame_Update, sinon UpdateItems des cadres) ; peut arriver en rafale : à regrouper.
 
@@ -59,6 +61,21 @@ function Compat.EachBagButton(fn)
     eachIn(_G[COMBINED], fn)
     for index = 1, MAX_FRAMES do
         eachIn(frameAt(index), fn)
+    end
+end
+
+function Compat.EachBagItem(fn)
+    local numSlots = (C_Container and C_Container.GetContainerNumSlots) or _G.GetContainerNumSlots
+    if not numSlots then
+        return
+    end
+    for bag = 0, _G.NUM_BAG_SLOTS or 4 do
+        for slot = 1, numSlots(bag) or 0 do
+            local link = Compat.GetContainerItemLink(bag, slot)
+            if link then
+                fn(link, bag, slot)
+            end
+        end
     end
 end
 
