@@ -23,6 +23,7 @@
 --   invalidate() -> vide le cache et les empreintes (instantané ou profil modifié sur place).
 --   dependsOn(itemID, data) -> {slot...} : emplacements portés dont dépend delta (anneaux,
 --     bijoux : les deux ; armes, boucliers, mains gauches : 16 et 17) ; {} si inconnu.
+--   PLAYER_TOTALS = {[clé]=champ de l'instantané} : totaux du joueur pris en base des plafonds (toucher)
 --   hasClass, hasRace, allows : alias de ns.Masks (Engine/Masks.lua).
 
 local _, ns = ...
@@ -52,6 +53,7 @@ local DUAL_WIELD = { ROGUE = 10, WARRIOR = 20, HUNTER = 20 }
 
 -- Totaux du joueur connus par l'instantané, pour les plafonds.
 local PLAYER_TOTALS = { HIT = "meleeHit", SPELL_HIT = "spellHit" }
+Scoring.PLAYER_TOTALS = PLAYER_TOTALS
 
 local cache, cachedPlayer = {}, nil
 local WEAK_KEYS = { __mode = "k" }

@@ -68,6 +68,7 @@ Engine\Masks.lua
 Engine\ItemLink.lua
 Data\LiveItem.lua
 Engine\Scoring.lua
+Engine\Totals.lua
 Engine\Chains.lua
 Engine\FollowSteps.lua
 Engine\Distance.lua
@@ -117,6 +118,7 @@ FollowTravel.lua
 SessionPlan.lua
 DungeonRun.lua
 Data\Timings.lua
+Data\History.lua
 UI\MainFrame.lua
 UI\Chips.lua
 UI\RowActions.lua

@@ -48,6 +48,7 @@ return {
     "GetInventorySlotInfo",
     "IsControlKeyDown",
     "IsAltKeyDown",
+    "time",
     "GetItemCount",
     "ItemRefTooltip",
     "QuestInfoRewardsFrame",
