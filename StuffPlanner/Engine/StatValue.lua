@@ -11,6 +11,8 @@
 --   Conversions : INT -> SPELL_CRIT ; AGI -> CRIT, DODGE (x2 voleur, chasseur), ARMOR (2) ; STR -> AP
 --     (2 guerrier, paladin, chaman, druide ; 1 sinon) ; AGI -> AP (1 voleur, chasseur) ; AGI -> RAP
 --     (2 chasseur, 1 guerrier, voleur) ; STR -> BLOCK_VALUE (1/20 guerrier, paladin, chaman).
+--     SPI -> MP5 (classes à mana) et HP5 : regen Classic 1.12 par 5 s * REGEN_SHARE (0,5 : l'Esprit ne
+--     rend que hors règle des 5 s ou hors combat, MP5/HP5 tout le temps), sans échelle de niveau.
 --     Crit et esquive avant 60 : ratio * 60 / niveau (niveau borné à 10). Classe inconnue : coûts seuls.
 
 local _, ns = ...
@@ -40,6 +42,13 @@ StatValue.CRIT_PER_INT = {
     WARLOCK = 0.0165, DRUID = 0.0167,
 }
 
+-- Regen par Esprit (Classic 1.12, par point et par 5 s) : mana hors règle des 5 s, vie hors combat.
+StatValue.REGEN_SHARE = 0.5
+local SPI_MANA = { PRIEST = 0.625, MAGE = 0.625, DRUID = 0.5, HUNTER = 0.5, PALADIN = 0.5, SHAMAN = 0.5,
+    WARLOCK = 0.5 }
+local SPI_HEALTH = { WARRIOR = 2, ROGUE = 1.25, HUNTER = 0.625, PALADIN = 0.625, SHAMAN = 0.275, DRUID = 0.225,
+    MAGE = 0.25, PRIEST = 0.25, WARLOCK = 0.175 }
+
 local DODGE_FACTOR = { ROGUE = 2, HUNTER = 2 }
 local STR_AP = { WARRIOR = 2, PALADIN = 2, SHAMAN = 2, DRUID = 2 }
 local AGI_AP = { ROGUE = 1, HUNTER = 1 }
@@ -64,6 +73,8 @@ local function conversions(class, level)
         { "AGI", "AP", AGI_AP[class] },
         { "AGI", "RAP", AGI_RAP[class] },
         { "STR", "BLOCK_VALUE", STR_BLOCK[class] },
+        { "SPI", "MP5", SPI_MANA[class] and SPI_MANA[class] * StatValue.REGEN_SHARE },
+        { "SPI", "HP5", SPI_HEALTH[class] and SPI_HEALTH[class] * StatValue.REGEN_SHARE },
     }
     for _, conversion in ipairs(optional) do
         if conversion[3] then
