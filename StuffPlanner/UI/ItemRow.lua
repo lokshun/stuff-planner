@@ -17,6 +17,7 @@
 --     absents = vides ; gain2 (profil comparé) : ItemRow.setGains ;
 --   ns.ItemRow.setGains(button, gain, gainColor, gain2?, gain2Color?) : gain à droite ; gain2 sous gain (les deux
 --     centrés ensemble en hauteur), ou à sa droite sur une ligne compacte ; rien sans colonne de gain ;
+--   ns.ItemRow.setGainAnchor(button, frame, point, x, y) : bord droit des gains (défaut : RIGHT du bouton, -4, 0) ;
 --     button.view = view, button.row = view.row or view, button.questID, button.itemID
 -- Info-bulle : view.link (sinon item:<itemID>, sinon button.link) puis opts.tooltip, puis view.hint en gris
 -- et L.ROW_MENU_HINT (menu clic droit, si la ligne a une quête ou un objet et pas d'onRightClick).
@@ -164,11 +165,6 @@ function ItemRow.build(button, opts)
         button.gain:SetWidth(gainWidth)
         button.gain:SetJustifyH("RIGHT")
         button.gain2 = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-        if opts.compact then
-            button.gain2:SetPoint("RIGHT", -4, 0)
-        else
-            button.gain2:SetPoint("TOPRIGHT", button, "RIGHT", -4, -1)
-        end
         button.gain2:SetWidth(opts.compact and COMPACT_GAIN2_WIDTH or gainWidth)
         button.gain2:SetJustifyH("RIGHT")
     end
@@ -207,20 +203,28 @@ function ItemRow.set(button, view)
     ItemRow.setGains(button, view.gain, view.gainColor, view.gain2, view.gain2Color)
 end
 
+function ItemRow.setGainAnchor(button, frame, point, x, y)
+    button.gainRight = { frame, point, x, y }
+end
+
 function ItemRow.setGains(button, gain, gainColor, gain2, gain2Color)
     if not button.gain then
         return
     end
     local second = gain2 ~= nil and gain2 ~= ""
+    local frame, point, x, y = unpack(button.gainRight or { button, "RIGHT", -4, 0 })
     button.gain:SetText(gain or "")
     setColor(button.gain, gainColor)
     button.gain:ClearAllPoints()
+    button.gain2:ClearAllPoints()
     if second and button.itemRowOpts.compact then
+        button.gain2:SetPoint("RIGHT", frame, point, x, y)
         button.gain:SetPoint("RIGHT", button.gain2, "LEFT", -4, 0)
     elseif second then
-        button.gain:SetPoint("BOTTOMRIGHT", button, "RIGHT", -4, 1)
+        button.gain:SetPoint("BOTTOMRIGHT", frame, point, x, y + 1)
+        button.gain2:SetPoint("TOPRIGHT", frame, point, x, y - 1)
     else
-        button.gain:SetPoint("RIGHT", -4, 0)
+        button.gain:SetPoint("RIGHT", frame, point, x, y)
     end
     button.gain2:SetShown(second)
     button.gain2:SetText(gain2 or "")

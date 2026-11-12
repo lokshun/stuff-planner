@@ -51,6 +51,9 @@ local function showParts(button, isHeader, toggle)
     button.name:SetShown(not isHeader)
     button.detail:SetShown(not isHeader)
     button.gain:SetShown(not isHeader)
+    if isHeader then
+        button.gain2:Hide() -- ItemRow.setGains le remontre sur une ligne d'objet
+    end
     button.highlight:SetShown(not isHeader or toggle)
 end
 
@@ -103,9 +106,9 @@ function RouteRows.new(handlers)
         ns.ItemRow.build(button, { top = true, gainWidth = 1, markHeight = height, onClick = onClick })
         ns.AltLines.build(button, onExpand)
         button.altToggle:SetPoint("RIGHT", button, "TOPRIGHT", -4, -height / 2)
-        button.gain:ClearAllPoints()
         button.gain:SetWidth(0)
-        button.gain:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
+        button.gain2:SetWidth(0)
+        ns.ItemRow.setGainAnchor(button, button.altToggle, "LEFT", -theme.spacing.gap, 0)
         button.title = button:CreateFontString(nil, "OVERLAY", theme.fonts.header)
         button.title:SetPoint("BOTTOMLEFT", 2, 4)
     end
