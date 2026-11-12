@@ -402,5 +402,7 @@
   "HELP_DO_BADGE": "melhoria nas bolsas, nos mercadores e na casa de leilões",
   "HELP_DO_HALO": "melhor recompensa de missão a escolher",
   "HELP_DO_PROFILE": "comparar com um perfil secundário",
-  "ONBOARD_STEP4": "Um único quadro flutuante acompanha o que você faz: chefes da masmorra, depois a cadeia de missões seguida, depois as melhores melhorias da zona. Dicas, selos das bolsas e o brilho da janela de missão mostram as melhorias em toda parte. O botão ? lista todos os gestos e comandos."
+  "ONBOARD_STEP4": "Um único quadro flutuante acompanha o que você faz: chefes da masmorra, depois a cadeia de missões seguida, depois as melhores melhorias da zona. Dicas, selos das bolsas e o brilho da janela de missão mostram as melhorias em toda parte. O botão ? lista todos os gestos e comandos.",
+  "TAG_QUEST": "Missão",
+  "TAG_CHAIN": "Série de missões"
 }

@@ -12,7 +12,8 @@
 --     émet SP_SELECTION_CHANGED(reveal) ; rien sans itemID. reveal : les listes font défiler jusqu'à elle.
 --   isSelected(questID, itemID) -> bool : même objet et même quête (nil = sans quête)
 --   menu(questID, itemID, itemSource) : menu clic droit (RowMenuPresenter.entries, RowMenu.open) : fiche,
---     repère, suivre / ne plus suivre (Follow), épingler / désépingler, essayer ; objet sélectionné
+--     repère (quête simple) ou suivre (suite de quêtes) / ne plus suivre (Follow), épingler / désépingler,
+--     essayer ; objet sélectionné
 --   mark(button, questID, itemID, height?) : cadre de sélection (créé au premier appel) affiché si
 --     isSelected ; height : cadre limité au haut du bouton (ligne dépliée : sans ses sous-lignes)
 
@@ -152,6 +153,7 @@ function RowActions.menu(questID, itemID, itemSource)
     local entries = ns.RowMenuPresenter.entries({
         questID = questID, itemID = itemID, itemSource = itemSource,
         following = ns.Follow.current(), pinned = itemID ~= nil and ns.WishlistStore.has(itemID),
+        chain = questID ~= nil and ns.RowPresenter.isChain(ns.Data.quest(questID)),
     })
     if #entries == 0 then
         return

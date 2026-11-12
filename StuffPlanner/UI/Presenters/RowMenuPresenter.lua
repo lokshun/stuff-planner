@@ -1,8 +1,9 @@
 -- CONTRAT
 -- Entrées du menu clic droit d'une ligne (pur, aucune API WoW). Charger après les Locales.
 --   ns.RowMenuPresenter.entries(ctx) -> {{key, label}...}
---     ctx = {questID?, itemID?, itemSource?, following = questID suivi | nil, pinned = bool}
---     ordre : details (quête, ou objet et source), waypoint et follow / unfollow (quête),
+--     ctx = {questID?, itemID?, itemSource?, following = questID suivi | nil, pinned = bool, chain = bool}
+--     ordre : details (quête, ou objet et source), quête : follow (suite de quêtes, ctx.chain) ou waypoint
+--     (quête simple), unfollow si elle est suivie,
 --     pin / unpin et dressup (objet)
 --   ns.RowMenuPresenter.profileEntries(ctx) -> {{key, label}...}
 --     ctx = {active = profil actif, secondary = profil comparé} : use, compare / uncompare ; rien si actif
@@ -25,11 +26,12 @@ function RowMenuPresenter.entries(ctx)
         add(entries, "details", L.MENU_DETAILS)
     end
     if questID then
-        add(entries, "waypoint", L.DETAIL_WAYPOINT)
         if ctx.following == questID then
             add(entries, "unfollow", L.DETAIL_UNFOLLOW)
-        else
+        elseif ctx.chain then
             add(entries, "follow", L.DETAIL_FOLLOW)
+        else
+            add(entries, "waypoint", L.DETAIL_WAYPOINT)
         end
     end
     if itemID then

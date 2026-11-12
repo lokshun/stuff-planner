@@ -19,6 +19,9 @@
 --            secondaryText (SecondaryGain.text du profil secondaire, lignes avec delta seulement) | nil,
 --            detailText (gain secondaire en bleu, états colorés — état de quête puis badge — séparés par « · »,
 --              puis sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
+--   isChain(quest) -> bool : quête à prérequis (suite de quêtes) ; quest = data.quest(id) | nil
+--   kindText (quête : L.TAG_CHAIN si isChain, sinon L.TAG_QUEST ; en couleur de titre dans detailText,
+--     avant le tag d'instance)
 --   gain(delta) -> arrow, gainText, gainColor ; mêmes règles que les champs de present
 --   state(questState, quest?) -> stateText, stateColor ("" et muted sans état)
 --   questRow(entry, data) -> present d'un résultat de Chat.bestInZone {itemID, questID, delta,
@@ -111,6 +114,10 @@ end
 
 local SEPARATOR = " · "
 
+function RowPresenter.isChain(quest)
+    return quest ~= nil and quest.prereq ~= nil
+end
+
 function RowPresenter.instanceTag(quest, data)
     if not (quest and quest.instance) then
         return nil
@@ -126,6 +133,9 @@ local function detailText(row)
     end
     if row.stateText ~= "" then
         parts[#parts + 1] = ns.Theme.colorize(row.stateText, row.stateColor)
+    end
+    if row.kindText then
+        parts[#parts + 1] = ns.Theme.colorize(row.kindText, ns.Theme.colors.title)
     end
     if row.tagText then
         parts[#parts + 1] = ns.Theme.colorize(row.tagText, row.tagColor)
@@ -170,7 +180,9 @@ function RowPresenter.present(entry, data)
     row.stateText, row.stateColor = RowPresenter.state(entry.questState, levelRecord(entry, data))
     local kind = row.sourceKind
     if kind == "quest" then
-        row.tagText, row.tagColor = RowPresenter.instanceTag(data.quest(entry.source.id), data)
+        local quest = data.quest(entry.source.id)
+        row.kindText = RowPresenter.isChain(quest) and L.TAG_CHAIN or L.TAG_QUEST
+        row.tagText, row.tagColor = RowPresenter.instanceTag(quest, data)
     elseif kind == "dungeon" or kind == "raid" then
         row.tagText, row.tagColor = kind == "raid" and L.TAG_RAID or L.TAG_DUNGEON, ns.Theme.colors.instance
     end

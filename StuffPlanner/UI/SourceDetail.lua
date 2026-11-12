@@ -7,7 +7,8 @@
 -- Contenu : objet (survol : info-bulle de l'objet), titre (instance ou recette), sous-titre,
 --   lignes « libellé : valeur », recette (survol : info-bulle du sort), composants (icône
 --   Compat.GetItemIcon, « 2 × nom », survol : info-bulle de l'objet), autres sources,
---   bouton Carte (zone d'entrée, Compat.OpenWorldMap).
+--   bouton Carte (zone d'entrée, Compat.OpenWorldMap) ; sous l'objet : Épingler / Retirer et Essayer
+--   (Compat.DressUpItem).
 -- Rafraîchie sur SP_PLAYER_CHANGED, SP_PROFILE_CHANGED et à l'arrivée des noms.
 
 local _, ns = ...
@@ -18,7 +19,7 @@ local W = ns.DetailWidgets
 local SourceDetail = {}
 ns.SourceDetail = SourceDetail
 
-local panel, content, texts, itemRow, recipeRow, mapButton, pinButton
+local panel, content, texts, itemRow, recipeRow, mapButton, pinButton, tryButton
 local lineTexts, reagentRows = {}, {}
 local currentItem, currentSource, currentView
 local askName = W.nameAsker(function()
@@ -58,6 +59,12 @@ local function create()
     pinButton = W.button(content, L.WISHLIST_UNPIN)
     pinButton:SetScript("OnClick", function()
         ns.RowActions.togglePin(currentView and currentView.itemID)
+    end)
+    tryButton = W.button(content, L.MENU_DRESSUP)
+    tryButton:SetScript("OnClick", function()
+        if currentView then
+            ns.Compat.DressUpItem(currentView.itemID)
+        end
     end)
 end
 
@@ -136,6 +143,8 @@ local function render(view)
     place(itemRow, theme.spacing.rowHeight, 2)
     pinButton:SetText(ns.WishlistStore.has(view.itemID) and L.WISHLIST_UNPIN or L.WISHLIST_PIN)
     place(pinButton, W.BUTTON_HEIGHT, 2)
+    tryButton:ClearAllPoints()
+    tryButton:SetPoint("LEFT", pinButton, "RIGHT", theme.spacing.gap, 0)
     texts.recipeHeader:SetShown(isCraft)
     recipeRow:SetShown(isCraft)
     if isCraft then
