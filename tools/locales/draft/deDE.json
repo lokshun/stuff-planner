@@ -338,5 +338,10 @@
   "ARROW_ON_TAXI": "Im Flug",
   "TRAVEL_FLY": "Flug von %s nach %s",
   "TRAVEL_BOAT": "Schiff nach %s",
-  "TRAVEL_ZEPPELIN": "Zeppelin nach %s"
+  "TRAVEL_ZEPPELIN": "Zeppelin nach %s",
+  "SOURCE_WORLD": "Welt: %s",
+  "SOURCE_DETAIL_WORLD": "Weltbeute",
+  "SOURCE_DETAIL_CREATURE": "Kreatur",
+  "SOURCE_DETAIL_ZONE": "Zone",
+  "FILTER_WORLD": "Welt"
 }

@@ -82,6 +82,8 @@ local function sourceText(source)
         return instanceText(source)
     elseif source.type == "craft" then
         return L.SOURCE_CRAFT
+    elseif source.type == "world" then
+        return L.SOURCE_WORLD:format(source.npcID and ns.Names.npc(source.npcID) or ns.Names.zone(source.mapID))
     end
     return ""
 end

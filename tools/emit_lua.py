@@ -22,7 +22,8 @@
     ns.<var> = {[id]="nom"} si GetLocale() vaut la langue ; fallback (anglais, chargé après les autres) : si
     aucune autre ne l'a rempli. emit_npc_names(locale, names, fallback) = emit_names("NpcNames", ...)
   emit_overlay(overlay) -> Overlay.lua : ns.Overlay = {quests={[id]={champ=valeur}}} en tables Lua (lues par
-    Data, peu nombreuses) ; ValueError si table ou champ absent de schema.FIELDS
+    Data, peu nombreuses) ; table `world` ignorée (BUILD_ONLY : build_db en fait des origines) ;
+    ValueError si table ou champ absent de schema.FIELDS
   emit_neighbors(neighbors) -> Neighbors.lua : ns.Neighbors = {[uiMapID]={uiMapID...}} (Data.neighbors)
   write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None,
     neighbors=None) -> écrit tous les fichiers, mentions de licence comprises ; EraItems.lua et Neighbors.lua
@@ -211,9 +212,13 @@ def emit_npc_names(locale, names, fallback=False):
     return emit_names("NpcNames", locale, names, fallback)
 
 
+# Tables de l'overlay lues par build_db seulement (le butin de monde devient des origines).
+BUILD_ONLY = frozenset({"world"})
+
+
 def emit_overlay(overlay):
     lines = [OVERLAY_HEADER, "local _, ns = ...\n\n", "ns.Overlay = {\n"]
-    for table in sorted(overlay):
+    for table in sorted(set(overlay) - BUILD_ONLY):
         if table not in schema.FIELDS:
             raise ValueError(f"Overlay : table inconnue {table}")
         lines.append(f"    {table} = {{\n")

@@ -1,5 +1,5 @@
 -- CONTRAT
--- Fiche d'une source d'objet hors quête (donjon, raid, artisanat). Pur : aucun appel d'API.
+-- Fiche d'une source d'objet hors quête (donjon, raid, artisanat, monde). Pur : aucun appel d'API.
 -- Charger après RowPresenter.lua.
 --   ns.SourcePresenter.build(itemID, source, player, profile, data, seconds?) -> view | nil (quête ou nil)
 --     source comme Data.sourcesOf ; profile nil = sans gain ; seconds (RouteResults.secondsOf) : dernière
@@ -12,6 +12,8 @@
 --     Artisanat : title = nom de la recette ; subtitle = métier ; lignes niveaux de métier
 --       (seuils jaune et gris, le niveau requis n'est pas connu du client) et compétence du
 --       joueur si player.professions la connaît ; composants « 2 × nom ».
+--     Monde : title = créature, sinon zone ; subtitle L.SOURCE_DETAIL_WORLD ; lignes créature (si connue),
+--       zone, taux (inconnu) ; mapID = carte du butin.
 --     others : autres sources de l'objet (texte de RowPresenter), la source affichée exclue.
 
 local _, ns = ...
@@ -64,6 +66,19 @@ local function instanceView(view, source, data)
     end
 end
 
+local function worldView(view, source)
+    local creature = source.npcID and ns.Names.npc(source.npcID)
+    local zone = ns.Names.zone(source.mapID)
+    view.title = creature or zone
+    view.subtitle = L.SOURCE_DETAIL_WORLD
+    view.mapID = source.mapID
+    if creature then
+        view.lines[#view.lines + 1] = { label = L.SOURCE_DETAIL_CREATURE, text = creature }
+    end
+    view.lines[#view.lines + 1] = { label = L.SOURCE_DETAIL_ZONE, text = zone }
+    view.lines[#view.lines + 1] = { label = L.SOURCE_DETAIL_CHANCE, text = L.SOURCE_DETAIL_UNKNOWN }
+end
+
 local function craftView(view, source, player)
     view.title = ns.Names.spell(source.id)
     view.subtitle = ns.Names.profession(source.skillLine)
@@ -102,6 +117,8 @@ function SourcePresenter.build(itemID, source, player, profile, data, seconds)
     }
     if source.type == "craft" then
         craftView(view, source, player)
+    elseif source.type == "world" then
+        worldView(view, source)
     else
         instanceView(view, source, data)
     end

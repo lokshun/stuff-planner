@@ -337,5 +337,10 @@
   "ARROW_ON_TAXI": "飞行中",
   "TRAVEL_FLY": "从%s飞往%s",
   "TRAVEL_BOAT": "前往%s的船",
-  "TRAVEL_ZEPPELIN": "前往%s的飞艇"
+  "TRAVEL_ZEPPELIN": "前往%s的飞艇",
+  "SOURCE_WORLD": "野外：%s",
+  "SOURCE_DETAIL_WORLD": "野外掉落",
+  "SOURCE_DETAIL_CREATURE": "生物",
+  "SOURCE_DETAIL_ZONE": "区域",
+  "FILTER_WORLD": "野外"
 }

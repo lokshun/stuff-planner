@@ -337,5 +337,10 @@
   "ARROW_ON_TAXI": "비행 중",
   "TRAVEL_FLY": "%s에서 %s(으)로 비행",
   "TRAVEL_BOAT": "%s행 배",
-  "TRAVEL_ZEPPELIN": "%s행 비행선"
+  "TRAVEL_ZEPPELIN": "%s행 비행선",
+  "SOURCE_WORLD": "필드: %s",
+  "SOURCE_DETAIL_WORLD": "필드 전리품",
+  "SOURCE_DETAIL_CREATURE": "생물",
+  "SOURCE_DETAIL_ZONE": "지역",
+  "FILTER_WORLD": "필드"
 }

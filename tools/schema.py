@@ -17,11 +17,12 @@ Version 10 : `ender` (npcID | nil), `objMap`, `objX`, `objY` (lieu d'objectif, f
   quests (suivi des suites, sources/quest_steps.py) ; `npcs` couvre donneurs et PNJ de rendu.
 Version 11 : `bosses` ({npcID...} | nil) en fin d'instances : boss dans l'ordre du donjon (NorgannonDB,
   sinon Spyglass).
+Version 12 : type d'origine `world` (butin de monde voté par merge_exports.py) : {5, mapID, nil, npcID | nil, x, y}.
 quests.prereq : quêtes toutes requises ; un élément liste signifie « l'une de celles-ci ».
 Aucun nom de quête ou d'objet ici : ils viennent du client.
 """
 
-VERSION = 11
+VERSION = 12
 
 FIELDS = {
     "quests": (
@@ -77,6 +78,7 @@ ORIGIN_KINDS = {
     "dungeon": 2,
     "raid": 3,
     "craft": 4,
+    "world": 5,
 }
 
 SOURCES = {

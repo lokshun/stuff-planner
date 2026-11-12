@@ -4,7 +4,7 @@
 --   ns.Filters.new(saved) -> état ; saved = {hidden = {[type]=true}, hideUnconfirmed = bool,
 --     hideUnavailable = bool} | nil ;
 --     la table sauvegardée est gardée et complétée (persistance par référence)
---   ns.Filters.toggle(state, key) ; key = type de source ("quest", "dungeon", "raid", "craft")
+--   ns.Filters.toggle(state, key) ; key = type de source ("quest", "dungeon", "raid", "craft", "world")
 --     ou "unconfirmed" ou "unavailable" (quête pas encore disponible) ; clé inconnue ignorée
 --   ns.Filters.apply(state, rows) -> nouvelle liste, ordre gardé ; une ligne sans source reste
 --   ns.Filters.chips(state, rows) -> {{key, label, count, active}...} ; types dans l'ordre ci-dessus
@@ -18,8 +18,9 @@ local L = ns.L
 local Filters = {}
 ns.Filters = Filters
 
-local KINDS = { "quest", "dungeon", "raid", "craft" }
-local KIND_LABELS = { quest = "FILTER_QUEST", dungeon = "FILTER_DUNGEON", raid = "FILTER_RAID", craft = "FILTER_CRAFT" }
+local KINDS = { "quest", "dungeon", "raid", "craft", "world" }
+local KIND_LABELS = { quest = "FILTER_QUEST", dungeon = "FILTER_DUNGEON", raid = "FILTER_RAID", craft = "FILTER_CRAFT",
+    world = "FILTER_WORLD" }
 local UNCONFIRMED = "unconfirmed"
 local UNAVAILABLE = "unavailable"
 

@@ -341,5 +341,10 @@
   "ARROW_ON_TAXI": "В полете",
   "TRAVEL_FLY": "Полет: %s – %s",
   "TRAVEL_BOAT": "Корабль: %s",
-  "TRAVEL_ZEPPELIN": "Дирижабль: %s"
+  "TRAVEL_ZEPPELIN": "Дирижабль: %s",
+  "SOURCE_WORLD": "Мир: %s",
+  "SOURCE_DETAIL_WORLD": "Добыча в мире",
+  "SOURCE_DETAIL_CREATURE": "Существо",
+  "SOURCE_DETAIL_ZONE": "Зона",
+  "FILTER_WORLD": "Мир"
 }

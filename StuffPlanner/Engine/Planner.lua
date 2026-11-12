@@ -22,12 +22,14 @@
 --   les récompenses de quête de Classic n'ont souvent pas de niveau requis (reqLevel 1).
 -- Durée de vie : min(LIFESPAN, 60 - L) / LIFESPAN, L = max(niveau du joueur, level) ; 1 si L >= 60.
 -- Trajet : TRAVEL × hops, hops = Distance.hops(carte du joueur, carte de la source, MAX_HOPS) ; carte de la
---   quête, entrée de l'instance (donjon, raid) ; 0 et hops nil si l'une est inconnue ou pour l'artisanat.
+--   quête, entrée de l'instance (donjon, raid), carte du butin (monde, opts.travel vers x, y s'ils sont connus) ;
+--   0 et hops nil si l'une est inconnue ou pour l'artisanat.
 -- Effort : quête = étapes restantes (Chains.steps) × QUEST_STEP + trajet ; écartée si faite, en cycle,
 --   inconnue, d'une autre classe ou race (Scoring.allows) ;
 --   alternative de prérequis d'une autre race écartée (Chains, isAllowed).
 --   Donjon, raid = DUNGEON_RUN, RAID_RUN × 100 / chance (DEFAULT_CHANCE sans taux, MIN_CHANCE au
---   moins) + trajet ; artisanat = CRAFT si player.professions[skillLine], CRAFT_UNKNOWN sinon.
+--   moins) + trajet ; monde = WORLD_KILL × 100 / chance + trajet ;
+--   artisanat = CRAFT si player.professions[skillLine], CRAFT_UNKNOWN sinon.
 -- steps : étapes restantes de la quête (nil hors quête).
 --   effort(source, player, data, opts?) -> secondes, étapes (quête) | nil (source écartée) : effort d'une source
 --     seule, mêmes règles que rank (opts.isDone, includeRaids, travel, tuning) ; Wishlist.
@@ -41,7 +43,8 @@ ns.Planner = Planner
 local MAX_LEVEL = 60
 
 -- Secondes, provisoires : quête (prise, objectif, rendu sur place) 7 min, zone traversée 3 min
--- (Travel.TUNING.zoneSeconds), donjon 50 min, raid 3 h, artisanat 2 min, métier à monter 1 h.
+-- (Travel.TUNING.zoneSeconds), donjon 50 min, raid 3 h, créature du butin de monde 3 min, artisanat 2 min,
+-- métier à monter 1 h.
 Planner.TUNING = {
     LIFESPAN = 8,
     ALPHA = 0.1,
@@ -50,6 +53,7 @@ Planner.TUNING = {
     MAX_HOPS = 3,
     DUNGEON_RUN = 3000,
     RAID_RUN = 10800,
+    WORLD_KILL = 180,
     DEFAULT_CHANCE = 5,
     MIN_CHANCE = 1,
     CRAFT = 120,
@@ -165,11 +169,10 @@ local function runs(source, tuning)
     return 100 / chance
 end
 
--- Entrée d'instance sans position dans la base : trajet par zones.
-local function instanceEffort(source, player, data, opts, tuning, perRun)
-    local instance = data.instance and data.instance(source.id)
-    local hops = hopsTo(instance and instance.mapID, player, data, tuning)
-    local trip = travel(hops, tuning, opts)
+-- Tentatives × perRun + trajet vers mapID ; entrée d'instance sans position : par zones.
+local function farmEffort(source, mapID, player, data, opts, tuning, perRun)
+    local hops = hopsTo(mapID, player, data, tuning)
+    local trip = travel(hops, tuning, opts, source.x and source or nil)
     return perRun * runs(source, tuning) + trip, 0, hops, nil, trip
 end
 
@@ -177,13 +180,12 @@ local function effortOf(source, player, data, opts, tuning)
     local kind = source.type
     if kind == "quest" then
         return questEffort(source, player, data, opts, tuning)
-    elseif kind == "dungeon" then
-        return instanceEffort(source, player, data, opts, tuning, tuning.DUNGEON_RUN)
-    elseif kind == "raid" then
-        if not opts.includeRaids then
-            return nil
-        end
-        return instanceEffort(source, player, data, opts, tuning, tuning.RAID_RUN)
+    elseif kind == "world" then
+        return farmEffort(source, source.mapID, player, data, opts, tuning, tuning.WORLD_KILL)
+    elseif kind == "dungeon" or (kind == "raid" and opts.includeRaids) then
+        local instance = data.instance and data.instance(source.id)
+        local perRun = kind == "raid" and tuning.RAID_RUN or tuning.DUNGEON_RUN
+        return farmEffort(source, instance and instance.mapID, player, data, opts, tuning, perRun)
     elseif kind == "craft" then
         local known = player.professions and player.professions[source.skillLine]
         return known and tuning.CRAFT or tuning.CRAFT_UNKNOWN, 0

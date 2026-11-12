@@ -1,10 +1,13 @@
 """CONTRAT
 Précalculs à partir des enregistrements importés.
-  origin_records(quests, items, recipes, drops=(), crafts=None) -> enregistrements `origins` triés par id d'objet :
+  origin_records(quests, items, recipes, drops=(), crafts=None, world=()) -> enregistrements `origins` triés par id d'objet :
     {"id": itemID, "entries": [[kind, id, chance, detail], ...]}, seulement pour les objets de `items`
     recipes = {itemID: [(spellID, skillLine), ...]}
     Quête : [kind, questID]. Donjon, raid : [kind, instance, chance, npc]. Artisanat : [kind, spellID, nil, skillLine],
     suivi de jaune, gris, [itemID, quantité, ...] si crafts = wago.load_crafts connaît le sort.
+    Monde : [kind, mapID, nil, npc | nil, x, y] (world = world_drops) ; écarté si l'objet tombe déjà de ce boss.
+  world_drops(world, maps) -> [{item, npc, mapID, x, y}] : table `world` de l'overlay, cartes absentes de
+    maps (Neighbors : intérieurs d'instance, cartes inconnues) écartées
   merge_drops(primary, secondary) -> butins triés ; pour un même objet dans une même instance,
     `primary` l'emporte (il a les taux)
   merge_instances(primary, secondary) -> enregistrements `instances` triés ; secondary prime pour
@@ -50,7 +53,30 @@ def _craft_entry(spell, skill, crafts):
     return entry
 
 
-def origin_records(quests, items, recipes, drops=(), crafts=None):
+def world_drops(world, maps):
+    """Butin de monde de l'overlay ({itemID: [{npc, mapID, x, y, votes}]}) sur une carte connue de maps."""
+    return [
+        {"item": item_id, "npc": entry["npc"], "mapID": entry["mapID"], "x": entry["x"], "y": entry["y"]}
+        for item_id in sorted(world)
+        for entry in world[item_id]
+        if entry["mapID"] in maps
+    ]
+
+
+def _add_world(origins, known, world):
+    for drop in world:
+        entries = origins.get(drop["item"], [])
+        boss = drop["npc"] is not None and any(
+            entry[0] in (schema.ORIGIN_KINDS["dungeon"], schema.ORIGIN_KINDS["raid"]) and entry[3] == drop["npc"]
+            for entry in entries
+        )
+        if drop["item"] in known and not boss:
+            origins.setdefault(drop["item"], []).append(
+                [schema.ORIGIN_KINDS["world"], drop["mapID"], None, drop["npc"], drop["x"], drop["y"]]
+            )
+
+
+def origin_records(quests, items, recipes, drops=(), crafts=None, world=()):
     known = {item["id"] for item in items}
     origins = {}
     for quest in quests:
@@ -66,6 +92,7 @@ def origin_records(quests, items, recipes, drops=(), crafts=None):
             origins.setdefault(drop["item"], []).append(
                 [_drop_kind(drop), drop["instance"], drop["chance"], drop["npc"]]
             )
+    _add_world(origins, known, world)
     return [
         {"id": item_id, "entries": sorted(origins[item_id], key=_sort_key)}
         for item_id in sorted(origins)

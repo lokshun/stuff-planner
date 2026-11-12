@@ -66,7 +66,7 @@ def _origin_checks(tables):
             elif kind in (kinds["dungeon"], kinds["raid"]):
                 if target not in instances:
                     no_instance.append(origin["id"])
-            elif kind != kinds["craft"]:
+            elif kind not in (kinds["craft"], kinds["world"]):
                 bad_kind.append(origin["id"])
     yield "origines sans objet", True, [o["id"] for o in tables["origins"] if o["id"] not in items]
     yield "origines sans quête", True, no_quest

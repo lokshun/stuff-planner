@@ -10,8 +10,9 @@
 --   npcName(id) -> nom du PNJ dans la langue du client (ns.NpcNames de la base) | nil ;
 --     baseName("npc"|"quest"|"item", id) -> nom de la base (NpcNames, QuestNames, ItemNames) | nil
 --   recipe(itemID) -> {spellID, skillLine} | nil, première recette de l'objet
---   sourcesOf(itemID) -> {{type="quest"|"dungeon"|"raid"|"craft", id, chance, npcID, skillLine}...} ;
---     id = questID, instance ou spellID ; vide si inconnu ; artisanat : yellow, grey (seuils de
+--   sourcesOf(itemID) -> {{type="quest"|"dungeon"|"raid"|"craft"|"world", id, chance, npcID, skillLine}...} ;
+--     id = questID, instance, spellID ou carte (monde : mapID, x, y, npcID nil hors créature) ;
+--     vide si inconnu ; artisanat : yellow, grey (seuils de
 --     compétence, nil si inconnus), reagents = {{itemID, count}...}
 --   itemIDs() -> {itemID...} trié, objets masqués compris (item(id) nil) ;
 --   questsInMap(mapID) -> {questID...} trié ; neighbors(mapID) -> {mapID...}, vide sans ns.Neighbors
@@ -41,7 +42,7 @@ local _, ns = ...
 local Data = {}
 ns.Data = Data
 
-local SCHEMA_VERSION = 11
+local SCHEMA_VERSION = 12
 local EMPTY = {}
 local WEAK = { __mode = "v" }
 local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "starter", "ender" }
@@ -244,7 +245,8 @@ local function sourceOf(entry)
     elseif kind == "quest" then
         return { type = kind, id = entry[2] }
     end
-    return { type = kind, id = entry[2], chance = entry[3], npcID = entry[4] }
+    return { type = kind, id = entry[2], chance = entry[3], npcID = entry[4], x = entry[5], y = entry[6],
+        mapID = kind == "world" and entry[2] or nil }
 end
 
 function Data.sourcesOf(itemID)

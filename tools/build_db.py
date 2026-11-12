@@ -4,12 +4,12 @@ Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
         npcs=(), npc_names=None, report=None, overlay=None, era_items=(), quest_names=None, item_names=None,
         neighbors=None)
     -> {"quests": n, "items": n, "origins": n, "instances": n, "npcNames": n, "questNames": n, "itemNames": n, "eraItems": n,
-        "instanceQuests": n, "memory": octets,
+        "instanceQuests": n, "worldDrops": n, "memory": octets,
         "eraMemory": octets} ;
-    npc_names ({langue: {npcID: nom}}) réduit aux donneurs et aux boss, un fichier par langue ; quest_names,
+    npc_names ({langue: {npcID: nom}}) réduit aux donneurs, aux boss et aux créatures du butin de monde, un fichier par langue ; quest_names,
     item_names (même forme) réduits aux quêtes et objets émis : repli des noms du client ; `quests` et `items`
     remplacent les fichiers de source_dir ; overlay ({"quests": {id: champs}}, tools/overlay.json
-    de merge_exports.py) devient Overlay.lua ; `origins` est précalculé ; seuls les objets ayant une
+    de merge_exports.py) devient Overlay.lua, sa table `world` des origines (precompute.world_drops sur neighbors) ; `origins` est précalculé ; seuls les objets ayant une
     origine sont émis ; era_items (precompute.era_differences) réduit aux objets émis sans `forever`, écrit
     dans EraItems.lua ; neighbors ({uiMapID: [uiMapID...]}, sources/zones.py) devient Neighbors.lua ; `memory` : estimation en jeu (lua_memory) hors EraItems, `eraMemory` : EraItems seul ; report(ligne) reçoit le rapport
     de validation ; ValueError sans rien écrire si une erreur bloquante est trouvée
@@ -53,7 +53,7 @@ def read_interfaces(addon_dir):
 
 
 def _bosses(origins):
-    raid_kinds = (schema.ORIGIN_KINDS["dungeon"], schema.ORIGIN_KINDS["raid"])
+    raid_kinds = (schema.ORIGIN_KINDS["dungeon"], schema.ORIGIN_KINDS["raid"], schema.ORIGIN_KINDS["world"])
     return {
         entry[3] for origin in origins for entry in origin["entries"]
         if entry[0] in raid_kinds and len(entry) > 3 and entry[3]
@@ -98,8 +98,9 @@ def build(
         tables["quests"] = quests
     if items is not None:
         tables["items"] = items
+    world = precompute.world_drops((overlay or {}).get("world", {}), neighbors or {})
     tables["origins"] = precompute.origin_records(
-        tables["quests"], tables["items"], recipes or {}, drops, crafts
+        tables["quests"], tables["items"], recipes or {}, drops, crafts, world
     )
     with_origin = {origin["id"] for origin in tables["origins"]}
     tables["items"] = [item for item in tables["items"] if item["id"] in with_origin]
@@ -122,6 +123,9 @@ def build(
     emit_lua.write_addon(out_dir, {**tables, "eraItems": era}, interfaces, names, overlay, quest_names, item_names, neighbors)
     counts = {table: len(records) for table, records in tables.items()}
     counts["eraItems"] = len(era)
+    counts["worldDrops"] = sum(
+        1 for origin in tables["origins"] for entry in origin["entries"] if entry[0] == schema.ORIGIN_KINDS["world"]
+    )
     counts["instanceQuests"] = sum(1 for quest in tables["quests"] if quest.get("instance"))
     counts["guessedQuests"] = sum(1 for quest in tables["quests"] if quest.get("confidence") == 2)
     counts["eraMemory"] = lua_memory.estimate({"eraItems": era})
@@ -132,7 +136,7 @@ def build(
     return counts
 
 
-def load_sources():
+def load_sources(world_items=()):
     questie_dir = questie.fetch(CACHE_DIR / "questie")
     quests = questie.load_quests(questie_dir)
     quests = precompute.split_rewards(quests, cmangos.load_quest_rewards(cmangos.fetch(CACHE_DIR / "cmangos")))
@@ -151,7 +155,7 @@ def load_sources():
     items = precompute.enrich_items(forever_items, scan)
     known = {item["id"] for item in items}
     wanted = {item for quest in quests for item in quest["rewards"] + quest["choices"]}
-    wanted |= {drop["item"] for drop in drops}
+    wanted |= {drop["item"] for drop in drops} | set(world_items)
     era_items = wago_era.load_items(era_dir)
     hidden = precompute.hidden_items(
         wanted - known, wago.load_bases(wago_dir), scan, era_items
@@ -180,9 +184,10 @@ def load_sources():
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     try:
-        sources = load_sources()
-        if OVERLAY.exists():
-            sources["overlay"] = merge_exports.load_overlay(OVERLAY)
+        overlay = merge_exports.load_overlay(OVERLAY) if OVERLAY.exists() else None
+        sources = load_sources((overlay or {}).get("world", {}))
+        if overlay:
+            sources["overlay"] = overlay
         counts = build(DEFAULT_SOURCES, OUT_DIR, read_interfaces(ADDON_DIR), report=print, **sources)
     except (RuntimeError, ValueError) as error:
         print(error, file=sys.stderr)
@@ -193,6 +198,7 @@ def main():
         f"{counts['npcs']} PNJ placés (donneurs et rendus), {counts['eraItems']} objets différents sur Classic Era, "
         f"{counts['instanceQuests']} quêtes de donjon ou de raid, "
         f"{counts['guessedQuests']} quêtes aux récompenses devinées, "
+        f"{counts['worldDrops']} butins de monde, "
         f"noms de base : {counts['questNames']} quêtes, {counts['itemNames']} objets"
     )
     print(f"Mémoire estimée en jeu : {counts['memory'] // 1024} Ko (Lua 5.1, 64 bits), EraItems {counts['eraMemory'] // 1024} Ko")
