@@ -12,7 +12,8 @@
 --     (2 guerrier, paladin, chaman, druide ; 1 sinon) ; AGI -> AP (1 voleur, chasseur, druide) ; AGI -> RAP
 --     (2 chasseur, 1 guerrier, voleur) ; STR -> BLOCK_VALUE (1/20 guerrier, paladin, chaman) ;
 --     SPELL_POWER (dégâts et soins) -> HEALING (1) ; STA -> HEALTH (10) ; INT -> MANA (15, classes à
---     mana) ; AGI -> AP (1 druide, forme de félin).
+--     mana) ; AGI -> AP (1 druide, forme de félin) ; DEF -> DODGE 0,04 % (toutes), PARRY 0,04 % (guerrier,
+--     paladin, voleur, chasseur), BLOCK 0,04 % (guerrier, paladin, chaman), sans échelle de niveau.
 --     SPI -> MP5 (classes à mana) et HP5 : regen Classic 1.12 par 5 s * REGEN_SHARE (0,5 : l'Esprit ne
 --     rend que hors règle des 5 s ou hors combat, MP5/HP5 tout le temps), sans échelle de niveau.
 --     Crit et esquive avant 60 : ratio * 60 / niveau (niveau borné à 10). Classe inconnue : coûts seuls.
@@ -56,6 +57,9 @@ local STR_AP = { WARRIOR = 2, PALADIN = 2, SHAMAN = 2, DRUID = 2 }
 local AGI_AP = { ROGUE = 1, HUNTER = 1, DRUID = 1 }
 local AGI_RAP = { HUNTER = 2, WARRIOR = 1, ROGUE = 1 }
 local STR_BLOCK = { WARRIOR = 0.05, PALADIN = 0.05, SHAMAN = 0.05 }
+-- Défense : 0,04 % par point (Classic) ; parade et blocage selon la classe.
+local DEF_PERCENT = 0.04
+local PARRIES = { WARRIOR = true, PALADIN = true, ROGUE = true, HUNTER = true }
 
 -- Conversions de la classe : {from, to, parPoint}.
 local function conversions(class, level)
@@ -71,12 +75,15 @@ local function conversions(class, level)
         { "STR", "AP", STR_AP[class] or 1 },
         { "SPELL_POWER", "HEALING", 1 },
         { "STA", "HEALTH", 10 },
+        { "DEF", "DODGE", DEF_PERCENT },
     }
     local optional = {
         { "INT", "SPELL_CRIT", StatValue.CRIT_PER_INT[class] and StatValue.CRIT_PER_INT[class] * scale },
         { "AGI", "AP", AGI_AP[class] },
         { "AGI", "RAP", AGI_RAP[class] },
         { "STR", "BLOCK_VALUE", STR_BLOCK[class] },
+        { "DEF", "PARRY", PARRIES[class] and DEF_PERCENT },
+        { "DEF", "BLOCK", STR_BLOCK[class] and DEF_PERCENT },
         { "INT", "MANA", SPI_MANA[class] and 15 },
         { "SPI", "MP5", SPI_MANA[class] and SPI_MANA[class] * StatValue.REGEN_SHARE },
         { "SPI", "HP5", SPI_HEALTH[class] and SPI_HEALTH[class] * StatValue.REGEN_SHARE },
