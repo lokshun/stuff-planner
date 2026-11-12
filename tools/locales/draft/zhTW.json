@@ -356,5 +356,7 @@
   "MENU_COMPARE": "比較（次要設定檔）",
   "MENU_UNCOMPARE": "停止比較",
   "ROW_MENU_HINT": "右鍵：選單",
-  "TAB_NOW": "目前"
+  "TAB_NOW": "目前",
+  "TAB_WISHLIST": "目標清單",
+  "WISHLIST_LINK": "目標清單（%d）›"
 }

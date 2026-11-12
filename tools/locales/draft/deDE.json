@@ -356,5 +356,7 @@
   "MENU_COMPARE": "Vergleichen (Zweitprofil)",
   "MENU_UNCOMPARE": "Nicht mehr vergleichen",
   "ROW_MENU_HINT": "Rechtsklick: Menü",
-  "TAB_NOW": "Jetzt"
+  "TAB_NOW": "Jetzt",
+  "TAB_WISHLIST": "Wunschliste",
+  "WISHLIST_LINK": "Wunschliste (%d) ›"
 }

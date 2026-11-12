@@ -355,5 +355,7 @@
   "MENU_COMPARE": "比较（次要配置）",
   "MENU_UNCOMPARE": "停止比较",
   "ROW_MENU_HINT": "右键：菜单",
-  "TAB_NOW": "当前"
+  "TAB_NOW": "当前",
+  "TAB_WISHLIST": "目标清单",
+  "WISHLIST_LINK": "目标清单（%d）›"
 }

@@ -139,7 +139,7 @@ UI\ZoneTab.lua
 UI\AltLines.lua
 UI\RouteTab.lua
 UI\GearRows.lua
-UI\WishlistSection.lua
+UI\WishlistTab.lua
 UI\GearTab.lua
 UI\StatPicker.lua
 UI\PriorityRows.lua

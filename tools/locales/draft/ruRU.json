@@ -359,5 +359,7 @@
   "MENU_COMPARE": "Сравнить (второй профиль)",
   "MENU_UNCOMPARE": "Не сравнивать",
   "ROW_MENU_HINT": "ПКМ: меню",
-  "TAB_NOW": "Сейчас"
+  "TAB_NOW": "Сейчас",
+  "TAB_WISHLIST": "Список целей",
+  "WISHLIST_LINK": "Список целей (%d) ›"
 }
