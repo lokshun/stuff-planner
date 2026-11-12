@@ -95,6 +95,7 @@ UI\NameAsker.lua
 UI\Presenters\SecondaryGain.lua
 UI\Presenters\RowPresenter.lua
 UI\Presenters\WishlistPresenter.lua
+UI\Presenters\HistoryPresenter.lua
 UI\Presenters\Filters.lua
 UI\Presenters\TrackerPresenter.lua
 UI\Presenters\FollowPresenter.lua
@@ -155,6 +156,7 @@ UI\MapPins.lua
 UI\FloatingFrame.lua
 UI\FollowWindow.lua
 UI\DungeonPanel.lua
+UI\HistoryChart.lua
 UI\OptionsWidgets.lua
 UI\OptionsPanel.lua
 UI\MinimapButton.lua

@@ -11,6 +11,7 @@
 --     porté changé -> "upgrade" (premier emplacement changé, gain = écart de score) ; sinon rien.
 --     Le relevé précédent (last) est remplacé dans tous les cas (objet moins bon : nouvelle référence).
 --   ns.History.record() : instantané, profil actif, score ; rien sans profil, sans Data prête ou en combat.
+-- SP_HISTORY_CHANGED (sans argument) après chaque entrée ajoutée.
 -- Relevé sur SP_PLAYER_CHANGED, SP_PROFILE_CHANGED et SP_DATA_READY.
 
 local _, ns = ...
@@ -80,6 +81,7 @@ function History.observe(snapshot, profileID, score, at)
     while #entries > History.MAX do
         table.remove(entries, 1)
     end
+    ns:Send("SP_HISTORY_CHANGED")
     return entry
 end
 
