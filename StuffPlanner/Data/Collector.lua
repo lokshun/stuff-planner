@@ -18,9 +18,10 @@
 -- Base prête (ns.Data.ready()) : une observation qu'elle connaît déjà n'est pas gardée : PNJ connu
 -- (Data.npc) ou absent, et quête aux level (si observé), mapID, choices, rewards identiques, ou
 -- butin dont chaque objet a une source chez ce PNJ ; une quête confidence 2 (récompenses devinées) est
--- toujours gardée : l'observation la confirme. Base non prête : tout est gardé.
+-- toujours gardée : l'observation la confirme, de même qu'une quête confirmée seulement par un autre
+-- joueur (Observations.kind "peer"). Base non prête : tout est gardé.
 -- Observation gardée, base prête : transmise à Data.observe (effet immédiat) ; quête : puis
--- SP_QUEST_OBSERVED(questID) (Results et la fiche se rafraîchissent).
+-- SP_QUEST_OBSERVED(questID) (Results et la fiche se rafraîchissent) et Share.queue (partage, si actif).
 -- Une sauvegarde d'un schéma plus récent reste intacte : le collecteur est alors inactif.
 
 local _, ns = ...
@@ -96,6 +97,9 @@ local function sameItems(observed, known)
 end
 
 local function knownQuest(Data, record)
+    if ns.Observations and ns.Observations.kind(record.questID) == "peer" then
+        return false -- la base n'est confirmée que par un autre joueur : garder la nôtre
+    end
     local quest = Data.quest(record.questID)
     return quest ~= nil
         and quest.confidence ~= GUESSED_QUEST
@@ -156,6 +160,9 @@ local function add(record)
             Data.observe(record)
             if record.questID then
                 ns:Send("SP_QUEST_OBSERVED", record.questID)
+                if ns.Share then
+                    ns.Share.queue(record)
+                end
             end
         end
     end

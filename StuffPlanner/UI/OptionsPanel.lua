@@ -98,6 +98,8 @@ local function layout()
         W.checkbox(nil, "roll.hint", labelOf("roll.hint")),
         W.header(nil, L.OPTIONS_SECTION_PLANNER),
         W.checkbox(nil, "planner.calibrate", labelOf("planner.calibrate")),
+        W.header(nil, L.OPTIONS_SECTION_SHARE),
+        W.checkbox(nil, "share.enabled", labelOf("share.enabled")),
     }
 end
 

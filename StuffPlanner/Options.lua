@@ -28,6 +28,7 @@ local CATALOG = {
     { key = "toast.zone", default = true, invert = true, path = { "ui", "toast", "zoneHidden" } },
     { key = "dungeon.panel", default = true, invert = true, path = { "ui", "dungeon", "hidden" } },
     { key = "roll.hint", default = true, invert = true, path = { "ui", "rollHintHidden" } },
+    { key = "share.enabled", default = false, path = { "share", "enabled" } },
     { key = "tracker.shown", default = true, invert = true, path = { "ui", "tracker", "hidden" } },
     { key = "tracker.lines", default = 3, min = 1, max = 5, step = 1, path = { "ui", "tracker", "lines" } },
     { key = "tracker.locked", default = false, path = { "ui", "tracker", "locked" } },

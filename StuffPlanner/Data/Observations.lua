@@ -4,7 +4,10 @@
 --   ns.Observations.reset() -> oublie tout
 --   add(record, questKnown) -> bool : vrai si l'observation de la quête record.questID a changé ;
 --     PNJ (npcID et mapID) toujours gardé ; quête gardée si questKnown (connue de la base) et kind
---     "detail", "complete" ou "log" ; "log" ne remplace pas une observation déjà gardée.
+--     "detail", "complete", "log" ou "peer" (reçue d'un autre joueur, Integrations/Share.lua) ;
+--     rang : "peer" < "log" < "detail" = "complete" ; une observation ne remplace pas une de rang supérieur,
+--     "log" et "peer" pas une de même rang.
+--   kind(questID) -> kind de l'observation gardée | nil
 --   npc(id) -> {id, mapID, x, y} | nil ; mapID(questID) -> carte observée | nil
 --   applyQuest(quest) -> record | nil : copie level, mapID, rewards, choices observés (non nil) dans quest
 --   setItem(id, stats) ; applyItem(item) -> bool : item.stats remplacé par les stats lues en jeu
@@ -15,7 +18,7 @@ local Observations = {}
 ns.Observations = Observations
 
 local FIELDS = { "level", "mapID", "rewards", "choices" }
-local QUEST_KINDS = { detail = true, complete = true, log = true }
+local RANK = { peer = 1, log = 2, detail = 3, complete = 3 }
 
 local quests, items, npcs
 
@@ -29,7 +32,13 @@ function Observations.add(record, questKnown)
         npcs[record.npcID] = { id = record.npcID, mapID = record.mapID, x = record.x, y = record.y }
     end
     local id = record.questID
-    if not (id and questKnown and QUEST_KINDS[record.kind]) or (record.kind == "log" and quests[id]) then
+    local rank = RANK[record.kind]
+    if not (id and questKnown and rank) then
+        return false
+    end
+    local kept = quests[id]
+    local keptRank = kept and RANK[kept.kind] or 0
+    if keptRank > rank or (keptRank == rank and rank < RANK.detail) then
         return false
     end
     quests[id] = record
@@ -38,6 +47,11 @@ end
 
 function Observations.npc(id)
     return npcs[id]
+end
+
+function Observations.kind(questID)
+    local record = quests[questID]
+    return record and record.kind or nil
 end
 
 function Observations.mapID(questID)

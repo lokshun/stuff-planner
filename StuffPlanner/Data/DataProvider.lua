@@ -21,13 +21,13 @@
 -- Couches : base < db.Overlay ({quests={[id]={champ=valeur}}, items={...}}) < observations du
 --   collecteur (quêtes connues de la base : level s'il est connu, mapID, rewards, choices ; la dernière
 --   observation detail ou complete l'emporte ; "log", lue dans le journal, n'apporte que rewards et
---   choices et ne remplace pas un dialogue). Quête confidence 2 dont une couche (Overlay ou
---   observation) fixe rewards et choices : confidence 3 (confirmée). Observations : ns.Observations
---   (Data/Observations.lua, charger avant).
+--   choices et ne remplace pas un dialogue ; "peer", reçue d'un autre joueur, passe sous toutes).
+--   Quête confidence 2 dont une couche (Overlay ou observation) fixe rewards et choices : confidence 3
+--   (confirmée). Observations : ns.Observations (Data/Observations.lua, charger avant).
 -- observeItem(id, stats) : stats lues en jeu (ItemProbe), au-dessus de l'Overlay, effet immédiat ;
 --   objet confidence 1 dont une couche fixe stats : confidence 3.
--- observe(record) : Loader au chargement, puis Collector ; effet immédiat sur quest(id) et npc(id),
---   questsInMap garde la carte du chargement.
+-- observe(record) -> bool (quête changée) : Loader au chargement, Collector, Share ; effet immédiat
+--   sur quest(id) et npc(id), questsInMap garde la carte du chargement.
 -- Réservé à Loader : attach(db [, opts]) -> bool (false si schéma différent), indexQuest(id), finish().
 --   db = ns de l'addon de données (Schema, Quests, Items, EraItems sur Vanilla, Origins, Instances, Npcs).
 --   opts.hideForever : quest, item -> nil pour `forever`, absents de questsInMap et de sourcesOf.
@@ -84,12 +84,14 @@ end
 
 function Data.observe(record)
     if not db then
-        return
+        return false
     end
     local id = record.questID
     if Observations.add(record, id ~= nil and db.Quests[id] ~= nil) then
         cache.quests[id] = nil
+        return id ~= nil
     end
+    return false
 end
 
 function Data.observeItem(id, stats)

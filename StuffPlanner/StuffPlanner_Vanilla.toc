@@ -45,6 +45,7 @@ CompatQuest.lua
 CompatMap.lua
 CompatTravel.lua
 CompatInstance.lua
+CompatChat.lua
 CompatOptions.lua
 Debug\Pseudo.lua
 Debug\Perf.lua
@@ -116,6 +117,7 @@ UI\Chat.lua
 UI\Arrow.lua
 Integrations\TomTom.lua
 Integrations\Prices.lua
+Integrations\Share.lua
 Follow.lua
 FollowTravel.lua
 SessionPlan.lua

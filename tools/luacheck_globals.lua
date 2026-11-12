@@ -1,6 +1,11 @@
 -- Globals WoW en lecture seule autorisés par luacheck (voir .luacheckrc).
 return {
     "C_AddOns",
+    "C_ChatInfo",
+    "IsInGuild",
+    "IsInGroup",
+    "IsInRaid",
+    "LE_PARTY_CATEGORY_INSTANCE",
     "C_Container",
     "C_Item",
     "C_Map",
