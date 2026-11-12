@@ -9,8 +9,12 @@
 --     kind : "quest" | "item" | "npc" | "zone" | "spell" | "instance" ; chaque rappel est appelé une fois
 --   ns.Names.isKnown(kind, id) -> bool : nom connu du client ou appris (pas la base ni le repli) ;
 --     onReady attend ce nom-là (il apporte aussi l'icône)
---   ns.Names.learn(kind, id, name) -> nom appris hors client ; PNJ : gardé dans
---     StuffPlannerDB.npcNames[GetLocale()], appris au dialogue de quête et au ciblage d'une créature
+--   ns.Names.learn(kind, id, name) -> nom appris hors client (dialogue de quête, ciblage d'une créature) ;
+--     PNJ : gardé dans StuffPlannerDB.npcNames[GetLocale()] seulement si la base est prête, connaît le PNJ
+--     (Data.npc ou Data.npcName) et le nomme autrement ; au plus MAX_SAVED noms par langue (au-delà : en
+--     mémoire seule). Sinon gardé pour la session.
+--   ns.Names.MAX_SAVED = 1000 ; SP_DATA_READY : noms sauvegardés de la langue courante inutiles (inconnus de
+--     la base ou égaux à son nom) retirés, puis bornés à MAX_SAVED.
 -- PNJ : nom appris > client (info-bulle) > base (Data.npcName).
 -- Seuls les vrais noms vont en cache. Quête et objet inconnus : demande au client via Compat,
 -- réponse par QUEST_DATA_LOAD_RESULT ou GET_ITEM_INFO_RECEIVED. Un rappel en erreur n'arrête pas les autres.
@@ -146,13 +150,60 @@ function Names.isKnown(kind, id)
     return lookup(kind, id) ~= nil
 end
 
+Names.MAX_SAVED = 1000
+
+-- Le nom mérite-t-il la sauvegarde ? PNJ connu de la base (affichable), nommé autrement par elle.
+local function worthSaving(id, name)
+    local data = ns.Data
+    if not (data and data.ready and data.ready()) then
+        return false
+    end
+    local base = data.npcName(id)
+    return name ~= base and (base ~= nil or (data.npc and data.npc(id)) ~= nil)
+end
+
+local function count(saved)
+    local total = 0
+    for _ in pairs(saved) do
+        total = total + 1
+    end
+    return total
+end
+
+local function save(id, name)
+    if not (ns.DB.peek("account") and worthSaving(id, name)) then
+        return
+    end
+    local saved = ns.DB.account("npcNames", GetLocale())
+    if saved[id] or count(saved) < Names.MAX_SAVED then
+        saved[id] = name
+    end
+end
+
 function Names.learn(kind, id, name)
     known[kind][id] = name
-    if kind == "npc" and ns.DB.peek("account") then
-        ns.DB.account("npcNames", GetLocale())[id] = name
+    if kind == "npc" then
+        save(id, name)
     end
     wake(kind, id)
 end
+
+local function prune()
+    local saved = ns.DB.peek("account", "npcNames", GetLocale())
+    if type(saved) ~= "table" then
+        return
+    end
+    local total = 0
+    for id, name in pairs(saved) do
+        if worthSaving(id, name) and total < Names.MAX_SAVED then
+            total = total + 1
+        else
+            saved[id] = nil
+        end
+    end
+end
+
+ns:On("SP_DATA_READY", prune)
 
 -- Apprend le nom d'une créature désignée par une unité ("npc", "target").
 local function learnUnit(unit)
