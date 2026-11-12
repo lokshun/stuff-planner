@@ -80,6 +80,7 @@ Engine\Session.lua
 Engine\Tiers.lua
 Engine\Recompute.lua
 Engine\Bearing.lua
+Engine\Sync.lua
 Profiles\Defaults.lua
 Profiles\Customs.lua
 Profiles\Manager.lua
