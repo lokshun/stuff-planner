@@ -165,6 +165,8 @@
   "PRIORITY_GROUP_PRIMARY": "屬性",
   "PRIORITY_GROUP_PHYSICAL": "物理",
   "PRIORITY_GROUP_SPELL": "法術",
+  "STAT_AVOID_MISS": "被未命中機率",
+  "STAT_AVOID_CRIT": "受到的致命一擊降低",
   "PRIORITY_GROUP_DEFENSE": "防禦",
   "PRIORITY_GROUP_RESIST": "抗性",
   "PRIORITY_CAP_HINT": "上限（%）：超出部分不再計算收益。留空：無上限。",

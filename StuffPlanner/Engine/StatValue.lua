@@ -12,7 +12,8 @@
 --     (2 guerrier, paladin, chaman, druide ; 1 sinon) ; AGI -> AP (1 voleur, chasseur, druide) ; AGI -> RAP
 --     (2 chasseur, 1 guerrier, voleur) ; STR -> BLOCK_VALUE (1/20 guerrier, paladin, chaman) ;
 --     SPELL_POWER (dégâts et soins) -> HEALING (1) ; STA -> HEALTH (10) ; INT -> MANA (15, classes à
---     mana) ; AGI -> AP (1 druide, forme de félin) ; DEF -> DODGE 0,04 % (toutes), PARRY 0,04 % (guerrier,
+--     mana) ; AGI -> AP (1 druide, forme de félin) ; DEF -> DODGE, AVOID_MISS, AVOID_CRIT 0,04 % (toutes),
+--     PARRY 0,04 % (guerrier,
 --     paladin, voleur, chasseur), BLOCK 0,04 % (guerrier, paladin, chaman), sans échelle de niveau.
 --     SPI -> MP5 (classes à mana) et HP5 : regen Classic 1.12 par 5 s * REGEN_SHARE (0,5 : l'Esprit ne
 --     rend que hors règle des 5 s ou hors combat, MP5/HP5 tout le temps), sans échelle de niveau.
@@ -30,7 +31,7 @@ local COST = {
     AP = 0.5, RAP = 0.4, HIT = 10, CRIT = 14, HASTE = 10, DPS = 7,
     SPELL_POWER = 0.85, SPELL_DMG = 0.85, HEALING = 0.45, SPELL_HIT = 10, SPELL_CRIT = 14, SPELL_PEN = 0.8,
     HOLY_DMG = 0.7, FIRE_DMG = 0.7, NATURE_DMG = 0.7, FROST_DMG = 0.7, SHADOW_DMG = 0.7, ARCANE_DMG = 0.7,
-    ARMOR = 0.1, DEF = 1.5, DODGE = 12, PARRY = 15, BLOCK = 5, BLOCK_VALUE = 0.5,
+    ARMOR = 0.1, DEF = 1.5, DODGE = 12, PARRY = 15, BLOCK = 5, BLOCK_VALUE = 0.5, AVOID_MISS = 12, AVOID_CRIT = 12,
     MP5 = 2.5, HP5 = 2.5, HEALTH = 0.1, MANA = 1 / 15,
     RES_HOLY = 1, RES_FIRE = 1, RES_NATURE = 1, RES_FROST = 1, RES_SHADOW = 1, RES_ARCANE = 1,
 }
@@ -76,6 +77,8 @@ local function conversions(class, level)
         { "SPELL_POWER", "HEALING", 1 },
         { "STA", "HEALTH", 10 },
         { "DEF", "DODGE", DEF_PERCENT },
+        { "DEF", "AVOID_MISS", DEF_PERCENT },
+        { "DEF", "AVOID_CRIT", DEF_PERCENT },
     }
     local optional = {
         { "INT", "SPELL_CRIT", StatValue.CRIT_PER_INT[class] and StatValue.CRIT_PER_INT[class] * scale },

@@ -128,6 +128,8 @@
   "STAT_FROST_DMG": "Frostschaden",
   "STAT_SHADOW_DMG": "Schattenschaden",
   "STAT_ARCANE_DMG": "Arkanschaden",
+  "STAT_AVOID_MISS": "Chance, verfehlt zu werden",
+  "STAT_AVOID_CRIT": "Weniger erlittene kritische Treffer",
   "STAT_BLOCK_VALUE": "Blockwert",
   "GEAR_SUMMARY": "%d Plätze verbesserbar · %s gesamt",
   "GEAR_NONE": "Kein Platz zu verbessern",

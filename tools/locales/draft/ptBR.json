@@ -164,6 +164,8 @@
   "PRIORITY_GROUP_PRIMARY": "Atributos",
   "PRIORITY_GROUP_PHYSICAL": "Físico",
   "PRIORITY_GROUP_SPELL": "Feitiços",
+  "STAT_AVOID_MISS": "Chance de ser errado",
+  "STAT_AVOID_CRIT": "Redução de críticos sofridos",
   "PRIORITY_GROUP_DEFENSE": "Defesa",
   "PRIORITY_GROUP_RESIST": "Resistências",
   "PRIORITY_CAP_HINT": "Limite em %: acima dele, o ganho não conta mais. Vazio: sem limite.",

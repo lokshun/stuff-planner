@@ -168,6 +168,8 @@
   "PRIORITY_GROUP_PRIMARY": "Характеристики",
   "PRIORITY_GROUP_PHYSICAL": "Физические",
   "PRIORITY_GROUP_SPELL": "Заклинания",
+  "STAT_AVOID_MISS": "Шанс промаха по вам",
+  "STAT_AVOID_CRIT": "Снижение критических ударов по вам",
   "PRIORITY_GROUP_DEFENSE": "Защита",
   "PRIORITY_GROUP_RESIST": "Сопротивления",
   "PRIORITY_CAP_HINT": "Предел в %: выше него прирост не учитывается. Пусто — без предела.",

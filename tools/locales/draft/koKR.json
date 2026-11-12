@@ -164,6 +164,8 @@
   "PRIORITY_GROUP_PRIMARY": "능력치",
   "PRIORITY_GROUP_PHYSICAL": "물리",
   "PRIORITY_GROUP_SPELL": "주문",
+  "STAT_AVOID_MISS": "빗나감 확률",
+  "STAT_AVOID_CRIT": "받는 치명타 감소",
   "PRIORITY_GROUP_DEFENSE": "방어",
   "PRIORITY_GROUP_RESIST": "저항",
   "PRIORITY_CAP_HINT": "상한(%): 이를 넘는 부분은 계산하지 않습니다. 비워 두면 상한이 없습니다.",

@@ -164,6 +164,8 @@
   "PRIORITY_GROUP_PRIMARY": "Atributos",
   "PRIORITY_GROUP_PHYSICAL": "Físico",
   "PRIORITY_GROUP_SPELL": "Hechizos",
+  "STAT_AVOID_MISS": "Probabilidad de ser fallado",
+  "STAT_AVOID_CRIT": "Reducción de críticos recibidos",
   "PRIORITY_GROUP_DEFENSE": "Defensa",
   "PRIORITY_GROUP_RESIST": "Resistencias",
   "PRIORITY_CAP_HINT": "Tope en %: por encima, la mejora ya no cuenta. Vacío: sin tope.",
