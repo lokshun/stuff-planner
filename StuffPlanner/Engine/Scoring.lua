@@ -20,6 +20,9 @@
 --     ({slot, itemClass, itemSubClass, classMask?, stats} : objet lu en jeu, hors base ou à suffixe) ;
 --     cache par (key, empreinte) si key est donnée, aucun sinon.
 --     player.equippedTypes = {[slot]=InventoryType} facultatif : objets portés hors base (deux-mains).
+--   profile.fallback = {weights, caps} facultatif (profil personnalisé : poids par défaut de la classe) : si
+--     abs <= 0, delta.fallback = gain selon ces poids quand il est > 0 (mêmes options d'emplacement).
+--   fallbackOf(delta) -> {abs = delta.fallback, slot, fallback = true} | nil (gain > 0 ou sans repli)
 --   invalidate() -> vide le cache et les empreintes (instantané ou profil modifié sur place).
 --   dependsOn(itemID, data) -> {slot...} : emplacements portés dont dépend delta (anneaux,
 --     bijoux : les deux ; armes, boucliers, mains gauches : 16 et 17) ; {} si inconnu.
@@ -89,13 +92,18 @@ local function sortedPairs(map)
     return table.concat(parts, ",")
 end
 
-local function fingerprint(profile)
+local function ownPrint(profile)
     local key = prints[profile]
     if not key then
         key = sortedPairs(profile.weights) .. "|" .. sortedPairs(profile.caps)
         prints[profile] = key
     end
     return key
+end
+
+local function fingerprint(profile)
+    local fallback = profile.fallback
+    return fallback and (ownPrint(profile) .. "#" .. ownPrint(fallback)) or ownPrint(profile)
 end
 
 Scoring.hasClass = ns.Masks.hasClass
@@ -220,7 +228,19 @@ local function compute(itemID, fields, player, profile, data)
     else
         options = { { slot = slots[1], removed = { slots[1] } } }
     end
-    return bestOf(options, fields.stats, player, profile, data)
+    local best = bestOf(options, fields.stats, player, profile, data)
+    if best and best.abs <= 0 and profile.fallback then
+        local other = bestOf(options, fields.stats, player, profile.fallback, data)
+        best.fallback = other and other.abs > 0 and other.abs or nil
+    end
+    return best
+end
+
+function Scoring.fallbackOf(delta)
+    if delta and delta.abs <= 0 and delta.fallback then
+        return { abs = delta.fallback, slot = delta.slot, fallback = true }
+    end
+    return nil
 end
 
 local function cachedDelta(key, itemID, fields, player, profile, data)

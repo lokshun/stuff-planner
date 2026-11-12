@@ -20,6 +20,8 @@
 --            detailText (gain secondaire en bleu, états colorés — état de quête puis badge — séparés par « · »,
 --              puis sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
 --   isChain(quest) -> bool : quête à prérequis (suite de quêtes) ; quest = data.quest(id) | nil
+--   offProfile (delta.fallback : repli hors profil, Scoring.fallbackOf) : gainLabel entre parenthèses, couleur
+--     muted, sans flèche ; L.TAG_OFF_PROFILE en tête de detailText
 --   kindText (quête : L.TAG_CHAIN si isChain, sinon L.TAG_QUEST ; en couleur de titre dans detailText,
 --     avant le tag d'instance)
 --   gain(delta) -> arrow, gainText, gainColor ; mêmes règles que les champs de present
@@ -58,7 +60,9 @@ function RowPresenter.gain(delta)
     end
     local abs = delta.abs
     local text = ns.Format.points(abs)
-    if abs > 0 then
+    if delta.fallback then
+        return "", "(" .. text .. ")", theme.colors.muted
+    elseif abs > 0 then
         return theme.arrows.up, text, theme.colors.gain
     elseif abs < 0 then
         return theme.arrows.down, text, theme.colors.loss
@@ -128,6 +132,9 @@ end
 
 local function detailText(row)
     local parts = {}
+    if row.offProfile then
+        parts[#parts + 1] = ns.Theme.colorize(L.TAG_OFF_PROFILE, ns.Theme.colors.muted)
+    end
     if row.secondaryText then
         parts[#parts + 1] = ns.Theme.colorize(row.secondaryText, ns.Theme.colors.instance)
     end
@@ -176,6 +183,7 @@ function RowPresenter.present(entry, data)
         questState = entry.questState,
         unavailable = UNAVAILABLE[entry.questState] == true,
         slot = entry.delta and entry.delta.slot,
+        offProfile = entry.delta ~= nil and entry.delta.fallback == true or nil,
     }
     row.stateText, row.stateColor = RowPresenter.state(entry.questState, levelRecord(entry, data))
     local kind = row.sourceKind

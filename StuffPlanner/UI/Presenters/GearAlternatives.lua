@@ -4,7 +4,8 @@
 --   ns.GearAlternatives.of(slot, chosen, ctx) -> {RowPresenter.alternative…} | nil
 --     chosen = objet proposé (itemID, sourceKind, questID) ; ctx = {entries, route, routeAlternatives, data,
 --       quest (ligne de quête imposée : Tiers quests[slot]) | nil, needQuest (bool)}
---     autres objets de l'emplacement (gain > 0, hors raid et objet proposé), MAX au plus : zone d'abord
+--     autres objets de l'emplacement (gain > 0, hors raid et objet proposé, repli hors profil seulement si
+--     chosen.offProfile), MAX au plus : zone d'abord
 --     (L.EFFORT_NEAR, par gain), puis palier courant et ses alternatives, par effort ;
 --     needQuest : la quête de plus fort gain en tête, à défaut ctx.quest (gain > 0, autre objet)
 --   ns.GearAlternatives.MAX = 3
@@ -22,9 +23,9 @@ local function isRaid(entry)
     return entry.source ~= nil and entry.source.type == "raid"
 end
 
-local function usable(entry, slot, seen)
+local function usable(entry, slot, seen, offProfile)
     return entry.delta and entry.delta.slot == slot and entry.delta.abs > 0 and not isRaid(entry)
-        and not seen[entry.itemID]
+        and not seen[entry.itemID] and (entry.delta.fallback == true) == offProfile
 end
 
 local function byEase(a, b)
@@ -59,7 +60,7 @@ end
 function GearAlternatives.of(slot, chosen, ctx)
     local seen, found = { [chosen.itemID] = true }, {}
     local function add(entry, ease, effortText)
-        if usable(entry, slot, seen) then
+        if usable(entry, slot, seen, chosen.offProfile == true) then
             seen[entry.itemID] = true
             local row = ns.RowPresenter.alternative(entry, ctx.data, effortText)
             row.ease, row.gain = ease, entry.delta.abs

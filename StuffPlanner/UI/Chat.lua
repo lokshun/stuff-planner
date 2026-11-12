@@ -5,6 +5,8 @@
 --     gain décroissant puis itemID ; un objet n'apparaît qu'une fois (première quête par id) ;
 --     quêtes exclues : opts.isDone(questID) vrai, reqLevel > player.level + 3 ;
 --     opts.limit (5 par défaut) ; opts.delta(itemID) remplace Scoring.delta (Results).
+--     opts.fallback : ensuite, par emplacement (anneaux, bijoux : un groupe) sans gain > 0, l'entrée de plus
+--     fort delta.fallback (profil personnalisé, Scoring) copiée avec delta = Scoring.fallbackOf, gain décroissant.
 --     questState = Chains.questState(quest, player.level, opts) (opts.isInLog, opts.isDone).
 --     opts.instances : aussi le butin des instances dont l'entrée est sur la carte
 --     (data.instancesInMap, instanceItems), après les quêtes (un objet de quête garde sa quête) ;
@@ -12,7 +14,8 @@
 --     source = celle de data.sourcesOf pour cette instance au meilleur taux, sinon {type, id} ;
 --     instances exclues : minLevel > player.level + INSTANCE_WINDOW (10) ; questState "level" si
 --     minLevel > player.level. Pur : aucun appel d'API.
---   ns.Chat.currentZone(limit, instances) -> résultats de bestInZone pour la zone et le profil actuels, mapID ;
+--   ns.Chat.currentZone(limit, instances, fallback?) -> résultats de bestInZone pour la zone et le profil actuels,
+--     mapID ; entrées de repli (delta.fallback) seulement si fallback ;
 --     isDone = Compat.IsQuestCompleted, isInLog = Compat.IsOnQuest, opts.instances = instances ;
 --     instantané et gains partagés de ns.Results ;
 --     nil, message (L.BEST_NOT_READY | BEST_NO_PROFILE | BEST_NO_ZONE) si impossible.
@@ -83,11 +86,36 @@ local function addInstances(list, seen, player, data)
     end
 end
 
+local SLOT_GROUP = { [12] = 11, [14] = 13 }
+
 local function byGain(a, b)
     if a.delta.abs ~= b.delta.abs then
         return a.delta.abs > b.delta.abs
     end
     return a.itemID < b.itemID
+end
+
+-- Par groupe d'emplacements sans gain > 0 : l'entrée de plus fort gain de repli, copiée.
+local function fallbackEntries(considered)
+    local covered, best = {}, {}
+    for _, entry in ipairs(considered) do
+        local delta = entry.delta
+        local key = delta.slot and (SLOT_GROUP[delta.slot] or delta.slot)
+        if key and delta.abs > 0 then
+            covered[key] = true
+        elseif key and delta.fallback and (not best[key] or delta.fallback > best[key].delta.fallback) then
+            best[key] = entry
+        end
+    end
+    local out = {}
+    for key, entry in pairs(best) do
+        if not covered[key] then
+            out[#out + 1] = { itemID = entry.itemID, questID = entry.questID, source = entry.source,
+                questState = entry.questState, delta = ns.Scoring.fallbackOf(entry.delta) }
+        end
+    end
+    table.sort(out, byGain)
+    return out
 end
 
 function Chat.bestInZone(player, profile, data, opts)
@@ -104,16 +132,24 @@ function Chat.bestInZone(player, profile, data, opts)
     if opts.instances and player.mapID then
         addInstances(candidates, seen, player, data)
     end
-    local results = {}
+    local results, considered = {}, {}
     for _, entry in ipairs(candidates) do
         local delta = opts.delta and opts.delta(entry.itemID)
             or not opts.delta and ns.Scoring.delta(entry.itemID, player, profile, data)
-        if delta and delta.abs > 0 then
+        if delta then
             entry.delta = delta
-            results[#results + 1] = entry
+            considered[#considered + 1] = entry
+            if delta.abs > 0 then
+                results[#results + 1] = entry
+            end
         end
     end
     table.sort(results, byGain)
+    if opts.fallback then
+        for _, entry in ipairs(fallbackEntries(considered)) do
+            results[#results + 1] = entry
+        end
+    end
     for i = #results, (opts.limit or DEFAULT_LIMIT) + 1, -1 do
         results[i] = nil
     end
@@ -166,7 +202,7 @@ local shared -- {player, profile, results}
 local function sharedRanking(player, profile, data)
     if not (shared and shared.player == player and shared.profile == profile) then
         local opts = { isDone = ns.Compat.IsQuestCompleted, isInLog = ns.Compat.IsOnQuest, limit = math.huge,
-            delta = ns.Results.delta, instances = true }
+            delta = ns.Results.delta, instances = true, fallback = true }
         shared = { player = player, profile = profile, results = Chat.bestInZone(player, profile, data, opts) }
     end
     return shared.results
@@ -176,7 +212,7 @@ local function forget()
     shared = nil
 end
 
-function Chat.currentZone(limit, instances)
+function Chat.currentZone(limit, instances, fallback)
     local data = ns.Data
     if not data.ready() then
         return nil, L.BEST_NOT_READY
@@ -194,7 +230,7 @@ function Chat.currentZone(limit, instances)
         if #results >= max then
             break
         end
-        if instances or entry.questID then
+        if (instances or entry.questID) and (fallback or not entry.delta.fallback) then
             results[#results + 1] = entry
         end
     end

@@ -5,7 +5,8 @@
 --     step() appelé après chaque objet (sourcesOf décode la base : à étaler)
 --   rank(candidates, player, profile, data, opts?) -> {{itemID, source, delta, effort, seconds, xp, level, hops,
 --     steps, priority}...} : un objet une fois (sa meilleure source), tri par priorité décroissante
---     puis itemID ; delta = Scoring.delta ({abs, pct, slot}), objets à gain abs <= 0 écartés.
+--     puis itemID ; delta = Scoring.delta ({abs, pct, slot}), objets à gain abs <= 0 écartés, sauf
+--     opts.fallback (parcours normal) : delta = Scoring.fallbackOf s'il existe (repli hors profil).
 --     opts.isDone(questID) ; opts.includeRaids (raids écartés sinon) ; opts.tuning = {clé=valeur}
 --     remplace les constantes de Planner.TUNING (Calibration.tuning : mesures du joueur).
 --     opts.travel(mapID, x, y) -> secondes | nil : trajet du joueur jusqu'au donneur de la première étape
@@ -210,6 +211,7 @@ end
 
 -- Ligne d'un candidat en parcours normal ; nil si écarté.
 local function evaluate(candidate, delta, player, data, opts, tuning)
+    delta = (opts.fallback and delta and delta.abs <= 0) and ns.Scoring.fallbackOf(delta) or delta
     if not delta or delta.abs <= 0 then
         return nil
     end
@@ -220,7 +222,7 @@ local function evaluate(candidate, delta, player, data, opts, tuning)
     local level = obtainLevel(data.item(candidate.itemID), candidate.source, data)
     local gain = delta.abs * lifetime(level, player, tuning)
     return { effort = effort, seconds = effort, xp = xp, hops = hops, steps = steps, level = level,
-        priority = (gain + tuning.ALPHA * xp) / (effort / 60), trip = trip, place = place }
+        priority = (gain + tuning.ALPHA * xp) / (effort / 60), trip = trip, place = place, delta = delta }
 end
 
 -- Ligne d'un candidat en mode référence ; nil si écarté.
@@ -274,7 +276,7 @@ function Planner.rank(candidates, player, profile, data, opts)
         end
         local current = best[itemID]
         if row and (not current or row.priority > current.priority) then
-            row.itemID, row.source, row.delta = itemID, candidate.source, delta
+            row.itemID, row.source, row.delta = itemID, candidate.source, row.delta or delta
             best[itemID] = row
         end
         if opts.step then

@@ -75,7 +75,7 @@ end
 
 -- Renvoie les lignes présentées, ou nil et le message d'état.
 local function computeRows()
-    local results, mapID = ns.Chat.currentZone(MAX_ROWS, true)
+    local results, mapID = ns.Chat.currentZone(MAX_ROWS, true, true)
     if not results then
         return nil, mapID
     end

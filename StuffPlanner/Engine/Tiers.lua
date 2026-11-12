@@ -5,7 +5,9 @@
 --   build(rows, player, reference?) -> {{min, max, past?, entries = {row...}, alternatives}...}
 --     rows = Planner.rank (priority, delta.slot, level) ; palier de l'objet = celui de
 --     max(row.level, player.level) : rien avant le palier du joueur, paliers vides omis.
---     Par palier et emplacement : la plus forte priorité ; anneaux (11, 12) et bijoux (13, 14)
+--     Par palier et emplacement : la plus forte priorité, lignes de repli (delta.fallback, Planner) après
+--     les autres ; repli jamais en quête imposée, alternatives du même genre que l'entrée ;
+--     anneaux (11, 12) et bijoux (13, 14)
 --     forment un groupe de deux. Entrées dans l'ordre de la fiche de personnage, lignes partagées.
 --     Ligne sans delta.slot : ignorée ; sans level : niveau 1.
 --     reference = Planner.rank en mode référence : paliers sous celui du joueur (past = true), objet
@@ -49,7 +51,14 @@ function Tiers.indexOf(level)
     return #Tiers.BOUNDS
 end
 
+local function isFallback(row)
+    return row.delta.fallback == true
+end
+
 local function byPriority(a, b)
+    if isFallback(a) ~= isFallback(b) then
+        return isFallback(b)
+    end
     if a.priority ~= b.priority then
         return a.priority > b.priority
     end
@@ -97,7 +106,7 @@ local function bestQuest(list, count)
     local best
     for i = count + 1, #list do
         local row = list[i]
-        if isQuest(row) and row.delta.abs > 0 and (not best or row.delta.abs > best.delta.abs
+        if isQuest(row) and not isFallback(row) and row.delta.abs > 0 and (not best or row.delta.abs > best.delta.abs
             or (row.delta.abs == best.delta.abs and row.itemID < best.itemID)) then
             best = row
         end
@@ -111,7 +120,8 @@ local function easier(list, index, count, groupQuest)
     local quest = chosen.source and chosen.source.type == "craft" and groupQuest or nil
     for i = count + 1, #list do
         local row = list[i]
-        if row ~= quest and row.delta.abs > 0 and row.effort and chosen.effort and row.effort < chosen.effort then
+        if row ~= quest and isFallback(row) == isFallback(chosen) and row.delta.abs > 0 and row.effort
+            and chosen.effort and row.effort < chosen.effort then
             out[#out + 1] = row
         end
     end

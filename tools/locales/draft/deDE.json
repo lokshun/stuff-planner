@@ -404,5 +404,6 @@
   "HELP_DO_PROFILE": "mit einem zweiten Profil vergleichen",
   "ONBOARD_STEP4": "Ein einziges schwebendes Fenster folgt Eurem Spiel: Dungeonbosse, dann die verfolgte Questreihe, dann die besten Verbesserungen der Zone. Tooltips, Taschenplaketten und das Leuchten im Questfenster zeigen Verbesserungen überall. Der Knopf ? listet alle Gesten und Befehle.",
   "TAG_QUEST": "Quest",
+  "TAG_OFF_PROFILE": "Außerhalb des Profils",
   "TAG_CHAIN": "Questreihe"
 }

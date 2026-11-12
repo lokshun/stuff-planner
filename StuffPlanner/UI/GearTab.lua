@@ -85,7 +85,7 @@ local function refresh()
     wishlist:SetText(L.WISHLIST_LINK:format(#ns.WishlistStore.list()))
     local player = ns.Player.snapshot()
     local profile = ns.Profiles.active()
-    local entries = ns.Chat.currentZone(MAX_ZONE_ENTRIES)
+    local entries = ns.Chat.currentZone(MAX_ZONE_ENTRIES, false, true)
     ns.RouteResults.get()
     local route, alternatives, quests = ns.RouteResults.current(player.level)
     local rows = ns.GearPresenter.build(player, profile, ns.Data, entries, readWorn(player), route, alternatives,

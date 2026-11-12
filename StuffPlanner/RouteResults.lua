@@ -8,7 +8,8 @@
 --     | nil ;
 --     ne lance pas le calcul
 --   ns.RouteResults.busy() -> vrai pendant le calcul
--- Calcul par coroutine (Loader.SLICE_MS par image, en pause en combat), raids compris ; second
+-- Calcul par coroutine (Loader.SLICE_MS par image, en pause en combat), raids compris, repli hors profil
+-- (Planner opts.fallback) ; second
 -- classement en mode référence (Planner, maxLevel = fin du palier précédant celui du joueur) pour les
 -- paliers passés, sauté au premier palier ; à la fin,
 -- SP_ROUTE_UPDATED (aussi quand le résultat est jeté parce qu'invalidé pendant le calcul).
@@ -55,7 +56,7 @@ local function work(player, profile, travel)
     candidates = list
     local tuning = tuningOf()
     local opts = { isDone = ns.Compat.IsQuestCompleted, step = tick, pause = coroutine.yield, includeRaids = true,
-        travel = travel, tuning = tuning }
+        travel = travel, tuning = tuning, fallback = true }
     local rows = ns.Planner.rank(list, player, profile, data, opts)
     local reference
     local first = ns.Tiers.indexOf(player.level)

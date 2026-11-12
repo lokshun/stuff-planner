@@ -2,7 +2,8 @@
 -- Lignes de l'onglet Parcours. Pur : aucun appel d'API.
 -- Charger après RowPresenter.lua et GearPresenter.lua.
 --   ns.RoutePresenter.build(tiers, data, open?, expanded?, byGain?) -> {row...}, tiers = Tiers.build ;
---     byGain : lignes de chaque palier par gain (delta.abs) décroissant, sinon ordre de la fiche
+--     byGain : lignes de chaque palier par gain (delta.abs) décroissant, repli hors profil (delta.fallback)
+--     ensuite, sinon ordre de la fiche
 --     en-tête de palier : {header = true, text = L.ROUTE_TIER ("Levels 1-10") | L.ROUTE_TIER_MAX}
 --     palier passé (tier.past) : en-tête + toggle = tier.min, texte « [+] » (replié) ou « [-] » (ouvert,
 --       open[tier.min] vrai) devant L.ROUTE_PAST ; lignes seulement si ouvert
@@ -72,8 +73,10 @@ local function itemRow(entry, data, past, tier, expanded)
     return row
 end
 
+-- Repli hors profil (autre échelle de poids) toujours après les vrais gains.
 local function gainOf(entry)
-    return entry.delta and entry.delta.abs or 0
+    local delta = entry.delta
+    return delta and (delta.fallback and delta.abs - 1e9 or delta.abs) or 0
 end
 
 local function ordered(entries, byGain)

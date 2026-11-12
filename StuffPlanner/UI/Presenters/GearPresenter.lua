@@ -14,7 +14,8 @@
 --     row = {slot, slotName (nom de chaîne globale, ex. "HEADSLOT"), itemID | nil,
 --            name (L.GEAR_EMPTY si vide), icon, quality, nameColor,
 --            scoreText ("" vide ou sans profil, "?" stats inconnues ; info-bulle), estimated (confidence 1),
---            upgrade = RowPresenter.resultRow | nil (premier gain > 0 de l'emplacement) ; hors zone :
+--            upgrade = RowPresenter.resultRow | nil (premier gain > 0 de l'emplacement ; repli hors profil,
+--              delta.fallback, seulement sans vrai gain en zone ni au palier ; upgradeGain nil) ; hors zone :
 --              RowPresenter.present de la ligne du palier + questID (source quête), itemSource, outside = true,
 --            upgradeGain (delta.abs) | nil, gainLabel, gainColor (de upgrade, "" sans),
 --            detailText, detailColor (nom de upgrade · son detailText, préfixé L.GEAR_ROUTE · durée
@@ -67,16 +68,21 @@ local function isRaid(entry)
     return entry.source ~= nil and entry.source.type == "raid"
 end
 
-local function bestUpgrades(entries, data)
-    local best = {}
+-- Ligne retenue si elle est du genre demandé : vrai gain, ou repli hors profil (fallback).
+local function eligible(entry, fallback, best)
+    local slot = entry.delta and entry.delta.slot
+    return slot and not best[slot] and entry.delta.abs > 0 and not isRaid(entry)
+        and (entry.delta.fallback == true) == fallback, slot
+end
+
+local function zoneUpgrades(best, entries, data, fallback)
     for _, entry in ipairs(entries or {}) do
-        local slot = entry.delta and entry.delta.slot
-        if slot and not best[slot] and entry.delta.abs > 0 and not isRaid(entry) then
+        local ok, slot = eligible(entry, fallback, best)
+        if ok then
             best[slot] = ns.RowPresenter.resultRow(entry, data)
             best[slot].gain = entry.delta.abs
         end
     end
-    return best
 end
 
 local function outsideRow(entry, data)
@@ -87,10 +93,10 @@ local function outsideRow(entry, data)
     return row
 end
 
-local function routeUpgrades(best, route, data)
+local function routeUpgrades(best, route, data, fallback)
     for _, entry in ipairs(route or {}) do
-        local slot = entry.delta and entry.delta.slot
-        if slot and not best[slot] and entry.delta.abs > 0 and not isRaid(entry) then
+        local ok, slot = eligible(entry, fallback, best)
+        if ok then
             best[slot] = outsideRow(entry, data)
         end
     end
@@ -102,7 +108,7 @@ local function raidUpgrades(entries, route, data)
     for _, list in ipairs({ entries or {}, route or {} }) do
         for _, entry in ipairs(list) do
             local slot = entry.delta and entry.delta.slot
-            if slot and isRaid(entry) and entry.delta.abs > 0
+            if slot and isRaid(entry) and entry.delta.abs > 0 and not entry.delta.fallback
                 and (not best[slot] or entry.delta.abs > best[slot].gain) then
                 local row = ns.RowPresenter.present(entry, data)
                 row.itemSource, row.gain = entry.source, entry.delta.abs
@@ -151,7 +157,8 @@ local function describe(row)
         row.detailText = row.estimated and L.GEAR_ESTIMATED or L.GEAR_NO_UPGRADE
         return
     end
-    row.upgradeGain, row.gainLabel, row.gainColor = upgrade.gain, upgrade.gainLabel, upgrade.gainColor
+    row.gainLabel, row.gainColor = upgrade.gainLabel, upgrade.gainColor
+    row.upgradeGain = not upgrade.offProfile and upgrade.gain or nil
     local parts = { ns.Theme.colorize(upgrade.name, upgrade.nameColor) }
     if upgrade.detailText ~= "" then
         parts[#parts + 1] = upgrade.detailText
@@ -175,8 +182,11 @@ local function describeRaid(row, raid)
 end
 
 function GearPresenter.build(player, profile, data, entries, worn, route, routeAlternatives, expanded, quests)
-    local upgrades = bestUpgrades(entries, data)
-    routeUpgrades(upgrades, route, data)
+    local upgrades = {}
+    zoneUpgrades(upgrades, entries, data, false)
+    routeUpgrades(upgrades, route, data, false)
+    zoneUpgrades(upgrades, entries, data, true)
+    routeUpgrades(upgrades, route, data, true)
     local raids = raidUpgrades(entries, route, data)
     local rows = {}
     for i, slot in ipairs(SLOTS) do
