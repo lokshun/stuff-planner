@@ -358,5 +358,11 @@
   "ROW_MENU_HINT": "Rechtsklick: Menü",
   "TAB_NOW": "Jetzt",
   "TAB_WISHLIST": "Wunschliste",
-  "WISHLIST_LINK": "Wunschliste (%d) ›"
+  "WISHLIST_LINK": "Wunschliste (%d) ›",
+  "TAB_DUNGEON": "Dungeons",
+  "DUNGEON_PAGE_HINT": "Instanzen, die diesen Charakter verbessern",
+  "DUNGEON_BACK": "‹ Instanzen",
+  "INSTANCE_LEVELS": "Stufe %d-%d",
+  "INSTANCE_RAID": "Schlachtzug",
+  "INSTANCE_ITEMS": "%d nützliche Gegenstände"
 }

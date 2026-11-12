@@ -361,5 +361,11 @@
   "ROW_MENU_HINT": "ПКМ: меню",
   "TAB_NOW": "Сейчас",
   "TAB_WISHLIST": "Список целей",
-  "WISHLIST_LINK": "Список целей (%d) ›"
+  "WISHLIST_LINK": "Список целей (%d) ›",
+  "TAB_DUNGEON": "Подземелья",
+  "DUNGEON_PAGE_HINT": "Подземелья, улучшающие этого персонажа",
+  "DUNGEON_BACK": "‹ Подземелья",
+  "INSTANCE_LEVELS": "Ур. %d-%d",
+  "INSTANCE_RAID": "Рейд",
+  "INSTANCE_ITEMS": "Полезных предметов: %d"
 }

@@ -358,5 +358,11 @@
   "ROW_MENU_HINT": "右鍵：選單",
   "TAB_NOW": "目前",
   "TAB_WISHLIST": "目標清單",
-  "WISHLIST_LINK": "目標清單（%d）›"
+  "WISHLIST_LINK": "目標清單（%d）›",
+  "TAB_DUNGEON": "地城",
+  "DUNGEON_PAGE_HINT": "能提升此角色的副本",
+  "DUNGEON_BACK": "‹ 副本",
+  "INSTANCE_LEVELS": "等級 %d-%d",
+  "INSTANCE_RAID": "團隊副本",
+  "INSTANCE_ITEMS": "%d 件有用物品"
 }

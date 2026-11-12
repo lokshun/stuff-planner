@@ -358,5 +358,11 @@
   "ROW_MENU_HINT": "Clique direito: menu",
   "TAB_NOW": "Agora",
   "TAB_WISHLIST": "Lista de desejos",
-  "WISHLIST_LINK": "Lista de desejos (%d) ›"
+  "WISHLIST_LINK": "Lista de desejos (%d) ›",
+  "TAB_DUNGEON": "Masmorras",
+  "DUNGEON_PAGE_HINT": "Instâncias que melhoram este personagem",
+  "DUNGEON_BACK": "‹ Instâncias",
+  "INSTANCE_LEVELS": "Nív. %d-%d",
+  "INSTANCE_RAID": "Raide",
+  "INSTANCE_ITEMS": "%d itens úteis"
 }

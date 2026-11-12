@@ -357,5 +357,11 @@
   "ROW_MENU_HINT": "오른쪽 클릭: 메뉴",
   "TAB_NOW": "지금",
   "TAB_WISHLIST": "목표 목록",
-  "WISHLIST_LINK": "목표 목록 (%d) ›"
+  "WISHLIST_LINK": "목표 목록 (%d) ›",
+  "TAB_DUNGEON": "던전",
+  "DUNGEON_PAGE_HINT": "이 캐릭터를 강화하는 인스턴스",
+  "DUNGEON_BACK": "‹ 인스턴스",
+  "INSTANCE_LEVELS": "레벨 %d-%d",
+  "INSTANCE_RAID": "공격대",
+  "INSTANCE_ITEMS": "유용한 아이템 %d개"
 }
