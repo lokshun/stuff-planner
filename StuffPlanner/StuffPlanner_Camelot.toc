@@ -76,6 +76,7 @@ Engine\Chains.lua
 Engine\FollowSteps.lua
 Engine\Distance.lua
 Engine\Travel.lua
+Engine\Effort.lua
 Engine\Planner.lua
 Engine\Wishlist.lua
 Engine\Calibration.lua
