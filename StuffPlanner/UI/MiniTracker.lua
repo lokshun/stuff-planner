@@ -150,10 +150,6 @@ ns.Hud.addMode("zone", {
     render = render,
 })
 
-function MiniTracker.resetPosition()
-    ns.Hud.resetPosition()
-end
-
 ns:RegisterCommand("tracker", function()
     ns.Options.toggle("tracker.shown")
 end, "TRACKER_COMMAND_HELP")

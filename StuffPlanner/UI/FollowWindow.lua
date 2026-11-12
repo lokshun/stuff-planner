@@ -5,7 +5,6 @@
 -- SP_FOLLOW_CHANGED, SP_FOLLOW_UPDATED, SP_OPTION_CHANGED (follow.*) et à l'arrivée des noms.
 -- Bouton du cadre : croix = Follow.stop. Clic sur une étape placée : Follow.aim + carte du monde sur sa zone ;
 -- clic sur une quête : fiche de la quête (QuestDetail). Lignes à partir de la quête de l'étape courante.
---   ns.FollowWindow.resetPosition() -> position du cadre flottant par défaut
 
 local _, ns = ...
 
@@ -151,10 +150,6 @@ ns.Hud.addMode("follow", {
     render = render,
     action = { icon = CLOSE_ICON, hint = L.FOLLOW_CLOSE_HINT, onClick = function() ns.Follow.stop() end },
 })
-
-function FollowWindow.resetPosition()
-    ns.Hud.resetPosition()
-end
 
 ns:On("SP_FOLLOW_CHANGED", ns.Hud.refresh)
 ns:On("SP_FOLLOW_UPDATED", ns.Hud.refresh)

@@ -9,7 +9,6 @@
 --   npc(id) -> {id, mapID, x, y} (x, y en 0–1) | nil ; base = donneurs et PNJ de rendu, position observée d'abord
 --   npcName(id) -> nom du PNJ dans la langue du client (ns.NpcNames de la base) | nil ;
 --     baseName("npc"|"quest"|"item", id) -> nom de la base (NpcNames, QuestNames, ItemNames) | nil
---   recipe(itemID) -> {spellID, skillLine} | nil, première recette de l'objet
 --   sourcesOf(itemID) -> {{type="quest"|"dungeon"|"raid"|"craft"|"world", id, chance, npcID, skillLine}...} ;
 --     id = questID, instance, spellID ou carte (monde : mapID, x, y, npcID nil hors créature) ;
 --     vide si inconnu ; artisanat : yellow, grey (seuils de
@@ -269,15 +268,6 @@ function Data.sourcesOf(itemID)
     end
     cache.sources[itemID] = list
     return list
-end
-
-function Data.recipe(itemID)
-    for _, source in ipairs(Data.sourcesOf(itemID)) do
-        if source.type == "craft" then
-            return { spellID = source.id, skillLine = source.skillLine }
-        end
-    end
-    return nil
 end
 
 function Data.itemIDs()

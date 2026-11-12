@@ -13,7 +13,6 @@
 --     sans key ni TomTom : coordonnées écrites dans la discussion ("chat"), flèche aussi si possible
 --   ns.Waypoint.has(key) -> bool : marque présente (repère TomTom effacé dans TomTom : marque oubliée)
 --   ns.Waypoint.clear(key) -> retire la marque, le repère TomTom et la flèche de key
---   ns.Waypoint.hasTomTom() -> bool
 --   ns.Waypoint.current() -> {key, mapID, x, y, npcID} de la marque posée (ns.Waypoint.has vrai) | nil
 --   ns.Waypoint.reached(npcID) -> bool : PNJ visé atteint, repère retiré en entier (Waypoint.clear : TomTom,
 --     flèche, marque des cartes) ; déclenché par
@@ -50,10 +49,6 @@ function Waypoint.current()
         return current
     end
     return nil
-end
-
-function Waypoint.hasTomTom()
-    return tomtom() ~= nil
 end
 
 local function coord(value)

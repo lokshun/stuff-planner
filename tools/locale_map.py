@@ -51,7 +51,6 @@ TERMS = {
     "SOURCE_DETAIL_REAGENTS": ("GlobalStrings", "SPELL_REAGENTS"),
     "DETAIL_PREREQS": ("GlobalStrings", "REQUIRES_LABEL"),
     "DETAIL_REWARDS": ("GlobalStrings", "REWARD_ITEMS_ONLY"),
-    "PROFILE_SPEC": ("GlobalStrings", "SPECIALIZATION"),
     "OPTIONS_OPEN": ("GlobalStrings", "SETTINGS"),
     "ONBOARD_NEXT": ("GlobalStrings", "NEXT"),
     "ONBOARD_BACK": ("GlobalStrings", "BACK"),

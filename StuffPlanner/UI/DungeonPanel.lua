@@ -7,7 +7,6 @@
 -- des noms. Boss tué : coché, grisé, objets repliés. Bouton du cadre : DungeonRun.reset.
 -- Clic sur un boss : DungeonRun.toggle ; survol d'un objet : info-bulle de l'objet.
 -- Au plus MAX_ITEMS objets par boss et MAX_LINES lignes.
---   ns.DungeonPanel.resetPosition() -> position du cadre flottant par défaut
 
 local _, ns = ...
 
@@ -186,10 +185,6 @@ ns.Hud.addMode("dungeon", {
     render = render,
     action = { icon = RESET_ICON, hint = L.DUNGEON_RESET_HINT, onClick = function() ns.DungeonRun.reset() end },
 })
-
-function DungeonPanel.resetPosition()
-    ns.Hud.resetPosition()
-end
 
 ns:On("SP_DUNGEON_CHANGED", ns.Hud.refresh)
 ns:On("SP_RESULTS_UPDATED", ns.Hud.refresh)
