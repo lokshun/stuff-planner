@@ -358,5 +358,6 @@
   "MENU_PROFILE_USE": "Использовать этот профиль",
   "MENU_COMPARE": "Сравнить (второй профиль)",
   "MENU_UNCOMPARE": "Не сравнивать",
-  "ROW_MENU_HINT": "ПКМ: меню"
+  "ROW_MENU_HINT": "ПКМ: меню",
+  "TAB_NOW": "Сейчас"
 }

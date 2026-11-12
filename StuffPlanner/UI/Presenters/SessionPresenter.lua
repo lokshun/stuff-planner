@@ -1,5 +1,5 @@
 -- CONTRAT
--- Lignes et puces de la session de jeu (onglet Parcours). Pur : aucun appel d'API. Charger après
+-- Lignes et puces de la session de jeu (page Maintenant). Pur : aucun appel d'API. Charger après
 -- RowPresenter.lua et GearPresenter.lua ; lit ns.SessionPlan.BUDGETS à l'appel.
 --   ns.SessionPresenter.build(plan, data, budget) -> {row...} : {} sans objectif ; sinon en-tête
 --     {header = true, text = L.SESSION_HEADER (nombre, durée du plan, budget ; Format.duration)}, puis un

@@ -134,6 +134,7 @@ UI\MainFrame.lua
 UI\Chips.lua
 UI\RowMenu.lua
 UI\RowActions.lua
+UI\RouteRows.lua
 UI\ZoneTab.lua
 UI\AltLines.lua
 UI\RouteTab.lua

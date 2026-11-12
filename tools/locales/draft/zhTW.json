@@ -355,5 +355,6 @@
   "MENU_PROFILE_USE": "使用此設定檔",
   "MENU_COMPARE": "比較（次要設定檔）",
   "MENU_UNCOMPARE": "停止比較",
-  "ROW_MENU_HINT": "右鍵：選單"
+  "ROW_MENU_HINT": "右鍵：選單",
+  "TAB_NOW": "目前"
 }

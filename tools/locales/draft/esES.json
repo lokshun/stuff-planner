@@ -355,5 +355,6 @@
   "MENU_PROFILE_USE": "Usar este perfil",
   "MENU_COMPARE": "Comparar (perfil secundario)",
   "MENU_UNCOMPARE": "Dejar de comparar",
-  "ROW_MENU_HINT": "Clic derecho: menú"
+  "ROW_MENU_HINT": "Clic derecho: menú",
+  "TAB_NOW": "Ahora"
 }

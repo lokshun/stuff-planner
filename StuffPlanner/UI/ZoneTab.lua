@@ -1,7 +1,11 @@
 -- CONTRAT
--- Onglet « Zone actuelle » : améliorations de la zone (Chat.bestInZone, quêtes et butin des
--- instances dont l'entrée est sur la carte), filtres en puces, ScrollBox.
--- Charger après MainFrame.lua, Chat.lua, RowPresenter.lua, Filters.lua et ItemRow.lua.
+-- Page « Maintenant » (clé zone) : améliorations de la zone (Chat.bestInZone, quêtes et butin des
+-- instances dont l'entrée est sur la carte), filtres en puces, ScrollBox ; en tête, puces de session
+-- (SessionPresenter.chips, SessionPlan.toggle) : Tout / 30 min / 1 h / 2 h, puis Suivre la session ;
+-- budget choisi : liste de la session (SessionPlan.get, SessionPresenter.build, ns.RouteRows) à la place
+-- de la zone, filtres et tri cachés ; rafraîchi aussi sur SP_ROUTE_UPDATED et SP_FOLLOW_CHANGED.
+-- Charger après MainFrame.lua, Chat.lua, RowPresenter.lua, Filters.lua, ItemRow.lua, RouteRows.lua,
+-- SessionPlan.lua et SessionPresenter.lua.
 -- S'inscrit par ns.MainFrame.addTab("zone", …). Rafraîchi à l'ouverture et sur SP_RESULTS_UPDATED
 -- (Results, après joueur, base ou profil changés) si la fenêtre est visible ; noms reçus du client : un
 -- rafraîchissement regroupé (NameAsker). Filtres sauvegardés dans StuffPlannerDB.ui.zoneFilters.
@@ -21,7 +25,7 @@ local L = ns.L
 
 local MAX_ROWS = 100
 
-local panel, header, chipBar, sortBar, scrollBox, emptyText
+local panel, header, sessionBar, chipBar, sortBar, scrollBox, sessionScroll, emptyText
 local lastShown
 
 local function filterState()
@@ -87,8 +91,28 @@ local function computeRows()
     return rows, L.ZONE_EMPTY
 end
 
-local function refresh()
-    header:SetText("")
+local sessionRows = ns.RouteRows.new({})
+
+local function renderSession(budget)
+    local tiers, info = ns.RouteResults.get()
+    local plan = tiers and ns.SessionPlan.get(budget)
+    local rows = plan and ns.SessionPresenter.build(plan, ns.Data, budget) or {}
+    ns.RouteRows.askNames(rows, askName)
+    sessionScroll:SetDataProvider(CreateDataProvider(rows))
+    emptyText:SetText(#rows == 0 and (not tiers and info or L.SESSION_EMPTY) or "")
+    return plan
+end
+
+local function setMode(session)
+    chipBar.frame:SetShown(not session)
+    sortBar.frame:SetShown(not session)
+    scrollBox:SetShown(not session)
+    scrollBox.bar:SetShown(not session)
+    sessionScroll:SetShown(session)
+    sessionScroll.bar:SetShown(session)
+end
+
+local function refreshZone()
     local rows, message = computeRows()
     local state = filterState()
     local shown = rows and ns.Filters.apply(state, rows) or {}
@@ -115,39 +139,73 @@ local function refresh()
     emptyText:SetText(#shown == 0 and message or "")
 end
 
+local function refresh()
+    header:SetText("")
+    local budget = ns.SessionPlan.budget()
+    setMode(budget ~= nil)
+    local plan
+    if budget then
+        plan = renderSession(budget)
+    else
+        refreshZone()
+    end
+    sessionBar:render(ns.SessionPresenter.chips(budget, plan, ns.SessionPlan.following()), function(key)
+        ns.SessionPlan.toggle(key, plan)
+        ns.MainFrame.refresh()
+    end)
+end
+
+local function newScroll(anchor, extent, init)
+    local theme = ns.Theme
+    local box = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
+    box:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    box:SetPoint("BOTTOMRIGHT", -20, 0)
+    box.bar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")
+    box.bar:SetPoint("TOPLEFT", box, "TOPRIGHT", 6, 0)
+    box.bar:SetPoint("BOTTOMLEFT", box, "BOTTOMRIGHT", 6, 0)
+    local view = CreateScrollBoxListLinearView()
+    if type(extent) == "function" then
+        view:SetElementExtentCalculator(function(_, row)
+            return extent(row)
+        end)
+    else
+        view:SetElementExtent(extent)
+    end
+    view:SetElementInitializer("Button", init)
+    ScrollUtil.InitScrollBoxListWithScrollBar(box, box.bar, view)
+    return box
+end
+
 local function create(parent)
     local theme = ns.Theme
     panel = CreateFrame("Frame", nil, parent)
     header = panel:CreateFontString(nil, "OVERLAY", theme.fonts.header)
     header:SetPoint("TOPLEFT")
     header:SetJustifyH("LEFT")
+    sessionBar = ns.Chips.new(panel)
+    sessionBar.frame:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    sessionBar.frame:SetPoint("RIGHT")
     chipBar = ns.Chips.new(panel)
-    chipBar.frame:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    chipBar.frame:SetPoint("TOPLEFT", sessionBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
     chipBar.frame:SetPoint("RIGHT")
-    scrollBox = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
     sortBar = ns.Chips.new(panel)
     sortBar.frame:SetPoint("TOPLEFT", chipBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
     sortBar.frame:SetPoint("RIGHT")
-    scrollBox:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    scrollBox:SetPoint("BOTTOMRIGHT", -20, 0)
-    local scrollBar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")
-    scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, 0)
-    scrollBar:SetPoint("BOTTOMLEFT", scrollBox, "BOTTOMRIGHT", 6, 0)
-    local view = CreateScrollBoxListLinearView()
-    view:SetElementExtent(theme.spacing.rowHeight)
-    view:SetElementInitializer("Button", initRow)
-    ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view)
+    scrollBox = newScroll(sortBar.frame, theme.spacing.rowHeight, initRow)
+    sessionScroll = newScroll(sessionBar.frame, sessionRows.extent, sessionRows.init)
     emptyText = panel:CreateFontString(nil, "OVERLAY", theme.fonts.body)
-    emptyText:SetPoint("CENTER", scrollBox, "CENTER")
+    emptyText:SetPoint("CENTER", panel, "CENTER")
     setColor(emptyText, theme.colors.muted)
     return panel
 end
 
 ns.MainFrame.addTab("zone", {
-    create = create, refresh = refresh, order = 1, label = L.TAB_ZONE, icon = "Interface\\Icons\\INV_Misc_Map_01",
+    create = create, refresh = refresh, order = 1, label = L.TAB_NOW, icon = "Interface\\Icons\\INV_Misc_Map_01",
 })
 
 ns:On("SP_RESULTS_UPDATED", ns.MainFrame.refresh)
+ns:On("SP_ROUTE_UPDATED", ns.MainFrame.refresh)
+ns:On("SP_FOLLOW_CHANGED", ns.MainFrame.refresh)
 
 local function isSelectedRow(row)
     return ns.RowActions.isSelected(row.questID, row.itemID)
@@ -167,6 +225,7 @@ ns:On("SP_SELECTION_CHANGED", function(reveal)
     scrollBox:ForEachFrame(function(button)
         ns.RowActions.mark(button, button.questID, button.itemID)
     end)
+    sessionScroll:ForEachFrame(sessionRows.mark)
     if reveal then
         revealSelection()
         -- Fenêtre tout juste ouverte : la liste n'a peut-être pas encore sa taille.

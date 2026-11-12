@@ -354,5 +354,6 @@
   "MENU_PROFILE_USE": "使用此配置",
   "MENU_COMPARE": "比较（次要配置）",
   "MENU_UNCOMPARE": "停止比较",
-  "ROW_MENU_HINT": "右键：菜单"
+  "ROW_MENU_HINT": "右键：菜单",
+  "TAB_NOW": "当前"
 }

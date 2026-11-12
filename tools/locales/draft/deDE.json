@@ -355,5 +355,6 @@
   "MENU_PROFILE_USE": "Dieses Profil verwenden",
   "MENU_COMPARE": "Vergleichen (Zweitprofil)",
   "MENU_UNCOMPARE": "Nicht mehr vergleichen",
-  "ROW_MENU_HINT": "Rechtsklick: Menü"
+  "ROW_MENU_HINT": "Rechtsklick: Menü",
+  "TAB_NOW": "Jetzt"
 }

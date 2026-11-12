@@ -354,5 +354,6 @@
   "MENU_PROFILE_USE": "이 프로필 사용",
   "MENU_COMPARE": "비교 (보조 프로필)",
   "MENU_UNCOMPARE": "비교 중지",
-  "ROW_MENU_HINT": "오른쪽 클릭: 메뉴"
+  "ROW_MENU_HINT": "오른쪽 클릭: 메뉴",
+  "TAB_NOW": "지금"
 }
