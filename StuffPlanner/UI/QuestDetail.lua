@@ -2,7 +2,8 @@
 -- Fiche d'une quête (DetailPresenter.build) : panneau accolé à droite de la fenêtre principale,
 -- contenu défilant (DetailWidgets). Charger après DetailWidgets.lua, DetailPresenter.lua et
 -- Integrations/TomTom.lua, QuestTooltip.lua, WaypointButton.lua.
---   ns.QuestDetail.show(questID) -> ouvre la fenêtre principale (onglet gardé) puis la fiche ; hors combat
+--   ns.QuestDetail.show(questID, itemID?) -> ouvre la fenêtre principale (onglet gardé) puis la fiche ;
+--     hors combat ; itemID (objet cliqué) : Épingler / Retirer et Essayer sous Repère et Carte
 --   ns.QuestDetail.hide(), isShown(), refresh()
 --   ns.QuestDetail.waypoint(questID) -> bool : repère vers le donneur (ns.Waypoint, clé questID) ou, si une
 --     suite de quêtes reste à faire, vers celui de sa première quête disponible (clé = cette quête) ;
@@ -15,7 +16,8 @@
 --   Survol d'un objet : info-bulle du client.
 -- Enfant de la fenêtre principale : cachée, déplacée et mise à l'échelle avec elle (Échap compris).
 -- Rafraîchie sur SP_PLAYER_CHANGED, SP_PROFILE_CHANGED, SP_DATA_READY, SP_QUEST_OBSERVED,
--- SP_QUEST_LOG_CHANGED et à l'arrivée des noms ; bouton Repère suivi sur SP_WAYPOINT_CHANGED, SP_FOLLOW_CHANGED.
+-- SP_QUEST_LOG_CHANGED, SP_WISHLIST_CHANGED et à l'arrivée des noms ; bouton Repère suivi sur
+-- SP_WAYPOINT_CHANGED, SP_FOLLOW_CHANGED.
 
 local _, ns = ...
 
@@ -25,9 +27,9 @@ local W = ns.DetailWidgets
 local QuestDetail = {}
 ns.QuestDetail = QuestDetail
 
-local panel, content, texts, waypointButton, mapButton
+local panel, content, texts, waypointButton, mapButton, itemButtons
 local itemRows, prereqLines = {}, {}
-local currentID, currentView
+local currentID, currentItem, currentView
 local buildView
 local askName = W.nameAsker(function()
     QuestDetail.refresh()
@@ -120,6 +122,7 @@ local function create()
         W.openMap(currentView and currentView.mapID, currentView and currentView.waypoint)
     end)
     mapButton:SetPoint("LEFT", waypointButton, "RIGHT", theme.spacing.gap, 0)
+    itemButtons = W.itemButtons(content)
 end
 
 -- Place un texte s'il n'est pas vide, sinon le cache.
@@ -189,6 +192,7 @@ local function render(view)
     place(waypointButton, W.BUTTON_HEIGHT, ns.Theme.spacing.gap)
     updateWaypointButton()
     mapButton:SetEnabled(view.mapID ~= nil)
+    itemButtons.place(place, currentItem, 2)
     local nextRow = placeItems(place, view.rewards, texts.rewards, 1)
     nextRow = placeItems(place, view.choices, texts.choices, nextRow)
     texts.nothing:SetShown(nextRow == 1)
@@ -233,7 +237,7 @@ function QuestDetail.refresh()
     render(currentView)
 end
 
-function QuestDetail.show(questID)
+function QuestDetail.show(questID, itemID)
     if InCombatLockdown() or not questID then
         return
     end
@@ -246,7 +250,7 @@ function QuestDetail.show(questID)
     if ns.SourceDetail then
         ns.SourceDetail.hide()
     end
-    currentID = questID
+    currentID, currentItem = questID, itemID
     panel:Show()
     QuestDetail.refresh()
 end
@@ -275,13 +279,11 @@ ns:On("SP_PROFILE_CHANGED", QuestDetail.refresh)
 ns:On("SP_QUEST_OBSERVED", QuestDetail.refresh)
 ns:On("SP_QUEST_LOG_CHANGED", QuestDetail.refresh)
 ns:On("SP_DATA_READY", QuestDetail.refresh)
-ns:On("SP_FOLLOW_CHANGED", function()
+ns:On("SP_WISHLIST_CHANGED", QuestDetail.refresh)
+local function onWaypointChanged()
     if waypointButton and QuestDetail.isShown() then
         updateWaypointButton()
     end
-end)
-ns:On("SP_WAYPOINT_CHANGED", function()
-    if waypointButton and QuestDetail.isShown() then
-        updateWaypointButton()
-    end
-end)
+end
+ns:On("SP_FOLLOW_CHANGED", onWaypointChanged)
+ns:On("SP_WAYPOINT_CHANGED", onWaypointChanged)

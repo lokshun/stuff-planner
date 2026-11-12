@@ -5,7 +5,7 @@
 --     et objets au client, leur arrivée reconstruirait l'info-bulle ouverte) ; objet sélectionné (select) ;
 --     Alt : épinglé / retiré de la liste cible (togglePin) ;
 --     Ctrl : essayage de itemID (Compat.DressUpItem) ; quête : Maj = repère (QuestDetail.waypoint), sinon
---     fiche (QuestDetail.show) ; sans quête : fiche de la source (SourceDetail.show) si itemID et
+--     fiche (QuestDetail.show, avec itemID) ; sans quête : fiche de la source (SourceDetail.show) si itemID et
 --     itemSource sont connus.
 --   togglePin(itemID) : WishlistStore.toggle, message dans la discussion (épinglé, retiré, liste pleine)
 --   select(questID, itemID, reveal?) : sélection courante (une seule, gardée jusqu'au prochain clic),
@@ -113,7 +113,7 @@ function RowActions.click(questID, itemID, itemSource)
         if IsShiftKeyDown() then
             ns.QuestDetail.waypoint(questID)
         else
-            ns.QuestDetail.show(questID)
+            ns.QuestDetail.show(questID, itemID)
         end
     elseif itemID and itemSource then
         ns.SourceDetail.show(itemID, itemSource)
@@ -122,7 +122,7 @@ end
 
 local function showDetails(questID, itemID, itemSource)
     if questID then
-        ns.QuestDetail.show(questID)
+        ns.QuestDetail.show(questID, itemID)
     elseif itemID and itemSource then
         ns.SourceDetail.show(itemID, itemSource)
     end

@@ -10,6 +10,8 @@
 --     info-bulle de row.link (« item:N », « spell:N »), rien sans lien ; Alt+clic sur un objet :
 --     RowActions.togglePin
 --   button(content, text) -> bouton du jeu à la taille de son texte
+--   itemButtons(content) -> {place(place, itemID?, gapBefore?)} : Épingler / Retirer (RowActions.togglePin)
+--     et Essayer (Compat.DressUpItem) côte à côte pour itemID ; cachés sans objet
 --   stacker(content) -> place(region, height?, gapBefore?), finish() : empile de haut en bas,
 --     finish fixe la hauteur du contenu et remonte en haut si le contenu a changé de taille
 --   nameAsker(refresh) -> ns.NameAsker.new(refresh) (UI/NameAsker.lua)
@@ -94,6 +96,31 @@ function DetailWidgets.button(content, text)
     result:SetText(text)
     result:SetSize(result:GetFontString():GetStringWidth() + 24, DetailWidgets.BUTTON_HEIGHT)
     return result
+end
+
+function DetailWidgets.itemButtons(content)
+    local pin = DetailWidgets.button(content, L.WISHLIST_UNPIN)
+    local try = DetailWidgets.button(content, L.MENU_DRESSUP)
+    local buttons = {}
+    pin:SetScript("OnClick", function()
+        ns.RowActions.togglePin(buttons.itemID)
+    end)
+    try:SetScript("OnClick", function()
+        if buttons.itemID then
+            ns.Compat.DressUpItem(buttons.itemID)
+        end
+    end)
+    try:SetPoint("LEFT", pin, "RIGHT", ns.Theme.spacing.gap, 0)
+    function buttons.place(place, itemID, gapBefore)
+        buttons.itemID = itemID
+        pin:SetShown(itemID ~= nil)
+        try:SetShown(itemID ~= nil)
+        if itemID then
+            pin:SetText(ns.WishlistStore.has(itemID) and L.WISHLIST_UNPIN or L.WISHLIST_PIN)
+            place(pin, DetailWidgets.BUTTON_HEIGHT, gapBefore)
+        end
+    end
+    return buttons
 end
 
 function DetailWidgets.stacker(content)
