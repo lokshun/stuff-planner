@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0 — Unreleased
+## 2.0.0 — 2026-11-12
 
 ### New interface
 - The main window was redesigned: an icon bar on the left opens the pages Now, Dungeons, Target list,
