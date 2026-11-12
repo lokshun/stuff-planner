@@ -1,41 +1,32 @@
 -- CONTRAT
--- Panneau de donjon (FloatingFrame) : boss de l'instance courante dans l'ordre, objets utiles de chacun
--- (gain, taux), espérance restante du passage (DungeonPresenter, boss tués de DungeonRun exclus).
--- Charger après FloatingFrame.lua, DungeonRun.lua, DungeonPresenter.lua, BadgePresenter.lua et NameAsker.lua.
--- Affiché dans une instance connue de la base, avec un profil actif, si dungeon.panel est vrai ; rafraîchi sur
--- SP_DUNGEON_CHANGED, SP_RESULTS_UPDATED, SP_OPTION_CHANGED (dungeon.*) et à l'arrivée des noms ; jamais en
--- combat (reporté à la sortie). Boss tué : coché, grisé, objets repliés.
--- Titre : clic = replier / déplier, clic droit = DungeonRun.reset, clic gauche maintenu = déplacer.
+-- Mode « donjon » du cadre flottant (ns.Hud) : boss de l'instance courante dans l'ordre, objets utiles de
+-- chacun (gain, taux), espérance restante du passage (DungeonPresenter, boss tués de DungeonRun exclus).
+-- Charger après Hud.lua, DungeonRun.lua, DungeonPresenter.lua, BadgePresenter.lua et NameAsker.lua.
+-- Disponible dans une instance connue de la base, avec un profil actif, si dungeon.panel est vrai (priorité
+-- 1) ; rafraîchi sur SP_DUNGEON_CHANGED, SP_RESULTS_UPDATED, SP_OPTION_CHANGED (dungeon.*) et à l'arrivée
+-- des noms. Boss tué : coché, grisé, objets repliés. Bouton du cadre : DungeonRun.reset.
 -- Clic sur un boss : DungeonRun.toggle ; survol d'un objet : info-bulle de l'objet.
--- Au plus MAX_ITEMS objets par boss et MAX_LINES lignes. Sauvegarde : StuffPlannerDB.ui.dungeon =
--- {point, relativePoint, x, y, collapsed}.
---   ns.DungeonPanel.resetPosition() -> position par défaut
+-- Au plus MAX_ITEMS objets par boss et MAX_LINES lignes.
+--   ns.DungeonPanel.resetPosition() -> position du cadre flottant par défaut
 
 local _, ns = ...
 
 local L = ns.L
 local hint, hideTooltip = ns.FloatingFrame.hint, ns.FloatingFrame.hideHint
 
-local WIDTH = 260
-local HEADER_HEIGHT = 20
 local LINE_HEIGHT = 16
 local ICON_SIZE = 14
 local INDENT = 14
 local MAX_LINES = 18
 local MAX_ITEMS = 3
+local RESET_ICON = "Interface\\Buttons\\UI-RefreshButton"
 local CHECK_ICON = "Interface\\Buttons\\UI-CheckBox-Check"
 
 local DungeonPanel = {}
 ns.DungeonPanel = DungeonPanel
 
-local frame, header, titleText, summary
+local summary
 local buttons = {}
-local combatPending = false
-local refresh
-
-local function settings()
-    return ns.DB.account("ui", "dungeon")
-end
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
@@ -63,12 +54,12 @@ local function onLineClick(button)
     end
 end
 
-local function createLine(index)
+local function createLine(parent, index)
     local theme = ns.Theme
-    local button = CreateFrame("Button", nil, frame)
+    local button = CreateFrame("Button", nil, parent)
     button:SetHeight(LINE_HEIGHT)
     button:SetPoint("TOPLEFT", summary, "BOTTOMLEFT", 0, -(index - 1) * LINE_HEIGHT - 2)
-    button:SetPoint("RIGHT", frame, "RIGHT", -theme.spacing.gap, 0)
+    button:SetPoint("RIGHT", parent, "RIGHT")
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(ICON_SIZE, ICON_SIZE)
     button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
@@ -84,53 +75,24 @@ local function createLine(index)
     button:SetScript("OnClick", onLineClick)
     button:SetScript("OnEnter", onLineEnter)
     button:SetScript("OnLeave", hideTooltip)
-    frame.draggable(button)
+    ns.Hud.draggable(button)
     return button
 end
 
-local function onHeaderClick(_, mouseButton)
-    if mouseButton == "RightButton" then
-        ns.DungeonRun.reset()
-        return
-    end
-    local saved = settings()
-    saved.collapsed = not saved.collapsed or nil
-    refresh()
-end
-
-local function create()
-    local theme = ns.Theme
-    local pad = theme.spacing.gap
-    frame = ns.FloatingFrame.new({ width = WIDTH, saved = settings, alpha = 0.75,
-        default = { point = "LEFT", x = 40, y = 60 } })
-    header = CreateFrame("Button", nil, frame)
-    header:SetHeight(HEADER_HEIGHT)
-    header:SetPoint("TOPLEFT", pad, -pad / 2)
-    header:SetPoint("RIGHT", frame, "RIGHT", -pad, 0)
-    header:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    header:SetScript("OnClick", onHeaderClick)
-    header:SetScript("OnEnter", function(button)
-        hint(button, L.DUNGEON_TITLE_HINT)
-    end)
-    header:SetScript("OnLeave", hideTooltip)
-    frame.draggable(header)
-    titleText = header:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    titleText:SetAllPoints()
-    titleText:SetJustifyH("LEFT")
-    titleText:SetWordWrap(false)
-    setColor(titleText, theme.colors.title)
-    summary = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    summary:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, 0)
-    summary:SetPoint("RIGHT", frame, "RIGHT", -pad, 0)
+local function create(parent)
+    local frame = CreateFrame("Frame", nil, parent)
+    summary = frame:CreateFontString(nil, "OVERLAY", ns.Theme.fonts.small)
+    summary:SetPoint("TOPLEFT")
+    summary:SetPoint("RIGHT")
     summary:SetJustifyH("LEFT")
     for index = 1, MAX_LINES do
-        buttons[index] = createLine(index)
+        buttons[index] = createLine(frame, index)
     end
-    frame:Hide()
+    return frame
 end
 
 local askName = ns.NameAsker.new(function()
-    refresh()
+    ns.Hud.refresh()
 end)
 
 local function itemLine(item, npcID)
@@ -202,57 +164,37 @@ local function summaryText(view)
     return text
 end
 
-local function render(instanceID, view)
-    titleText:SetText(ns.Names.instance(instanceID))
-    local collapsed = settings().collapsed
+local function render()
+    local instanceID = ns.DungeonRun.current()
+    local view = ns.DungeonPresenter.build(instanceID, ns.Data, ns.Results.delta, ns.DungeonRun.killed())
     summary:SetText(summaryText(view))
-    summary:SetShown(not collapsed)
-    local lines = collapsed and {} or buildLines(view)
+    local lines = buildLines(view)
     local shown = 0
     for index, button in ipairs(buttons) do
         renderLine(button, lines[index])
         shown = lines[index] and index or shown
     end
-    local pad = ns.Theme.spacing.gap
-    local body = collapsed and 0 or (summary:GetStringHeight() + shown * LINE_HEIGHT + pad)
-    frame:SetHeight(pad + HEADER_HEIGHT + body)
+    return ns.Names.instance(instanceID), summary:GetStringHeight() + shown * LINE_HEIGHT + 2
 end
 
-refresh = function()
-    local instanceID = ns.DungeonRun.current()
-    if not instanceID or not ns.Options.get("dungeon.panel") or not ns.Results.player() then
-        if frame then
-            frame:Hide()
-        end
-        return
-    end
-    if InCombatLockdown() then
-        if not combatPending then
-            combatPending = true
-            ns:RunOutOfCombat(function()
-                combatPending = false
-                refresh()
-            end)
-        end
-        return
-    end
-    if not frame then
-        create()
-    end
-    render(instanceID, ns.DungeonPresenter.build(instanceID, ns.Data, ns.Results.delta, ns.DungeonRun.killed()))
-    frame:Show()
-end
+ns.Hud.addMode("dungeon", {
+    order = 1,
+    available = function()
+        return ns.DungeonRun.current() ~= nil and ns.Options.get("dungeon.panel") and ns.Results.player() ~= nil
+    end,
+    create = create,
+    render = render,
+    action = { icon = RESET_ICON, hint = L.DUNGEON_RESET_HINT, onClick = function() ns.DungeonRun.reset() end },
+})
 
 function DungeonPanel.resetPosition()
-    if frame then
-        frame.resetPosition()
-    end
+    ns.Hud.resetPosition()
 end
 
-ns:On("SP_DUNGEON_CHANGED", function() refresh() end)
-ns:On("SP_RESULTS_UPDATED", function() refresh() end)
+ns:On("SP_DUNGEON_CHANGED", ns.Hud.refresh)
+ns:On("SP_RESULTS_UPDATED", ns.Hud.refresh)
 ns:On("SP_OPTION_CHANGED", function(key)
     if key:match("^dungeon%.") then
-        refresh()
+        ns.Hud.refresh()
     end
 end)

@@ -1,6 +1,6 @@
 -- CONTRAT
 -- Panneau de réglages dans Échap > Options > AddOns (ns.Compat.RegisterOptionsPanel).
--- Charger après OptionsWidgets.lua, MainFrame.lua, MiniTracker.lua, FollowWindow.lua, Arrow.lua et
+-- Charger après OptionsWidgets.lua, MainFrame.lua, Hud.lua, Arrow.lua et
 -- Onboarding.lua.
 --   ns.OptionsPanel.open() -> ouvre le panneau (hors combat ; fenêtre principale cachée)
 -- Contenu construit au premier affichage, dans un cadre défilant ; contrôles relus à chaque affichage
@@ -43,10 +43,8 @@ end
 
 local function resetPositions()
     ns.MainFrame.resetPosition()
-    ns.MiniTracker.resetPosition()
+    ns.Hud.resetPosition()
     ns.Arrow.resetPosition()
-    ns.FollowWindow.resetPosition()
-    ns.DungeonPanel.resetPosition()
 end
 
 local function reload()
@@ -84,9 +82,9 @@ local function layout()
         W.header(nil, L.OPTIONS_SECTION_TRACKER),
         W.checkbox(nil, "tracker.shown", labelOf("tracker.shown")),
         W.checkbox(nil, "toast.zone", labelOf("toast.zone")),
-        W.checkbox(nil, "tracker.locked", labelOf("tracker.locked")),
-        W.slider(nil, "tracker.lines", labelOf("tracker.lines"), integer),
-        W.slider(nil, "tracker.alpha", labelOf("tracker.alpha"), percent),
+        W.checkbox(nil, "hud.locked", labelOf("hud.locked")),
+        W.slider(nil, "hud.lines", labelOf("hud.lines"), integer),
+        W.slider(nil, "hud.alpha", labelOf("hud.alpha"), percent),
         W.header(nil, L.OPTIONS_SECTION_MAP),
         W.checkbox(nil, "pins.world", labelOf("pins.world")),
         W.checkbox(nil, "pins.minimap", labelOf("pins.minimap")),
@@ -104,7 +102,6 @@ local function layout()
         }),
         W.header(nil, L.OPTIONS_SECTION_FOLLOW),
         W.checkbox(nil, "follow.window", labelOf("follow.window")),
-        W.checkbox(nil, "follow.locked", labelOf("follow.locked")),
         W.header(nil, L.OPTIONS_SECTION_DUNGEON),
         W.checkbox(nil, "dungeon.panel", labelOf("dungeon.panel")),
         W.checkbox(nil, "roll.hint", labelOf("roll.hint")),

@@ -106,6 +106,7 @@ UI\Presenters\HistoryPresenter.lua
 UI\Presenters\Filters.lua
 UI\Presenters\TrackerPresenter.lua
 UI\Presenters\FollowPresenter.lua
+UI\Presenters\HudPresenter.lua
 UI\Presenters\ArrowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
 UI\Presenters\BadgePresenter.lua
@@ -155,7 +156,6 @@ UI\ProfileSummary.lua
 UI\WeightBars.lua
 UI\ProfileTab.lua
 UI\Onboarding.lua
-UI\MiniTracker.lua
 UI\Tooltip.lua
 UI\ItemBadge.lua
 UI\BagBadges.lua
@@ -171,6 +171,8 @@ UI\QuestDetail.lua
 UI\SourceDetail.lua
 UI\MapPins.lua
 UI\FloatingFrame.lua
+UI\Hud.lua
+UI\MiniTracker.lua
 UI\FollowWindow.lua
 UI\DungeonPanel.lua
 UI\OptionsWidgets.lua

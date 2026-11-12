@@ -1,22 +1,17 @@
 -- CONTRAT
--- Mini-suivi : les meilleures améliorations de la zone (TrackerPresenter), à l'écran en permanence.
--- Charger après Chat.lua, TrackerPresenter.lua et MainFrame.lua.
--- Créé à PLAYER_LOGIN (variables sauvegardées lues) ; rafraîchi sur SP_RESULTS_UPDATED
--- (Results) et à l'arrivée des noms ; jamais en combat (reporté à la sortie).
--- Déplaçable à la souris (clic gauche maintenu) ; clic sur une ligne : fiche de la quête
--- (QuestDetail, sur l'onglet Zone actuelle, ligne de l'objet encadrée et amenée en vue : RowActions.select) ;
--- tout clic sélectionne l'objet ; Maj+clic : repère vers le donneur ;
+-- Mode « zone » du cadre flottant (ns.Hud) : les meilleures améliorations de la zone (TrackerPresenter).
+-- Charger après Hud.lua, Chat.lua, TrackerPresenter.lua et MainFrame.lua.
+-- Disponible si tracker.shown est vrai (priorité la plus basse) ; hud.lines lignes (1-5). Rafraîchi sur
+-- SP_RESULTS_UPDATED, SP_OPTION_CHANGED (tracker.*, hud.lines) et à l'arrivée des noms.
+-- Clic sur une ligne : fiche de la quête (QuestDetail, sur la page Maintenant, ligne de l'objet encadrée et
+-- amenée en vue : RowActions.select) ; tout clic sélectionne l'objet ; Maj+clic : repère vers le donneur ;
 -- Ctrl+clic : essayage (Compat.DressUpItem) ; survol : info-bulle de l'objet (stats, gain), quête,
--- état (journal, niveau, prérequis), badge « non confirmé ». /splan tracker affiche ou masque.
--- Sauvegarde : StuffPlannerDB.ui.tracker = {point, relativePoint, x, y} ; réglages par ns.Options :
--- tracker.shown, tracker.lines (1-5), tracker.locked (pas de glisser), tracker.alpha (fond).
---   ns.MiniTracker.resetPosition() -> position par défaut
+-- état (journal, niveau, prérequis), badge « non confirmé ». /splan tracker active ou coupe le mode.
 
 local _, ns = ...
 
 local L = ns.L
 
-local WIDTH = 240
 local LINE_HEIGHT = 20
 local ICON_SIZE = 16
 local MAX_LINES = 5
@@ -25,35 +20,11 @@ local UNKNOWN_ICON = 134400
 local MiniTracker = {}
 ns.MiniTracker = MiniTracker
 
-local frame, title, emptyText, background
+local emptyText
 local buttons = {}
-local combatPending = false
-
-local function settings()
-    return ns.DB.account("ui", "tracker")
-end
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
-end
-
-local function startMoving()
-    if not ns.Options.get("tracker.locked") then
-        frame:StartMoving()
-    end
-end
-
-local function stopMoving()
-    frame:StopMovingOrSizing()
-    local point, _, relativePoint, x, y = frame:GetPoint()
-    local saved = settings()
-    saved.point, saved.relativePoint, saved.x, saved.y = point, relativePoint, x, y
-end
-
-local function draggable(region)
-    region:RegisterForDrag("LeftButton")
-    region:SetScript("OnDragStart", startMoving)
-    region:SetScript("OnDragStop", stopMoving)
 end
 
 local function showTooltip(button)
@@ -100,12 +71,12 @@ local function onLineClick(button)
     end)
 end
 
-local function createLine(index)
+local function createLine(parent, index)
     local theme = ns.Theme
-    local button = CreateFrame("Button", nil, frame)
+    local button = CreateFrame("Button", nil, parent)
     button:SetHeight(LINE_HEIGHT)
-    button:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -(index - 1) * LINE_HEIGHT - 2)
-    button:SetPoint("RIGHT", frame, "RIGHT", -theme.spacing.gap, 0)
+    button:SetPoint("TOPLEFT", 0, -(index - 1) * LINE_HEIGHT)
+    button:SetPoint("RIGHT")
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(ICON_SIZE, ICON_SIZE)
     button.icon:SetPoint("LEFT")
@@ -122,74 +93,33 @@ local function createLine(index)
     button:SetScript("OnClick", onLineClick)
     button:SetScript("OnEnter", showTooltip)
     button:SetScript("OnLeave", hideTooltip)
-    draggable(button)
+    ns.Hud.draggable(button)
     return button
 end
 
-local function border(color)
-    local size = ns.Theme.spacing.border
-    for _, side in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" } }) do
-        local line = frame:CreateTexture(nil, "BORDER")
-        line:SetColorTexture(color.r, color.g, color.b, 0.8)
-        line:SetHeight(size)
-        line:SetPoint(side[1])
-        line:SetPoint(side[2])
-    end
-end
-
-local function restorePosition()
-    local saved = settings()
-    frame:ClearAllPoints()
-    if saved.point then
-        frame:SetPoint(saved.point, UIParent, saved.relativePoint or saved.point, saved.x or 0, saved.y or 0)
-    else
-        frame:SetPoint("RIGHT", UIParent, "RIGHT", -80, 120)
-    end
-end
-
-local function applyOptions()
-    local bg = ns.Theme.colors.background
-    background:SetColorTexture(bg.r, bg.g, bg.b, ns.Options.get("tracker.alpha"))
-    frame:SetHeight(2 * ns.Theme.spacing.gap + 16 + ns.Options.get("tracker.lines") * LINE_HEIGHT)
-    frame:SetShown(ns.Options.get("tracker.shown"))
-end
-
-local function create()
+local function create(parent)
     local theme = ns.Theme
-    local pad = theme.spacing.gap
-    frame = CreateFrame("Frame", nil, UIParent)
-    frame:SetWidth(WIDTH)
-    frame:SetFrameStrata("LOW")
-    frame:SetClampedToScreen(true)
-    frame:SetMovable(true)
-    frame:EnableMouse(true)
-    draggable(frame)
-    background = frame:CreateTexture(nil, "BACKGROUND")
-    background:SetAllPoints()
-    border(theme.colors.border)
-    title = frame:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    title:SetPoint("TOPLEFT", pad, -pad)
-    title:SetText(L.TRACKER_TITLE)
-    setColor(title, theme.colors.title)
+    local frame = CreateFrame("Frame", nil, parent)
     for index = 1, MAX_LINES do
-        buttons[index] = createLine(index)
+        buttons[index] = createLine(frame, index)
     end
     emptyText = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    emptyText:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
-    emptyText:SetPoint("RIGHT", frame, "RIGHT", -pad, 0)
+    emptyText:SetPoint("TOPLEFT", 0, -2)
+    emptyText:SetPoint("RIGHT")
     emptyText:SetJustifyH("LEFT")
     setColor(emptyText, theme.colors.muted)
-    restorePosition()
-    applyOptions()
+    return frame
 end
 
-local refresh
-
 local askName = ns.NameAsker.new(function()
-    refresh()
+    ns.Hud.refresh()
 end)
 
-local function render(view)
+local function render()
+    local results, mapID = ns.Chat.currentZone()
+    local message = not results and mapID or nil
+    local view = ns.TrackerPresenter.build(results, ns.Data, message, ns.Options.get("hud.lines"))
+    local shown = 0
     for index, button in ipairs(buttons) do
         local row = view.lines[index]
         button.row = row
@@ -202,59 +132,36 @@ local function render(view)
             button.gain:SetText(row.gainLabel)
             setColor(button.gain, row.gainColor)
             button:SetAlpha(row.dimmed and 0.5 or 1)
+            shown = index
         end
         button:SetShown(row ~= nil)
     end
     emptyText:SetText(view.empty or "")
+    local height = shown > 0 and shown * LINE_HEIGHT or emptyText:GetStringHeight() + 4
+    return L.TRACKER_TITLE, height
 end
 
-refresh = function()
-    if not frame or not frame:IsShown() then
-        return
-    end
-    if InCombatLockdown() then
-        if not combatPending then
-            combatPending = true
-            ns:RunOutOfCombat(function()
-                combatPending = false
-                refresh()
-            end)
-        end
-        return
-    end
-    local results, mapID = ns.Chat.currentZone()
-    local message = not results and mapID or nil
-    render(ns.TrackerPresenter.build(results, ns.Data, message, ns.Options.get("tracker.lines")))
-end
-
-local function toggle()
-    ns.Options.toggle("tracker.shown")
-end
+ns.Hud.addMode("zone", {
+    order = 3,
+    available = function()
+        return ns.Options.get("tracker.shown")
+    end,
+    create = create,
+    render = render,
+})
 
 function MiniTracker.resetPosition()
-    local saved = settings()
-    saved.point, saved.relativePoint, saved.x, saved.y = nil, nil, nil, nil
-    if frame then
-        restorePosition()
-    end
+    ns.Hud.resetPosition()
 end
 
+ns:RegisterCommand("tracker", function()
+    ns.Options.toggle("tracker.shown")
+end, "TRACKER_COMMAND_HELP")
+
 ns:On("SP_OPTION_CHANGED", function(key)
-    if frame and key:match("^tracker%.") then
-        applyOptions()
-        refresh()
+    if key:match("^tracker%.") or key == "hud.lines" then
+        ns.Hud.refresh()
     end
 end)
 
-ns:RegisterCommand("tracker", toggle, "TRACKER_COMMAND_HELP")
-
-ns:On("SP_RESULTS_UPDATED", function()
-    refresh()
-end)
-
-local events = CreateFrame("Frame")
-events:RegisterEvent("PLAYER_LOGIN")
-events:SetScript("OnEvent", function()
-    create()
-    refresh()
-end)
+ns:On("SP_RESULTS_UPDATED", ns.Hud.refresh)

@@ -1,36 +1,28 @@
 -- CONTRAT
--- Petite fenêtre des étapes du suivi (ns.Follow), contenu par FollowPresenter.
--- Charger après FloatingFrame.lua, Follow.lua, FollowPresenter.lua, QuestDetail.lua et MainFrame.lua.
--- Affichée tant qu'une suite est suivie et que follow.window est vrai ; rafraîchie sur SP_FOLLOW_CHANGED,
--- SP_FOLLOW_UPDATED et à l'arrivée des noms ; jamais en combat (reporté à la sortie).
--- Barre de titre : clic = replier / déplier, clic gauche maintenu = déplacer (sauf follow.locked) ;
--- croix = Follow.stop. Clic sur une étape placée : Follow.aim + carte du monde sur sa zone ;
+-- Mode « suivi » du cadre flottant (ns.Hud) : étapes de la suite suivie (ns.Follow), contenu par
+-- FollowPresenter. Charger après Hud.lua, Follow.lua, FollowPresenter.lua, QuestDetail.lua et MainFrame.lua.
+-- Disponible tant qu'une suite est suivie et que follow.window est vrai (priorité 2) ; rafraîchi sur
+-- SP_FOLLOW_CHANGED, SP_FOLLOW_UPDATED, SP_OPTION_CHANGED (follow.*) et à l'arrivée des noms.
+-- Bouton du cadre : croix = Follow.stop. Clic sur une étape placée : Follow.aim + carte du monde sur sa zone ;
 -- clic sur une quête : fiche de la quête (QuestDetail). Lignes à partir de la quête de l'étape courante.
--- Sauvegarde : StuffPlannerDB.ui.follow = {point, relativePoint, x, y, collapsed}.
---   ns.FollowWindow.resetPosition() -> position par défaut
+--   ns.FollowWindow.resetPosition() -> position du cadre flottant par défaut
 
 local _, ns = ...
 
 local L = ns.L
 local hint, hideTooltip = ns.FloatingFrame.hint, ns.FloatingFrame.hideHint
 
-local WIDTH = 260
-local HEADER_HEIGHT = 20
 local LINE_HEIGHT = 16
 local ICON_SIZE = 14
 local INDENT = 12
 local MAX_LINES = 14
+local CLOSE_ICON = "Interface\\Buttons\\UI-StopButton"
 
 local FollowWindow = {}
 ns.FollowWindow = FollowWindow
 
-local frame, header, titleText, target
+local target
 local lines = {}
-local combatPending = false
-
-local function settings()
-    return ns.DB.account("ui", "follow")
-end
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
@@ -64,12 +56,12 @@ local function onLineClick(button)
     end
 end
 
-local function createLine(index)
+local function createLine(parent, index)
     local theme = ns.Theme
-    local button = CreateFrame("Button", nil, frame)
+    local button = CreateFrame("Button", nil, parent)
     button:SetHeight(LINE_HEIGHT)
     button:SetPoint("TOPLEFT", target, "BOTTOMLEFT", 0, -(index - 1) * LINE_HEIGHT - 2)
-    button:SetPoint("RIGHT", frame, "RIGHT", -theme.spacing.gap, 0)
+    button:SetPoint("RIGHT", parent, "RIGHT")
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(ICON_SIZE, ICON_SIZE)
     button.text = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
@@ -82,61 +74,26 @@ local function createLine(index)
     button:SetScript("OnClick", onLineClick)
     button:SetScript("OnEnter", onLineEnter)
     button:SetScript("OnLeave", hideTooltip)
-    frame.draggable(button)
+    ns.Hud.draggable(button)
     return button
 end
 
-local refresh
-
-local function toggleCollapsed()
-    local saved = settings()
-    saved.collapsed = not saved.collapsed or nil
-    refresh()
-end
-
-local function createHeader(theme, pad)
-    header = CreateFrame("Button", nil, frame)
-    header:SetHeight(HEADER_HEIGHT)
-    header:SetPoint("TOPLEFT", pad, -pad / 2)
-    header:SetPoint("RIGHT", frame, "RIGHT", -24, 0)
-    header:SetScript("OnClick", toggleCollapsed)
-    frame.draggable(header)
-    titleText = header:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    titleText:SetAllPoints()
-    titleText:SetJustifyH("LEFT")
-    titleText:SetWordWrap(false)
-    setColor(titleText, theme.colors.title)
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    close:SetSize(22, 22)
-    close:SetPoint("TOPRIGHT", 0, 0)
-    close:SetScript("OnClick", function()
-        ns.Follow.stop()
-    end)
-    close:SetScript("OnEnter", function(button)
-        hint(button, L.FOLLOW_CLOSE_HINT)
-    end)
-    close:SetScript("OnLeave", hideTooltip)
-end
-
-local function create()
+local function create(parent)
     local theme = ns.Theme
-    local pad = theme.spacing.gap
-    frame = ns.FloatingFrame.new({ width = WIDTH, saved = settings, locked = "follow.locked", alpha = 0.75,
-        default = { point = "RIGHT", x = -80, y = -60 } })
-    createHeader(theme, pad)
+    local frame = CreateFrame("Frame", nil, parent)
     target = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    target:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, 0)
-    target:SetPoint("RIGHT", frame, "RIGHT", -pad, 0)
+    target:SetPoint("TOPLEFT")
+    target:SetPoint("RIGHT")
     target:SetJustifyH("LEFT")
     target:SetWordWrap(false)
     for index = 1, MAX_LINES do
-        lines[index] = createLine(index)
+        lines[index] = createLine(frame, index)
     end
-    frame:Hide()
+    return frame
 end
 
 local askName = ns.NameAsker.new(function()
-    refresh()
+    ns.Hud.refresh()
 end)
 
 local function targetText(row)
@@ -170,65 +127,39 @@ local function renderLine(button, line)
     button:Show()
 end
 
-local function render(out)
-    titleText:SetText(out.title)
+local function render()
+    local ctx = { mapID = ns.Compat.PlayerMapPosition(), objective = ns.Follow.objective,
+        player = ns.Results.player(), profile = ns.Profiles.active() }
+    local out = ns.FollowPresenter.build(ns.Follow.view(), ns.Data, ctx)
     askName("quest", ns.Follow.current())
-    local collapsed = settings().collapsed
     target:SetText(targetText(out.target))
-    target:SetShown(not collapsed)
     local shown = 0
     for index, button in ipairs(lines) do
-        local line = not collapsed and out.lines[out.first + index - 1] or nil
+        local line = out.lines[out.first + index - 1]
         renderLine(button, line)
         shown = line and index or shown
     end
-    local pad = ns.Theme.spacing.gap
-    local body = collapsed and 0 or (target:GetStringHeight() + shown * LINE_HEIGHT + pad)
-    frame:SetHeight(pad + HEADER_HEIGHT + body)
+    return out.title, target:GetStringHeight() + shown * LINE_HEIGHT + 2
 end
 
-refresh = function()
-    if not frame then
-        return
-    end
-    local view = ns.Follow.view()
-    if not view or not ns.Options.get("follow.window") then
-        frame:Hide()
-        return
-    end
-    if InCombatLockdown() then
-        if not combatPending then
-            combatPending = true
-            ns:RunOutOfCombat(function()
-                combatPending = false
-                refresh()
-            end)
-        end
-        return
-    end
-    local ctx = { mapID = ns.Compat.PlayerMapPosition(), objective = ns.Follow.objective,
-        player = ns.Results.player(), profile = ns.Profiles.active() }
-    render(ns.FollowPresenter.build(view, ns.Data, ctx))
-    frame:Show()
-end
+ns.Hud.addMode("follow", {
+    order = 2,
+    available = function()
+        return ns.Follow.view() ~= nil and ns.Options.get("follow.window")
+    end,
+    create = create,
+    render = render,
+    action = { icon = CLOSE_ICON, hint = L.FOLLOW_CLOSE_HINT, onClick = function() ns.Follow.stop() end },
+})
 
 function FollowWindow.resetPosition()
-    if frame then
-        frame.resetPosition()
-    end
+    ns.Hud.resetPosition()
 end
 
-ns:On("SP_FOLLOW_CHANGED", function() refresh() end)
-ns:On("SP_FOLLOW_UPDATED", function() refresh() end)
+ns:On("SP_FOLLOW_CHANGED", ns.Hud.refresh)
+ns:On("SP_FOLLOW_UPDATED", ns.Hud.refresh)
 ns:On("SP_OPTION_CHANGED", function(key)
     if key:match("^follow%.") then
-        refresh()
+        ns.Hud.refresh()
     end
-end)
-
-local events = CreateFrame("Frame")
-events:RegisterEvent("PLAYER_LOGIN")
-events:SetScript("OnEvent", function()
-    create()
-    refresh()
 end)

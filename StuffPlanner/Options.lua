@@ -9,6 +9,8 @@
 --     {key, kind = "boolean" | "number" | "choice", default, min, max, step, values}
 -- Sauvegarde au format des modules d'origine (aucune migration) : `path` dans StuffPlannerDB ;
 -- `invert` : le drapeau sauvegardé est l'inverse (hidden, disabled). Valeur par défaut : rien écrit.
+-- Migration DB 2 (T14.10) : ui.tracker {point, relativePoint, x, y, lines, alpha, locked} et ui.follow.locked
+-- passent à ui.hud (hud.lines, hud.alpha, hud.locked) ; valeur déjà présente dans ui.hud gardée.
 
 local _, ns = ...
 
@@ -31,9 +33,9 @@ local CATALOG = {
     { key = "roll.hint", default = true, invert = true, path = { "ui", "rollHintHidden" } },
     { key = "share.enabled", default = false, path = { "share", "enabled" } },
     { key = "tracker.shown", default = true, invert = true, path = { "ui", "tracker", "hidden" } },
-    { key = "tracker.lines", default = 3, min = 1, max = 5, step = 1, path = { "ui", "tracker", "lines" } },
-    { key = "tracker.locked", default = false, path = { "ui", "tracker", "locked" } },
-    { key = "tracker.alpha", default = 0.75, min = 0, max = 1, step = 0.05, path = { "ui", "tracker", "alpha" } },
+    { key = "hud.lines", default = 3, min = 1, max = 5, step = 1, path = { "ui", "hud", "lines" } },
+    { key = "hud.locked", default = false, path = { "ui", "hud", "locked" } },
+    { key = "hud.alpha", default = 0.75, min = 0, max = 1, step = 0.05, path = { "ui", "hud", "alpha" } },
     { key = "pins.world", default = true, invert = true, path = { "ui", "pinsHidden" } },
     { key = "pins.minimap", default = true, invert = true, path = { "ui", "pinsMinimapHidden" } },
     { key = "pins.worldScale", default = 1, min = 0.5, max = 2, step = 0.05, path = { "ui", "pinsWorldScale" } },
@@ -44,7 +46,6 @@ local CATALOG = {
     { key = "arrow.color", default = "direction", values = { "direction", "gold" }, path = { "ui", "arrow", "color" } },
     { key = "arrow.locked", default = false, path = { "ui", "arrow", "locked" } },
     { key = "follow.window", default = true, invert = true, path = { "ui", "follow", "hidden" } },
-    { key = "follow.locked", default = false, path = { "ui", "follow", "locked" } },
     { key = "waypoint.preferTomTom", default = true, invert = true, path = { "ui", "waypointNoTomTom" } },
     { key = "planner.calibrate", default = true, invert = true, path = { "planner", "calibrateDisabled" } },
 }
@@ -143,5 +144,30 @@ function Options.reset(key)
     local spec = byKey[key]
     if spec then
         Options.set(key, spec.default)
+    end
+end
+
+local HUD_FIELDS = { "point", "relativePoint", "x", "y", "lines", "alpha", "locked" }
+
+ns.DB.MIGRATIONS.account[2] = function(root)
+    local ui = type(root.ui) == "table" and root.ui or nil
+    if not ui then
+        return
+    end
+    local tracker = type(ui.tracker) == "table" and ui.tracker or {}
+    local follow = type(ui.follow) == "table" and ui.follow or {}
+    local hud = type(ui.hud) == "table" and ui.hud or {}
+    for _, field in ipairs(HUD_FIELDS) do
+        if hud[field] == nil then
+            hud[field] = tracker[field]
+        end
+        tracker[field] = nil
+    end
+    if hud.locked == nil then
+        hud.locked = follow.locked
+    end
+    follow.locked = nil
+    if next(hud) then
+        ui.hud = hud
     end
 end

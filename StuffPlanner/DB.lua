@@ -17,7 +17,7 @@ local _, ns = ...
 local DB = {}
 ns.DB = DB
 
-DB.VERSION = 1
+DB.VERSION = 2
 DB.MIGRATIONS = { account = {}, char = {} }
 
 local GLOBALS = { account = "StuffPlannerDB", char = "StuffPlannerCharDB" }
