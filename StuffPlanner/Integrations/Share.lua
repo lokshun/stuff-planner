@@ -3,7 +3,8 @@
 -- (ChatThrottleLib, priorité "BULK"). Option share.enabled, coupée par défaut : rien n'est envoyé ni lu.
 -- Envoi : confirmations locales seulement (jamais celles reçues), regroupées FLUSH_DELAY s ; jamais en combat
 --   ni sous restriction de messages (Compat.ChatRestricted) : reporté. À l'activation, à SP_DATA_READY et à
---   GROUP_JOINED : les ANNOUNCE dernières confirmations du collecteur, une fois par canal et par COOLDOWN s.
+--   GROUP_JOINED : les ANNOUNCE dernières confirmations du collecteur, une fois par canal et par COOLDOWN s ;
+--   annonce bloquée : un seul report en attente (canaux fusionnés, ou tous si l'un des appels n'en précise pas).
 -- Réception : messages des autres joueurs ; Sync.decode (message entier rejeté et compté), dédoublonné ;
 --   Data.observe kind "peer" (sous toute observation locale) ; un SP_QUEST_OBSERVED par message qui change
 --   une quête. Reçu en combat : gardé (MAX_INBOX messages, les suivants perdus) et traité après.
@@ -29,12 +30,14 @@ Share.MAX_INBOX = 20
 local Sync = ns.Sync
 local transport
 local pending, sentSeen, receivedSeen, inbox, lastAnnounce, counters, flushScheduled
+-- Annonce reportée (combat, restriction) : un seul report, canaux fusionnés ; all = tous les canaux du moment.
+local wanted
 
 local function reset()
     pending, inbox, lastAnnounce = {}, {}, {}
     sentSeen, receivedSeen = Sync.newSeen(), Sync.newSeen()
     counters = { sent = 0, received = 0, rejected = 0, applied = 0 }
-    flushScheduled = false
+    flushScheduled, wanted = false, nil
 end
 reset()
 
@@ -138,14 +141,41 @@ local function recentEntries()
     return entries
 end
 
+local function announceLater()
+    local request = wanted
+    wanted = nil
+    local channels
+    if not request.all then
+        channels = {}
+        for channel in pairs(request.channels) do
+            channels[#channels + 1] = channel
+        end
+        table.sort(channels)
+    end
+    Share.announce(channels)
+end
+
+local function deferAnnounce(channels)
+    local first = wanted == nil
+    wanted = wanted or { channels = {} }
+    if channels then
+        for _, channel in ipairs(channels) do
+            wanted.channels[channel] = true
+        end
+    else
+        wanted.all = true
+    end
+    if first then
+        retryLater(announceLater)
+    end
+end
+
 function Share.announce(channels)
     if not (transport and enabled()) then
         return 0
     end
     if blocked() then
-        retryLater(function()
-            Share.announce(channels)
-        end)
+        deferAnnounce(channels)
         return 0
     end
     local now, due = transport.now(), {}
