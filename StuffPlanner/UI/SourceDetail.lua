@@ -18,7 +18,7 @@ local W = ns.DetailWidgets
 local SourceDetail = {}
 ns.SourceDetail = SourceDetail
 
-local panel, content, texts, itemRow, recipeRow, mapButton
+local panel, content, texts, itemRow, recipeRow, mapButton, pinButton
 local lineTexts, reagentRows = {}, {}
 local currentItem, currentSource, currentView
 local askName = W.nameAsker(function()
@@ -54,6 +54,10 @@ local function create()
     mapButton = W.button(content, L.DETAIL_MAP)
     mapButton:SetScript("OnClick", function()
         W.openMap(currentView and currentView.mapID)
+    end)
+    pinButton = W.button(content, L.WISHLIST_UNPIN)
+    pinButton:SetScript("OnClick", function()
+        ns.RowActions.togglePin(currentView and currentView.itemID)
     end)
 end
 
@@ -130,6 +134,8 @@ local function render(view)
     place(texts.itemHeader, nil, pad)
     fillItem(view)
     place(itemRow, theme.spacing.rowHeight, 2)
+    pinButton:SetText(ns.WishlistStore.has(view.itemID) and L.WISHLIST_UNPIN or L.WISHLIST_PIN)
+    place(pinButton, W.BUTTON_HEIGHT, 2)
     texts.recipeHeader:SetShown(isCraft)
     recipeRow:SetShown(isCraft)
     if isCraft then
@@ -192,3 +198,4 @@ end
 
 ns:On("SP_PLAYER_CHANGED", SourceDetail.refresh)
 ns:On("SP_PROFILE_CHANGED", SourceDetail.refresh)
+ns:On("SP_WISHLIST_CHANGED", SourceDetail.refresh)

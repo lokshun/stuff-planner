@@ -7,7 +7,8 @@
 --     quand tout tient, molette) ; tout s'ajoute dans content.
 --   fontString(content, font, color?) -> FontString à gauche, largeur du contenu
 --   hoverRow(content) -> Button : icon, name (ligne 1), tag (ligne 2), gain (à droite) ; survol :
---     info-bulle de row.link (« item:N », « spell:N »), rien sans lien
+--     info-bulle de row.link (« item:N », « spell:N »), rien sans lien ; Alt+clic sur un objet :
+--     RowActions.togglePin
 --   button(content, text) -> bouton du jeu à la taille de son texte
 --   stacker(content) -> place(region, height?, gapBefore?), finish() : empile de haut en bas,
 --     finish fixe la hauteur du contenu et remonte en haut si le contenu a changé de taille
@@ -113,6 +114,12 @@ function DetailWidgets.hoverRow(content)
     highlight:SetColorTexture(1, 1, 1, 0.08)
     row:SetScript("OnEnter", showTooltip)
     row:SetScript("OnLeave", hideTooltip)
+    row:SetScript("OnClick", function(self)
+        local itemID = IsAltKeyDown() and self.link and tonumber(self.link:match("^item:(%d+)"))
+        if itemID then
+            ns.RowActions.togglePin(itemID)
+        end
+    end)
     return row
 end
 

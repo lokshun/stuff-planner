@@ -3,9 +3,11 @@
 -- Modules lus à l'appel (QuestDetail, SourceDetail peuvent se charger après).
 --   ns.RowActions.click(questID, itemID, itemSource) : info-bulle fermée d'abord (la fiche demande noms
 --     et objets au client, leur arrivée reconstruirait l'info-bulle ouverte) ; objet sélectionné (select) ;
+--     Alt : épinglé / retiré de la liste cible (togglePin) ;
 --     Ctrl : essayage de itemID (Compat.DressUpItem) ; quête : Maj = repère (QuestDetail.waypoint), sinon
 --     fiche (QuestDetail.show) ; sans quête : fiche de la source (SourceDetail.show) si itemID et
 --     itemSource sont connus.
+--   togglePin(itemID) : WishlistStore.toggle, message dans la discussion (épinglé, retiré, liste pleine)
 --   select(questID, itemID, reveal?) : sélection courante (une seule, gardée jusqu'au prochain clic),
 --     émet SP_SELECTION_CHANGED(reveal) ; rien sans itemID. reveal : les listes font défiler jusqu'à elle.
 --   isSelected(questID, itemID) -> bool : même objet et même quête (nil = sans quête)
@@ -79,8 +81,26 @@ function RowActions.mark(button, questID, itemID, height)
     end
 end
 
+function RowActions.togglePin(itemID)
+    if not itemID then
+        return
+    end
+    local L = ns.L
+    local pinned = ns.WishlistStore.toggle(itemID)
+    local name = ns.Names.item(itemID)
+    if pinned == nil then
+        print(L.WISHLIST_FULL)
+    else
+        print((pinned and L.WISHLIST_PINNED or L.WISHLIST_UNPINNED):format(name))
+    end
+end
+
 function RowActions.click(questID, itemID, itemSource)
     GameTooltip:Hide()
+    if IsAltKeyDown() then
+        RowActions.togglePin(itemID)
+        return
+    end
     RowActions.select(questID, itemID)
     if IsControlKeyDown() then
         if itemID then

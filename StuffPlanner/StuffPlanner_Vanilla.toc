@@ -85,6 +85,7 @@ Profiles\Manager.lua
 Profiles\PawnMap.lua
 Profiles\ProfileIO.lua
 Profiles\WishlistIO.lua
+Profiles\WishlistStore.lua
 Profiles\Priorities.lua
 Results.lua
 RouteResults.lua
@@ -92,6 +93,7 @@ UI\Theme.lua
 UI\NameAsker.lua
 UI\Presenters\SecondaryGain.lua
 UI\Presenters\RowPresenter.lua
+UI\Presenters\WishlistPresenter.lua
 UI\Presenters\Filters.lua
 UI\Presenters\TrackerPresenter.lua
 UI\Presenters\FollowPresenter.lua
@@ -122,6 +124,7 @@ UI\ZoneTab.lua
 UI\AltLines.lua
 UI\RouteTab.lua
 UI\GearRows.lua
+UI\WishlistSection.lua
 UI\GearTab.lua
 UI\StatPicker.lua
 UI\PriorityRows.lua

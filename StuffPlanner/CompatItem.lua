@@ -3,6 +3,7 @@
 -- Charger après Compat.lua. Sans l'API : réponse vide, jamais d'erreur.
 --   GetItemStats(link) -> {[apiKey]=value}, vide si inconnu
 --   GetItemInfoInstant(item) -> {equipLoc, classID, subclassID} | nil (objet inconnu, API absente)
+--   GetItemCount(itemID) -> nombre (sacs, banque et objets portés), 0 sans l'API
 --   GetTooltipLines(link) -> {string...}, texte de gauche, vide si objet pas encore en cache
 --   HookItemTooltip(fn) -> fn(tooltip, itemID, link) à chaque info-bulle d'objet ; link : data.hyperlink,
 --     sinon tooltip:GetItem(), nil possible
@@ -25,6 +26,11 @@ function Compat.GetItemStats(link)
         stats = GetItemStats(link)
     end
     return stats or {}
+end
+
+function Compat.GetItemCount(itemID)
+    local getCount = (C_Item and C_Item.GetItemCount) or GetItemCount
+    return getCount and getCount(itemID, true) or 0
 end
 
 function Compat.GetItemInfoInstant(item)

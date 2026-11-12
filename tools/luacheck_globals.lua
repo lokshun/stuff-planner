@@ -47,6 +47,8 @@ return {
     "IsShiftKeyDown",
     "GetInventorySlotInfo",
     "IsControlKeyDown",
+    "IsAltKeyDown",
+    "GetItemCount",
     "ItemRefTooltip",
     "QuestInfoRewardsFrame",
     "QuestInfoFrame",

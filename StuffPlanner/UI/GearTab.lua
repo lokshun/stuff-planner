@@ -4,6 +4,7 @@
 -- Charger après MainFrame.lua, Chat.lua, RouteResults.lua, GearPresenter.lua, Chips.lua, GearRows.lua.
 -- S'inscrit par ns.MainFrame.addTab("gear", …). Rafraîchi à l'ouverture ; les messages
 -- SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED, SP_ROUTE_UPDATED passent par ns.MainFrame.refresh.
+-- Tout en haut : liste cible (UI/WishlistSection.lua, hauteur variable).
 -- En-tête : profil actif, résumé (GearPresenter.summary), puces Tous / Améliorations
 --   (StuffPlannerDB.ui.gearOnlyUpgrades) ; puces Par emplacement / Meilleur gain (StuffPlannerDB.ui.gearByGain,
 --   GearPresenter.sortByGain).
@@ -18,7 +19,7 @@ local L = ns.L
 local MAX_ZONE_ENTRIES = 100
 local expanded = {}
 
-local profileText, summaryText, chipBar, sortBar, footer, scrollBox
+local wishlist, profileText, summaryText, chipBar, sortBar, footer, scrollBox
 
 local askName = ns.NameAsker.new(function()
     ns.MainFrame.refresh()
@@ -81,6 +82,7 @@ local function profileLabel()
 end
 
 local function refresh()
+    wishlist:SetHeight(math.max(1, ns.WishlistSection.render()))
     local player = ns.Player.snapshot()
     local profile = ns.Profiles.active()
     local entries = ns.Chat.currentZone(MAX_ZONE_ENTRIES)
@@ -116,8 +118,11 @@ end
 local function create(parent)
     local theme = ns.Theme
     local panel = CreateFrame("Frame", nil, parent)
+    wishlist = ns.WishlistSection.create(panel)
+    wishlist:SetPoint("TOPLEFT")
+    wishlist:SetPoint("RIGHT", -20, 0)
     profileText = panel:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    profileText:SetPoint("TOPLEFT")
+    profileText:SetPoint("TOPLEFT", wishlist, "BOTTOMLEFT", 0, -theme.spacing.gap)
     profileText:SetPoint("RIGHT")
     profileText:SetJustifyH("LEFT")
     summaryText = panel:CreateFontString(nil, "OVERLAY", theme.fonts.small)
