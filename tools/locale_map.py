@@ -31,6 +31,8 @@ TERMS = {
     "STAT_MP5": ("GlobalStrings", "ITEM_MOD_POWER_REGEN0_SHORT"),
     "STAT_HP5": ("GlobalStrings", "ITEM_MOD_HEALTH_REGEN_SHORT"),
     "STAT_HEALING": ("GlobalStrings", "ITEM_MOD_SPELL_HEALING_DONE_SHORT"),
+    "STAT_HEALTH": ("GlobalStrings", "HEALTH"),
+    "STAT_MANA": ("GlobalStrings", "MANA"),
     "STAT_SPELL_PEN": ("GlobalStrings", "ITEM_MOD_SPELL_PENETRATION_SHORT"),
     "STAT_RES_HOLY": ("GlobalStrings", "RESISTANCE1_NAME"),
     "STAT_RES_FIRE": ("GlobalStrings", "RESISTANCE2_NAME"),

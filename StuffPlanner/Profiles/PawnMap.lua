@@ -28,6 +28,7 @@ local SUM = {
     ArcaneSpellDamage = { "ARCANE_DMG" },
     Armor = { "ARMOR" }, DefenseRating = { "DEF" }, DodgeRating = { "DODGE" }, ParryRating = { "PARRY" },
     BlockRating = { "BLOCK" }, BlockValue = { "BLOCK_VALUE" }, Mp5 = { "MP5" }, Hp5 = { "HP5" },
+    Health = { "HEALTH" }, Mana = { "MANA" },
     FireResist = { "RES_FIRE" }, NatureResist = { "RES_NATURE" }, FrostResist = { "RES_FROST" },
     ShadowResist = { "RES_SHADOW" }, ArcaneResist = { "RES_ARCANE" },
     AllResist = { "RES_HOLY", "RES_FIRE", "RES_NATURE", "RES_FROST", "RES_SHADOW", "RES_ARCANE" },

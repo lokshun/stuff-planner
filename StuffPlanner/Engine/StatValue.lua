@@ -9,9 +9,10 @@
 --     2. part dérivée toujours ajoutée : weights[from] += parPoint * base[to] pour chaque conversion
 --        de la classe dont base[to] > 0 (une passe, sans enchaînement), même si from n'est pas classée.
 --   Conversions : INT -> SPELL_CRIT ; AGI -> CRIT, DODGE (x2 voleur, chasseur), ARMOR (2) ; STR -> AP
---     (2 guerrier, paladin, chaman, druide ; 1 sinon) ; AGI -> AP (1 voleur, chasseur) ; AGI -> RAP
+--     (2 guerrier, paladin, chaman, druide ; 1 sinon) ; AGI -> AP (1 voleur, chasseur, druide) ; AGI -> RAP
 --     (2 chasseur, 1 guerrier, voleur) ; STR -> BLOCK_VALUE (1/20 guerrier, paladin, chaman) ;
---     SPELL_POWER (dégâts et soins) -> HEALING (1).
+--     SPELL_POWER (dégâts et soins) -> HEALING (1) ; STA -> HEALTH (10) ; INT -> MANA (15, classes à
+--     mana) ; AGI -> AP (1 druide, forme de félin).
 --     SPI -> MP5 (classes à mana) et HP5 : regen Classic 1.12 par 5 s * REGEN_SHARE (0,5 : l'Esprit ne
 --     rend que hors règle des 5 s ou hors combat, MP5/HP5 tout le temps), sans échelle de niveau.
 --     Crit et esquive avant 60 : ratio * 60 / niveau (niveau borné à 10). Classe inconnue : coûts seuls.
@@ -29,7 +30,7 @@ local COST = {
     SPELL_POWER = 0.85, SPELL_DMG = 0.85, HEALING = 0.45, SPELL_HIT = 10, SPELL_CRIT = 14, SPELL_PEN = 0.8,
     HOLY_DMG = 0.7, FIRE_DMG = 0.7, NATURE_DMG = 0.7, FROST_DMG = 0.7, SHADOW_DMG = 0.7, ARCANE_DMG = 0.7,
     ARMOR = 0.1, DEF = 1.5, DODGE = 12, PARRY = 15, BLOCK = 5, BLOCK_VALUE = 0.5,
-    MP5 = 2.5, HP5 = 2.5,
+    MP5 = 2.5, HP5 = 2.5, HEALTH = 0.1, MANA = 1 / 15,
     RES_HOLY = 1, RES_FIRE = 1, RES_NATURE = 1, RES_FROST = 1, RES_SHADOW = 1, RES_ARCANE = 1,
 }
 StatValue.COST = COST
@@ -52,7 +53,7 @@ local SPI_HEALTH = { WARRIOR = 2, ROGUE = 1.25, HUNTER = 0.625, PALADIN = 0.625,
 
 local DODGE_FACTOR = { ROGUE = 2, HUNTER = 2 }
 local STR_AP = { WARRIOR = 2, PALADIN = 2, SHAMAN = 2, DRUID = 2 }
-local AGI_AP = { ROGUE = 1, HUNTER = 1 }
+local AGI_AP = { ROGUE = 1, HUNTER = 1, DRUID = 1 }
 local AGI_RAP = { HUNTER = 2, WARRIOR = 1, ROGUE = 1 }
 local STR_BLOCK = { WARRIOR = 0.05, PALADIN = 0.05, SHAMAN = 0.05 }
 
@@ -69,12 +70,14 @@ local function conversions(class, level)
         { "AGI", "ARMOR", 2 },
         { "STR", "AP", STR_AP[class] or 1 },
         { "SPELL_POWER", "HEALING", 1 },
+        { "STA", "HEALTH", 10 },
     }
     local optional = {
         { "INT", "SPELL_CRIT", StatValue.CRIT_PER_INT[class] and StatValue.CRIT_PER_INT[class] * scale },
         { "AGI", "AP", AGI_AP[class] },
         { "AGI", "RAP", AGI_RAP[class] },
         { "STR", "BLOCK_VALUE", STR_BLOCK[class] },
+        { "INT", "MANA", SPI_MANA[class] and 15 },
         { "SPI", "MP5", SPI_MANA[class] and SPI_MANA[class] * StatValue.REGEN_SHARE },
         { "SPI", "HP5", SPI_HEALTH[class] and SPI_HEALTH[class] * StatValue.REGEN_SHARE },
     }

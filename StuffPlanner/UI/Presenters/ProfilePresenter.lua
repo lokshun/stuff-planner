@@ -229,8 +229,9 @@ local STAT_GROUPS = {
     { label = "PRIORITY_GROUP_PRIMARY", keys = { "STR", "AGI", "STA", "INT", "SPI" } },
     { label = "PRIORITY_GROUP_PHYSICAL", keys = { "AP", "RAP", "HIT", "CRIT", "HASTE", "DPS" } },
     { label = "PRIORITY_GROUP_SPELL", keys = { "SPELL_POWER", "SPELL_DMG", "HEALING", "SPELL_HIT", "SPELL_CRIT",
-        "SPELL_PEN", "HOLY_DMG", "FIRE_DMG", "NATURE_DMG", "FROST_DMG", "SHADOW_DMG", "ARCANE_DMG", "MP5" } },
-    { label = "PRIORITY_GROUP_DEFENSE", keys = { "ARMOR", "DEF", "DODGE", "PARRY", "BLOCK", "BLOCK_VALUE", "HP5" } },
+        "SPELL_PEN", "HOLY_DMG", "FIRE_DMG", "NATURE_DMG", "FROST_DMG", "SHADOW_DMG", "ARCANE_DMG", "MP5", "MANA" } },
+    { label = "PRIORITY_GROUP_DEFENSE", keys = { "ARMOR", "DEF", "DODGE", "PARRY", "BLOCK", "BLOCK_VALUE", "HP5",
+        "HEALTH" } },
     { label = "PRIORITY_GROUP_RESIST", keys = { "RES_HOLY", "RES_FIRE", "RES_NATURE", "RES_FROST", "RES_SHADOW",
         "RES_ARCANE" } },
 }
