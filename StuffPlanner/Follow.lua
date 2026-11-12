@@ -15,7 +15,8 @@
 --   du trajet, sans npcID ; le repère change quand le trajet change.
 -- Repère de l'étape courante : Waypoint.set(mapID, x, y, nom de la quête, questID, libellé d'étape, npcID) ;
 --   libellé L.FOLLOW_PICKUP/OBJECTIVE/TURNIN (PNJ, 1er objectif non fini) ou leur variante _ANY ;
---   posé seulement si l'étape change ; étape sans position : repère retiré, suivi gardé.
+--   posé seulement si l'étape change ; étape sans position : repère retiré, suivi gardé. Rien de faisable :
+--   repère sur view.upcoming (prise bloquée par le niveau seul : données parfois plus strictes que le jeu).
 -- Suite terminée : L.FOLLOW_DONE dans la discussion, puis stop. Repère retiré par ailleurs (autre repère,
 --   bouton Retirer) : stop.
 -- Sauvegarde StuffPlannerCharDB.follow = {questID}, reprise à SP_DATA_READY.
@@ -142,7 +143,7 @@ local function compute()
         finish(final)
         return
     end
-    local step = view.current and view.steps[view.current]
+    local step = view.steps[view.current or view.upcoming or 0]
     local key = keyOf(step)
     if aimed and aimed.key ~= key then
         aimed = nil
