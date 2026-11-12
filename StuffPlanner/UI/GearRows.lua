@@ -5,7 +5,8 @@
 --   ns.GearRows.onToggle(fn) : fn(expandKey) au clic sur « [+N] » (alternatives, AltLines)
 --   ns.GearRows.baseHeight(row) -> hauteur sans les alternatives (BASE_HEIGHT, RAID_HEIGHT avec raid)
 -- Ligne : liseré vert si amélioration ; icône portée (sinon icône d'emplacement vide du jeu, grisée) ;
---   emplacement, nom ; gain à droite ; 2e ligne detailText ; 3e ligne si un raid fait mieux : raidText et
+--   emplacement, nom ; gain à droite, gain du profil comparé dessous (upgrade.secondaryLabel) ;
+--   2e ligne detailText ; 3e ligne si un raid fait mieux : raidText et
 --   son gain, cliquable à part (fiche de la source, Ctrl : essayage) ; la hauteur est fixée par GearTab.
 -- Clic : RowActions.click sur l'amélioration (fiche, Maj : repère, Ctrl : essayage).
 -- Alternatives (AltLines) : bouton flèche à droite de la 1re ligne, gain à sa gauche.
@@ -156,7 +157,9 @@ local function buildRow(button)
     button.name:SetWordWrap(false)
     button.detail = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     button.detail:SetPoint("TOPLEFT", button.slotText, "BOTTOMLEFT", 0, -4)
-    button.detail:SetPoint("RIGHT", -4, 0)
+    button.gain2 = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
+    button.gain2:SetPoint("TOPRIGHT", button.gain, "BOTTOMRIGHT", 0, -4)
+    button.detail:SetPoint("RIGHT", button.gain2, "LEFT", -theme.spacing.gap, 0)
     button.detail:SetJustifyH("LEFT")
     button.detail:SetWordWrap(false)
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
@@ -197,6 +200,9 @@ function GearRows.init(button, row)
     setColor(button.name, row.nameColor)
     button.gain:SetText(row.gainLabel)
     setColor(button.gain, row.gainColor)
+    local upgrade = row.upgrade
+    button.gain2:SetText(upgrade and upgrade.secondaryLabel or "")
+    setColor(button.gain2, upgrade and upgrade.secondaryColor or ns.Theme.colors.muted)
     button.detail:SetText(row.detailText)
     setColor(button.detail, row.detailColor)
     ns.AltLines.render(button, row, GearRows.baseHeight(row), ACCENT_WIDTH + 4 + ICON_SIZE + ns.Theme.spacing.gap)

@@ -70,6 +70,7 @@ local function initRow(button, row)
         row = row, questID = row.questID, itemID = row.itemID, itemSource = row.itemSource,
         icon = row.icon, name = row.name, nameColor = row.nameColor, detail = detailOf(row),
         gain = row.gainLabel, gainColor = row.gainColor, dimmed = row.dimmed, hint = L.ROW_CLICK_HINT,
+        gain2 = row.secondaryLabel, gain2Color = row.secondaryColor,
     })
 end
 

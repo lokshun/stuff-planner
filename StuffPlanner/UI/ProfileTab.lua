@@ -1,6 +1,7 @@
 -- CONTRAT
 -- Onglet « Profil », contenu défilant (UIPanelScrollFrameTemplate, barre cachée quand tout tient) :
--- résumé du profil actif (ns.ProfileSummary ; « Modifier » ouvre « Mes stats » et y défile), puis
+-- résumé du profil actif (ns.ProfileSummary ; « Modifier » ouvre « Mes stats » et y défile ; « Comparer… »
+-- ouvre la liste des profils (RowMenuPresenter.compareEntries, Profiles.setSecondary), profil comparé affiché), puis
 -- trois sections ns.Section repliables : choix du profil (ns.ProfileGrid, ouverte par défaut),
 -- « Mes stats » (ns.PriorityList), réglages avancés (poids du profil actif en barres ns.WeightBars,
 -- import/export d'une chaîne ProfileIO). Sections indépendantes.
@@ -75,6 +76,30 @@ local gridActions = {
     end,
 }
 
+local function profileOptions()
+    return ns.ProfilePresenter.options(ns.Profiles.available(), ns.Profiles.get, ns.Profiles.activeID())
+end
+
+-- Ligne « Comparé à » du résumé.
+local function compareText()
+    local secondaryID = ns.Profiles.secondaryID()
+    for _, option in ipairs(secondaryID and profileOptions() or {}) do
+        if option.id == secondaryID then
+            return L.PROFILE_COMPARED:format(option.label)
+        end
+    end
+    return L.PROFILE_COMPARE_NONE
+end
+
+local function openCompare()
+    local entries = ns.RowMenuPresenter.compareEntries(profileOptions(), ns.Profiles.secondaryID())
+    ns.RowMenu.open(entries, function(key)
+        if ns.Profiles.setSecondary(key ~= "uncompare" and key or nil) then
+            ns.MainFrame.refresh()
+        end
+    end)
+end
+
 local function renderGrid()
     local grid = ns.ProfilePresenter.grid(ns.Profiles.available(), ns.Profiles.get,
         ns.Profiles.activeID(), ns.Profiles.manualID(), ns.Profiles.secondaryID())
@@ -96,7 +121,8 @@ end
 
 local function refresh()
     local theme = ns.Theme
-    local y = -(ns.ProfileSummary.render(ns.ProfilePresenter.summary(ns.Profiles.active())) + theme.spacing.gap)
+    local summary = ns.ProfilePresenter.summary(ns.Profiles.active())
+    local y = -(ns.ProfileSummary.render(summary, compareText()) + theme.spacing.gap)
     for _, section in ipairs(sections) do
         section.top = -y
         local open
@@ -210,7 +236,7 @@ local function create(parent)
     content = CreateFrame("Frame", nil, scroll)
     content:SetSize(ns.WeightBars.WIDTH, 1)
     scroll:SetScrollChild(content)
-    summaryFrame = ns.ProfileSummary.create(content, editStats)
+    summaryFrame = ns.ProfileSummary.create(content, editStats, openCompare)
     summaryFrame:SetPoint("TOPLEFT")
     gridFrame = ns.ProfileGrid.create(content)
     addSection({ key = "profileGrid", open = true }, L.PROFILE_HEADER, gridFrame, renderGrid)

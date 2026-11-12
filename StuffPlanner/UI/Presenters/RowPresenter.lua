@@ -16,8 +16,9 @@
 --            slot (entry.delta.slot : emplacement comparé, nil sans delta),
 --            gainLabel (= gainText, points signés : « +2.5 », « -0.50 », « 0.00 » ; pas de flèche, absente
 --              de certaines polices ; "" sans delta ; non confirmé : rien de plus, le badge le dit),
---            secondaryText (SecondaryGain.text du profil secondaire, lignes avec delta seulement) | nil,
---            detailText (gain secondaire en bleu, états colorés — état de quête puis badge — séparés par « · »,
+--            secondaryLabel (SecondaryGain.value du profil secondaire, lignes avec delta seulement) | nil,
+--            secondaryColor (instance s'il gagne, muted sinon) : affiché à côté de gainLabel,
+--            detailText (états colorés — état de quête puis badge — séparés par « · »,
 --              puis sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
 --   isChain(quest) -> bool : quête à prérequis (suite de quêtes) ; quest = data.quest(id) | nil
 --   offProfile (delta.fallback : repli hors profil, Scoring.fallbackOf) : gainLabel entre parenthèses, couleur
@@ -30,7 +31,7 @@
 --     questState} (source quête) + questID ; à utiliser par toutes les listes de quêtes
 --   resultRow(entry, data) -> questRow si entry.questID, sinon present (résultat d'instance de
 --     Chat.bestInZone) + itemSource = entry.source (fiche SourceDetail)
---   sameRows(a, b) -> bool : mêmes lignes affichées (ordre, objet, quête, nom, icône, gainLabel,
+--   sameRows(a, b) -> bool : mêmes lignes affichées (ordre, objet, quête, nom, icône, gainLabel, secondaryLabel,
 --     detailText, dimmed, slot) ; nil d'un côté : faux
 --   instanceTag(quest, data) -> text, color | nil : « Donjon » ou « Raid » si quest.instance (raid lu dans
 --     data.instance) ; lignes de quête et de butin d'instance (source dungeon, raid) : row.tagText,
@@ -135,9 +136,6 @@ local function detailText(row)
     if row.offProfile then
         parts[#parts + 1] = ns.Theme.colorize(L.TAG_OFF_PROFILE, ns.Theme.colors.muted)
     end
-    if row.secondaryText then
-        parts[#parts + 1] = ns.Theme.colorize(row.secondaryText, ns.Theme.colors.instance)
-    end
     if row.stateText ~= "" then
         parts[#parts + 1] = ns.Theme.colorize(row.stateText, row.stateColor)
     end
@@ -200,7 +198,11 @@ function RowPresenter.present(entry, data)
     end
     row.gainLabel = row.gainText
     if entry.delta and ns.SecondaryGain then
-        row.secondaryText = ns.SecondaryGain.text(ns.SecondaryGain.lookup(entry.itemID))
+        local second = ns.SecondaryGain.lookup(entry.itemID)
+        if second then
+            row.secondaryLabel = ns.SecondaryGain.value(second)
+            row.secondaryColor = second.abs > 0 and ns.Theme.colors.instance or ns.Theme.colors.muted
+        end
     end
     row.detailText = detailText(row)
     row.dimmed = row.unavailable
@@ -255,7 +257,7 @@ function RowPresenter.alternative(entry, data, effortText)
     return row
 end
 
-local SHOWN = { "itemID", "questID", "name", "icon", "gainLabel", "detailText", "dimmed", "slot" }
+local SHOWN = { "itemID", "questID", "name", "icon", "gainLabel", "secondaryLabel", "detailText", "dimmed", "slot" }
 
 function RowPresenter.sameRows(a, b)
     if not a or not b or #a ~= #b then

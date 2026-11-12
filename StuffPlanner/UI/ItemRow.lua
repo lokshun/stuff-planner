@@ -13,7 +13,8 @@
 --         tooltip(button, row) : lignes sous l'objet }
 --   ns.ItemRow.new(parent, opts?) -> bouton construit (hauteur Theme.spacing.rowHeight, ou opts.height)
 --   ns.ItemRow.set(button, view) : view = {row?, questID, itemID, itemSource, link, icon, muted, name,
---     nameColor, detail, detailColor, gain, gainColor, dimmed, checked, hint} ; champs absents = vides ;
+--     nameColor, detail, detailColor, gain, gainColor, gain2, gain2Color, dimmed, checked, hint} ; champs
+--     absents = vides ; gain2 (profil comparé) : sous gain, les deux centrés ensemble en hauteur ;
 --     button.view = view, button.row = view.row or view, button.questID, button.itemID
 -- Info-bulle : view.link (sinon item:<itemID>, sinon button.link) puis opts.tooltip, puis view.hint en gris
 -- et L.ROW_MENU_HINT (menu clic droit, si la ligne a une quête ou un objet et pas d'onRightClick).
@@ -159,6 +160,10 @@ function ItemRow.build(button, opts)
         button.gain:SetPoint("RIGHT", -4, 0)
         button.gain:SetWidth(gainWidth)
         button.gain:SetJustifyH("RIGHT")
+        button.gain2 = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
+        button.gain2:SetPoint("TOPRIGHT", button, "RIGHT", -4, -1)
+        button.gain2:SetWidth(gainWidth)
+        button.gain2:SetJustifyH("RIGHT")
     end
     buildTexts(button, opts, button.icon)
     button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
@@ -193,7 +198,13 @@ function ItemRow.set(button, view)
     button.detail:SetText(view.detail or "")
     setColor(button.detail, view.detailColor or ns.Theme.colors.muted)
     if button.gain then
+        local second = view.gain2 ~= nil and view.gain2 ~= ""
         button.gain:SetText(view.gain or "")
         setColor(button.gain, view.gainColor)
+        button.gain:ClearAllPoints()
+        button.gain:SetPoint(second and "BOTTOMRIGHT" or "RIGHT", button, "RIGHT", -4, second and 1 or 0)
+        button.gain2:SetShown(second)
+        button.gain2:SetText(view.gain2 or "")
+        setColor(button.gain2, view.gain2Color)
     end
 end

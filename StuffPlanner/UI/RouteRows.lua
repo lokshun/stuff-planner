@@ -129,6 +129,7 @@ function RouteRows.new(handlers)
                 icon = row.icon, muted = row.muted, name = row.name,
                 nameColor = row.muted and muted or row.nameColor, detail = RouteRows.sourceLine(row),
                 gain = row.gainLabel, gainColor = row.muted and muted or row.gainColor, hint = L.ROW_CLICK_HINT,
+                gain2 = row.secondaryLabel, gain2Color = row.muted and muted or row.secondaryColor,
             })
         end
         ns.AltLines.render(button, isHeader and {} or row, theme.spacing.rowHeight,

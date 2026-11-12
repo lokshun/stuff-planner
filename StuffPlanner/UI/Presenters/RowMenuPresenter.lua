@@ -7,6 +7,9 @@
 --     pin / unpin et dressup (objet)
 --   ns.RowMenuPresenter.profileEntries(ctx) -> {{key, label}...}
 --     ctx = {active = profil actif, secondary = profil comparé} : use, compare / uncompare ; rien si actif
+--   ns.RowMenuPresenter.compareEntries(options, secondaryID?) -> {{key, label}...} : bouton « Comparer… » ;
+--     options = ProfilePresenter.options ; key = id des profils non actifs (comparé : L.MENU_COMPARED), puis
+--     uncompare si secondaryID
 
 local _, ns = ...
 
@@ -41,6 +44,19 @@ function RowMenuPresenter.entries(ctx)
             add(entries, "pin", L.WISHLIST_PIN)
         end
         add(entries, "dressup", L.MENU_DRESSUP)
+    end
+    return entries
+end
+
+function RowMenuPresenter.compareEntries(options, secondaryID)
+    local entries = {}
+    for _, option in ipairs(options) do
+        if not option.active then
+            add(entries, option.id, option.id == secondaryID and L.MENU_COMPARED:format(option.label) or option.label)
+        end
+    end
+    if secondaryID then
+        add(entries, "uncompare", L.MENU_UNCOMPARE)
     end
     return entries
 end
