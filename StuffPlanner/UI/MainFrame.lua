@@ -1,5 +1,5 @@
 -- CONTRAT
--- Fenêtre principale (ns.Skin) : barre d'icônes à gauche (ns.NavBar), titre de la page, engrenage et aide en
+-- Fenêtre principale (ns.Skin) : onglets hors du bord gauche (ns.NavBar), titre de la page, engrenage et aide en
 -- haut à droite. Charger après Core.lua, Compat.lua, Skin.lua et NavBar.lua, avant les pages.
 --   ns.MainFrame.addTab(key, tab) -> tab = {create(parent) -> frame, refresh()?, icon, label, order} ;
 --     clés existantes : zone, route, gear, profile ; une page inscrite après la création est ajoutée à la barre
@@ -124,7 +124,7 @@ local function onKeyDown(self, key)
 end
 
 local function create()
-    local width = CONTENT_WIDTH + ns.NavBar.WIDTH + SIDE_INSET * 3
+    local width = CONTENT_WIDTH + SIDE_INSET * 2
     frame = ns.Skin.window({ width = width, height = HEIGHT, title = L.WINDOW_TITLE, portrait = PORTRAIT })
     frame:SetFrameStrata(behind and "MEDIUM" or "HIGH")
     frame:SetMovable(true)
@@ -136,11 +136,12 @@ local function create()
     end)
     frame:EnableKeyboard(true)
     frame:SetScript("OnKeyDown", onKeyDown)
+    frame:SetClampRectInsets(-ns.NavBar.WIDTH, 0, 0, 0)
     navBar = ns.NavBar.new(frame, selectTab)
-    navBar.frame:SetPoint("TOPLEFT", SIDE_INSET, -TOP_INSET)
-    navBar.frame:SetPoint("BOTTOMLEFT", SIDE_INSET, BOTTOM_INSET)
+    navBar.frame:SetPoint("TOPRIGHT", frame, "TOPLEFT", 0, -TOP_INSET)
+    navBar.frame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", 0, BOTTOM_INSET)
     navBar.render(ns.NavBar.order(tabs))
-    local contentLeft = SIDE_INSET * 2 + ns.NavBar.WIDTH
+    local contentLeft = SIDE_INSET
     pageTitle = frame:CreateFontString(nil, "OVERLAY", ns.Theme.fonts.title)
     pageTitle:SetPoint("TOPLEFT", contentLeft, TITLE_TOP)
     pageTitle:SetJustifyH("LEFT")

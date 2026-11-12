@@ -1,11 +1,12 @@
 -- CONTRAT
--- Barre de navigation : colonne d'icônes à gauche de la fenêtre principale, libellé au survol, page active
--- marquée d'un cadre doré. Charger après Theme.lua, avant MainFrame.lua.
+-- Barre de navigation : onglets latéraux à la Blizzard (grimoire, métiers), collés hors du bord gauche de la
+-- fenêtre principale ; libellé au survol, page active surlignée. Charger après Theme.lua, avant MainFrame.lua.
 --   ns.NavBar.order(tabs) -> {{key, icon, label, order}...} : tabs = {[key] = tab}, triés par tab.order
 --     (sans ordre : après, par clé) ; pur
 --   ns.NavBar.pick(tabs, key?, saved?) -> clé ouverte : key si inscrite, sinon saved, sinon la première ; nil
 --     sans page ; pur
---   ns.NavBar.new(parent, onSelect) -> bar ; bar.frame (largeur NavBar.WIDTH, à ancrer par l'appelant) ;
+--   ns.NavBar.new(parent, onSelect) -> bar ; bar.frame (largeur NavBar.WIDTH, à ancrer par
+--     l'appelant hors de la fenêtre, TOPRIGHT sur son TOPLEFT) ;
 --     bar.render(pages) : un bouton par page (NavBar.order), clic = onSelect(key) ; bar.setActive(key)
 --   ns.NavBar.WIDTH, ns.NavBar.BUTTON
 
@@ -17,8 +18,12 @@ ns.NavBar = NavBar
 NavBar.BUTTON = 32
 NavBar.WIDTH = NavBar.BUTTON + 4
 
-local GAP = 6
+local GAP = 14
 local UNKNOWN_ICON = 134400
+local TAB_TEXTURE = "Interface\\SpellBook\\SpellBook-SkillLineTab"
+local HIGHLIGHT_TEXTURE = "Interface\\Buttons\\ButtonHilight-Square"
+local CHECKED_TEXTURE = "Interface\\Buttons\\CheckButtonHilight"
+local TAB_ART, TAB_ART_X, TAB_ART_Y = 64, 3, 11
 
 function NavBar.order(tabs)
     local pages = {}
@@ -46,7 +51,7 @@ function NavBar.pick(tabs, key, saved)
 end
 
 local function showLabel(button)
-    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+    GameTooltip:SetOwner(button, "ANCHOR_LEFT")
     GameTooltip:SetText(button.label or "")
     GameTooltip:Show()
 end
@@ -55,37 +60,22 @@ local function hideLabel()
     GameTooltip:Hide()
 end
 
-local function activeFrame(button)
-    local color = ns.Theme.colors.title
-    local frame = CreateFrame("Frame", nil, button)
-    frame:SetPoint("TOPLEFT", -2, 2)
-    frame:SetPoint("BOTTOMRIGHT", 2, -2)
-    for _, side in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" } }) do
-        local edge = frame:CreateTexture(nil, "OVERLAY")
-        edge:SetColorTexture(color.r, color.g, color.b, 1)
-        edge:SetHeight(2)
-        edge:SetPoint(side[1])
-        edge:SetPoint(side[2])
-    end
-    for _, side in ipairs({ { "TOPLEFT", "BOTTOMLEFT" }, { "TOPRIGHT", "BOTTOMRIGHT" } }) do
-        local edge = frame:CreateTexture(nil, "OVERLAY")
-        edge:SetColorTexture(color.r, color.g, color.b, 1)
-        edge:SetWidth(2)
-        edge:SetPoint(side[1])
-        edge:SetPoint(side[2])
-    end
-    return frame
-end
-
+-- Onglet de grimoire Blizzard retourné : l'attache plate de la texture vient contre le bord gauche de la fenêtre.
 local function newButton(bar, onSelect)
     local button = CreateFrame("Button", nil, bar.frame)
     button:SetSize(NavBar.BUTTON, NavBar.BUTTON)
+    local back = button:CreateTexture(nil, "BACKGROUND")
+    back:SetTexture(TAB_TEXTURE)
+    back:SetTexCoord(1, 0, 0, 1)
+    back:SetSize(TAB_ART, TAB_ART)
+    back:SetPoint("TOPRIGHT", TAB_ART_X, TAB_ART_Y)
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetAllPoints()
-    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.15)
-    button.active = activeFrame(button)
+    button:SetHighlightTexture(HIGHLIGHT_TEXTURE, "ADD")
+    button.active = button:CreateTexture(nil, "OVERLAY")
+    button.active:SetTexture(CHECKED_TEXTURE)
+    button.active:SetBlendMode("ADD")
+    button.active:SetAllPoints()
     button:SetScript("OnClick", function(self)
         onSelect(self.key)
     end)
@@ -115,7 +105,6 @@ function NavBar.new(parent, onSelect)
         for _, button in ipairs(bar.buttons) do
             local active = button:IsShown() and button.key == key
             button.active:SetShown(active)
-            button.icon:SetDesaturated(not active)
         end
     end
     return bar
