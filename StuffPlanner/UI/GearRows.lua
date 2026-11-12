@@ -61,6 +61,10 @@ local function addUpgradeLines(row)
     GameTooltip:AddLine(L.GEAR_TOOLTIP_REPLACE, 1, 0.82, 0)
     GameTooltip:AddDoubleLine(upgrade.name, upgrade.gainText, upgrade.nameColor.r, upgrade.nameColor.g,
         upgrade.nameColor.b, gain.r, gain.g, gain.b)
+    if upgrade.secondaryLabel then
+        local second = upgrade.secondaryColor
+        GameTooltip:AddDoubleLine(" ", upgrade.secondaryLabel, 1, 1, 1, second.r, second.g, second.b)
+    end
     GameTooltip:AddLine(row.detailText, 1, 1, 1, true)
     GameTooltip:AddLine(L.GEAR_CLICK_HINT, HINT.r, HINT.g, HINT.b, true)
 end

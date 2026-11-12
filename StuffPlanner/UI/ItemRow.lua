@@ -14,7 +14,9 @@
 --   ns.ItemRow.new(parent, opts?) -> bouton construit (hauteur Theme.spacing.rowHeight, ou opts.height)
 --   ns.ItemRow.set(button, view) : view = {row?, questID, itemID, itemSource, link, icon, muted, name,
 --     nameColor, detail, detailColor, gain, gainColor, gain2, gain2Color, dimmed, checked, hint} ; champs
---     absents = vides ; gain2 (profil comparé) : sous gain, les deux centrés ensemble en hauteur ;
+--     absents = vides ; gain2 (profil comparé) : ItemRow.setGains ;
+--   ns.ItemRow.setGains(button, gain, gainColor, gain2?, gain2Color?) : gain à droite ; gain2 sous gain (les deux
+--     centrés ensemble en hauteur), ou à sa droite sur une ligne compacte ; rien sans colonne de gain ;
 --     button.view = view, button.row = view.row or view, button.questID, button.itemID
 -- Info-bulle : view.link (sinon item:<itemID>, sinon button.link) puis opts.tooltip, puis view.hint en gris
 -- et L.ROW_MENU_HINT (menu clic droit, si la ligne a une quête ou un objet et pas d'onRightClick).
@@ -26,6 +28,7 @@ local ItemRow = {}
 ns.ItemRow = ItemRow
 
 local GAIN_WIDTH = 70
+local COMPACT_GAIN2_WIDTH = 40
 local DIMMED_ALPHA = 0.5
 local MUTED_ICON_ALPHA = 0.6
 local CHECK_SIZE = 16
@@ -161,8 +164,12 @@ function ItemRow.build(button, opts)
         button.gain:SetWidth(gainWidth)
         button.gain:SetJustifyH("RIGHT")
         button.gain2 = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-        button.gain2:SetPoint("TOPRIGHT", button, "RIGHT", -4, -1)
-        button.gain2:SetWidth(gainWidth)
+        if opts.compact then
+            button.gain2:SetPoint("RIGHT", -4, 0)
+        else
+            button.gain2:SetPoint("TOPRIGHT", button, "RIGHT", -4, -1)
+        end
+        button.gain2:SetWidth(opts.compact and COMPACT_GAIN2_WIDTH or gainWidth)
         button.gain2:SetJustifyH("RIGHT")
     end
     buildTexts(button, opts, button.icon)
@@ -197,14 +204,25 @@ function ItemRow.set(button, view)
     setColor(button.name, view.nameColor)
     button.detail:SetText(view.detail or "")
     setColor(button.detail, view.detailColor or ns.Theme.colors.muted)
-    if button.gain then
-        local second = view.gain2 ~= nil and view.gain2 ~= ""
-        button.gain:SetText(view.gain or "")
-        setColor(button.gain, view.gainColor)
-        button.gain:ClearAllPoints()
-        button.gain:SetPoint(second and "BOTTOMRIGHT" or "RIGHT", button, "RIGHT", -4, second and 1 or 0)
-        button.gain2:SetShown(second)
-        button.gain2:SetText(view.gain2 or "")
-        setColor(button.gain2, view.gain2Color)
+    ItemRow.setGains(button, view.gain, view.gainColor, view.gain2, view.gain2Color)
+end
+
+function ItemRow.setGains(button, gain, gainColor, gain2, gain2Color)
+    if not button.gain then
+        return
     end
+    local second = gain2 ~= nil and gain2 ~= ""
+    button.gain:SetText(gain or "")
+    setColor(button.gain, gainColor)
+    button.gain:ClearAllPoints()
+    if second and button.itemRowOpts.compact then
+        button.gain:SetPoint("RIGHT", button.gain2, "LEFT", -4, 0)
+    elseif second then
+        button.gain:SetPoint("BOTTOMRIGHT", button, "RIGHT", -4, 1)
+    else
+        button.gain:SetPoint("RIGHT", -4, 0)
+    end
+    button.gain2:SetShown(second)
+    button.gain2:SetText(gain2 or "")
+    setColor(button.gain2, gain2Color)
 end

@@ -9,7 +9,8 @@
 --     row.alternatives, sinon caché (largeur 1) ; sous-lignes sous top (px depuis le haut), décalées de
 --     left, si row.expanded, gain aligné sur celui de la ligne ; cadre de sélection (mark).
 --   ns.AltLines.mark(button) : cadre de sélection des sous-lignes (RowActions.mark), sur SP_SELECTION_CHANGED
--- Sous-ligne (RowPresenter.alternative, ns.ItemRow compacte) : icône, nom, lineText, gain ; clic = RowActions.click
+-- Sous-ligne (RowPresenter.alternative, ns.ItemRow compacte) : icône, nom, lineText, gain (et gain comparé à
+-- sa droite) ; clic = RowActions.click
 -- (fiche, Maj : repère, Ctrl : essayage), survol = info-bulle de l'objet.
 
 local _, ns = ...
@@ -94,7 +95,8 @@ function AltLines.render(button, row, top, left)
             ns.ItemRow.set(line, {
                 row = alt, questID = alt.questID, itemID = alt.itemID, itemSource = alt.itemSource,
                 icon = alt.icon, name = alt.name, nameColor = alt.nameColor, detail = alt.lineText,
-                gain = alt.gainLabel, gainColor = alt.gainColor,
+                gain = alt.gainLabel, gainColor = alt.gainColor, gain2 = alt.secondaryLabel,
+                gain2Color = alt.secondaryColor,
             })
         end
     end

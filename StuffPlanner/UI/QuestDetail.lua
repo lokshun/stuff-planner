@@ -45,8 +45,7 @@ local function fillItemRow(row, data)
     row.icon:SetTexture(data.icon or W.UNKNOWN_ICON)
     row.name:SetText(data.name)
     W.setColor(row.name, data.nameColor)
-    row.gain:SetText(data.gainLabel)
-    W.setColor(row.gain, data.gainColor)
+    ns.ItemRow.setGains(row, data.gainLabel, data.gainColor, data.secondaryLabel, data.secondaryColor)
     local tags = {}
     if data.best then
         tags[#tags + 1] = ns.Theme.colorize(L.DETAIL_BEST, ns.Theme.colors.gain)

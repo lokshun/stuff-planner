@@ -66,8 +66,7 @@ local function fillItem(view)
     itemRow.name:SetText(item.name)
     W.setColor(itemRow.name, item.nameColor)
     itemRow.tag:SetText(item.badge and ns.Theme.colorize(item.badge, item.badgeColor) or "")
-    itemRow.gain:SetText(item.gainLabel)
-    W.setColor(itemRow.gain, item.gainColor)
+    ns.ItemRow.setGains(itemRow, item.gainLabel, item.gainColor, item.secondaryLabel, item.secondaryColor)
 end
 
 local function fillRecipe(view)
@@ -76,7 +75,7 @@ local function fillRecipe(view)
     recipeRow.name:SetText(view.title)
     W.setColor(recipeRow.name, ns.Theme.colors.text)
     recipeRow.tag:SetText("")
-    recipeRow.gain:SetText("")
+    ns.ItemRow.setGains(recipeRow, "")
 end
 
 local function placeReagents(place, view)

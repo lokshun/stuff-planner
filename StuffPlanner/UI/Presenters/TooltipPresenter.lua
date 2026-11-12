@@ -6,8 +6,10 @@
 --       jamais d'avertissement) ; price = prix d'hôtel des ventes en cuivre (Prices.get) | nil ;
 --     nil si Scoring.delta ne donne rien (objet inconnu, non équipable…) ;
 --     view = {gain = L.TOOLTIP_GAIN (points signés, Format.points ; sans flèche, absente de la
---               police des info-bulles ; puis « · » SecondaryGain.text si le profil secondaire gagne),
+--               police des info-bulles ; avec profil secondaire : suivi du nom court du profil (spé connue)),
 --               gainColor, upgrade = gain > 0 ici,
+--             second = L.TOOLTIP_GAIN (SecondaryGain.text : points et nom) | nil sans profil secondaire,
+--               secondColor (SecondaryGain.color) : ligne sous gain, même format,
 --             details = {L.TOOLTIP_STAT...} : 3 stats au plus dont valeur * poids pèse le plus
 --               (valeur absolue décroissante, puis clé), plafonds ignorés,
 --             warning = L.TOOLTIP_UNCONFIRMED | nil (objet confidence 1), warningColor,
@@ -73,10 +75,6 @@ local function details(stats, weights)
     return lines
 end
 
-local function gainText(delta)
-    return L.TOOLTIP_GAIN:format(ns.Format.points(delta.abs))
-end
-
 local COPPER_PER_GOLD = 10000
 
 local function perGold(delta, price)
@@ -99,14 +97,21 @@ function TooltipPresenter.build(itemID, player, profile, data, live, price)
     local item = live or data.item(itemID) or {}
     local _, _, color = ns.RowPresenter.gain(delta)
     local second, name = ns.SecondaryGain.lookup(itemID, live, player, data)
-    local extra = second and ns.SecondaryGain.text(second, name)
+    local value = ns.Format.points(delta.abs)
+    if second and profile.spec then
+        value = L.SECONDARY_GAIN:format(value, ns.ProfilePresenter.shortName(profile))
+    end
     local view = {
-        gain = extra and gainText(delta) .. " · " .. extra or gainText(delta),
+        gain = L.TOOLTIP_GAIN:format(value),
         gainColor = color,
         upgrade = delta.abs > 0,
         details = details(item.stats, profile.weights or {}),
         perGold = perGold(delta, price),
     }
+    if second then
+        view.second = L.TOOLTIP_GAIN:format(L.SECONDARY_GAIN:format(ns.SecondaryGain.value(second), name))
+        view.secondColor = ns.SecondaryGain.color(second)
+    end
     if delta.abs <= 0 and second then
         view.keep, view.keepColor = ns.SecondaryGain.keep(second, name), ns.Theme.colors.instance
     end

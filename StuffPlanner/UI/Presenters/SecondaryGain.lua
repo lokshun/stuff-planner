@@ -6,6 +6,7 @@
 --     live.key) ; sinon Results.secondaryDelta(itemID) ; name = ProfilePresenter.shortName(profil)
 --   ns.SecondaryGain.text(delta, name) -> « +3,1 (Soin) » (points) | nil si gain ≤ 0
 --   ns.SecondaryGain.value(delta) -> « +3,1 » (Format.points)
+--   ns.SecondaryGain.color(delta) -> Theme.colors.instance si gain > 0, sinon muted
 --   ns.SecondaryGain.keep(delta, name) -> L.KEEP_FOR (nom) | nil si gain ≤ 0
 
 local _, ns = ...
@@ -45,6 +46,10 @@ end
 
 function SecondaryGain.value(delta)
     return ns.Format.points(delta.abs)
+end
+
+function SecondaryGain.color(delta)
+    return improves(delta) and ns.Theme.colors.instance or ns.Theme.colors.muted
 end
 
 function SecondaryGain.keep(delta, name)

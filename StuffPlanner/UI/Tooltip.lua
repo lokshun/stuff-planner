@@ -52,6 +52,9 @@ local function addLines(tooltip, itemID, link)
         return
     end
     addLine(tooltip, view.gain, view.gainColor)
+    if view.second then
+        addLine(tooltip, view.second, view.secondColor)
+    end
     for _, text in ipairs(view.details) do
         addLine(tooltip, DETAIL_INDENT .. text, ns.Theme.colors.muted)
     end

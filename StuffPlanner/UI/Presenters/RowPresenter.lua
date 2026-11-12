@@ -201,7 +201,7 @@ function RowPresenter.present(entry, data)
         local second = ns.SecondaryGain.lookup(entry.itemID)
         if second then
             row.secondaryLabel = ns.SecondaryGain.value(second)
-            row.secondaryColor = second.abs > 0 and ns.Theme.colors.instance or ns.Theme.colors.muted
+            row.secondaryColor = ns.SecondaryGain.color(second)
         end
     end
     row.detailText = detailText(row)
