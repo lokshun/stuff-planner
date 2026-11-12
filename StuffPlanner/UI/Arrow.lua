@@ -140,7 +140,7 @@ end
 local function create()
     local theme = ns.Theme
     frame = CreateFrame("Frame", nil, UIParent)
-    frame:SetSize(WIDTH, ARROW_SIZE + 64)
+    frame:SetSize(WIDTH, ARROW_SIZE + 76)
     frame:SetFrameStrata("LOW")
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
@@ -169,7 +169,8 @@ local function create()
     giverText = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     giverText:SetPoint("TOP", titleText, "BOTTOM", 0, -2)
     giverText:SetWidth(WIDTH)
-    giverText:SetWordWrap(false)
+    giverText:SetWordWrap(true)
+    giverText:SetMaxLines(2) -- libellé d'étape long (blocage « niv. N ») : 2 lignes plutôt que « … »
     distanceText = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     distanceText:SetPoint("TOP", giverText, "BOTTOM", 0, -2)
     zoneText = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
