@@ -169,13 +169,19 @@ local function onImport()
         setStatus(ns.ProfilePresenter.importError(code, detail), ns.Theme.colors.loss)
         return
     end
-    local name = ns.ProfilePresenter.newName(L.PROFILE_CUSTOM, ns.Profiles.available(), ns.Profiles.get)
+    local base = profile.name or L.PROFILE_CUSTOM
+    local name = ns.ProfilePresenter.newName(base, ns.Profiles.available(), ns.Profiles.get)
     if not ns.Profiles.saveCustom(nil, name, profile) then
         setStatus(L.PROFILE_ERR_FULL, ns.Theme.colors.loss)
         return
     end
     ioBox:ClearFocus()
-    setStatus(L.PROFILE_IMPORTED, ns.Theme.colors.gain)
+    local ignored = ns.ProfilePresenter.ignoredText(profile.ignored)
+    if ignored then
+        setStatus(L.PROFILE_IMPORTED_IGNORED:format(ignored), ns.Theme.colors.warning)
+    else
+        setStatus(L.PROFILE_IMPORTED, ns.Theme.colors.gain)
+    end
     ns.MainFrame.refresh()
 end
 

@@ -81,6 +81,7 @@ Engine\Bearing.lua
 Profiles\Defaults.lua
 Profiles\Customs.lua
 Profiles\Manager.lua
+Profiles\PawnMap.lua
 Profiles\ProfileIO.lua
 Profiles\Priorities.lua
 Results.lua

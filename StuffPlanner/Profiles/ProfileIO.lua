@@ -1,10 +1,13 @@
 -- CONTRAT
 -- Chaîne de poids à copier-coller (import/export). Pur : aucun appel à l'API WoW.
--- Charger après Engine/StatKeys.lua.
+-- Charger après Engine/StatKeys.lua et Profiles/PawnMap.lua.
 --   ns.ProfileIO.encode({weights, caps?}) -> "SPW1;KEY=v,KEY=v;KEY=v"
 --     sections : version, poids, plafonds ; clés triées ; poids nuls omis ; 4 chiffres significatifs
---   ns.ProfileIO.decode(text) -> {weights, caps} | nil, code, détail?
---     espaces et retours à la ligne ignorés ; section des plafonds facultative
+--   ns.ProfileIO.decode(text) -> {weights, caps, name?, ignored?} | nil, code, détail?
+--     SPW1 : espaces et retours à la ligne ignorés ; section des plafonds facultative ; ni name ni ignored
+--     Échelle Pawn « ( Pawn: v1: "Nom": Stat=v, … ) » (4000 caractères au plus) : name = nom de l'échelle,
+--       stats converties par PawnMap.convert (ignored = stats non reprises), aucun plafond ; valeur X ou x :
+--       stat ignorée ; Class, Spec : non lues ; version > 1 ou paire malformée : FORMAT
 --     codes : EMPTY, TOO_LONG, PREFIX, FORMAT, STAT (détail = clé), VALUE (détail = clé),
 --     DUPLICATE (détail = clé), NO_WEIGHT ; poids dans [-1000, 1000], plafonds dans [0, 1000]
 
@@ -15,6 +18,10 @@ ns.ProfileIO = ProfileIO
 
 local PREFIX = "SPW1"
 local MAX_LENGTH = 2000
+local PAWN_MAX_LENGTH = 4000
+local PAWN_VERSION = 1
+local PAWN_START = "^%s*%(%s*Pawn%s*:"
+local PAWN_TAG = '^%s*%(%s*Pawn%s*:%s*v(%d+)%s*:%s*"([^"]+)"%s*:%s*(.-)%s*%)%s*$'
 local MAX_WEIGHT, MAX_CAP = 1000, 1000
 
 local function formatNumber(value)
@@ -81,9 +88,54 @@ local function decodeSection(text, low, high)
     return values
 end
 
+local function pawnValues(list)
+    local values = {}
+    for _, pair in ipairs(split(list, ",")) do
+        local stat, raw = pair:match("^%s*([%a%d]+)%s*=%s*(%S+)%s*$")
+        if not stat then
+            return nil, "FORMAT"
+        end
+        if values[stat] then
+            return nil, "DUPLICATE", stat
+        end
+        if ns.PawnMap.SKIPPED[stat] or raw == "X" or raw == "x" then
+            values[stat] = 0
+        else
+            local value = parseNumber(raw)
+            if not value or value < -MAX_WEIGHT or value > MAX_WEIGHT then
+                return nil, "VALUE", stat
+            end
+            values[stat] = value
+        end
+    end
+    return values
+end
+
+local function decodePawn(text)
+    if #text > PAWN_MAX_LENGTH then
+        return nil, "TOO_LONG"
+    end
+    local version, name, list = text:match(PAWN_TAG)
+    if not version or tonumber(version) > PAWN_VERSION or list == "" then
+        return nil, "FORMAT"
+    end
+    local values, code, detail = pawnValues(list)
+    if not values then
+        return nil, code, detail
+    end
+    local weights, ignored = ns.PawnMap.convert(values)
+    if next(weights) == nil then
+        return nil, "NO_WEIGHT"
+    end
+    return { weights = weights, caps = {}, name = name, ignored = ignored }
+end
+
 function ProfileIO.decode(text)
     if type(text) ~= "string" then
         return nil, "EMPTY"
+    end
+    if text:match(PAWN_START) then
+        return decodePawn(text)
     end
     text = text:gsub("%s+", "")
     if text == "" then

@@ -25,6 +25,7 @@
 --   newName(base, ids, get) -> base si aucun profil personnalisé de ids n'a ce libellé, sinon
 --     L.PROFILE_NAME_NUMBERED (base, premier numéro libre à partir de 2)
 --   shortName(profile) -> nom court : spé (L.SPEC_<jeton>) d'un profil par défaut, libellé d'un personnalisé
+--   ignoredText(list?) -> « A, B, C » (IGNORED_SHOWN premières, puis « … ») | nil si vide : stats Pawn ignorées
 --   importError(code, detail?) -> message localisé (L.IMPORT_ERR_<code>, FORMAT si inconnu)
 
 local _, ns = ...
@@ -57,6 +58,20 @@ local function label(profile)
         return profile.name or (profile.order and L.PROFILE_MY_STATS or L.PROFILE_CUSTOM)
     end
     return L.PROFILE_OPTION:format(specName(profile.spec), phaseName(profile.phase))
+end
+
+local IGNORED_SHOWN = 6
+
+function ProfilePresenter.ignoredText(list)
+    if not list or #list == 0 then
+        return nil
+    end
+    local shown = {}
+    for index = 1, math.min(#list, IGNORED_SHOWN) do
+        shown[index] = list[index]
+    end
+    local text = table.concat(shown, ", ")
+    return #list > IGNORED_SHOWN and text .. ", …" or text
 end
 
 function ProfilePresenter.shortName(profile)
