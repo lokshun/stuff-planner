@@ -73,6 +73,7 @@ Engine\FollowSteps.lua
 Engine\Distance.lua
 Engine\Travel.lua
 Engine\Planner.lua
+Engine\Wishlist.lua
 Engine\Calibration.lua
 Engine\Session.lua
 Engine\Tiers.lua
@@ -83,6 +84,7 @@ Profiles\Customs.lua
 Profiles\Manager.lua
 Profiles\PawnMap.lua
 Profiles\ProfileIO.lua
+Profiles\WishlistIO.lua
 Profiles\Priorities.lua
 Results.lua
 RouteResults.lua

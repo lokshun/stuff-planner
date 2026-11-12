@@ -29,6 +29,8 @@
 --   Donjon, raid = DUNGEON_RUN, RAID_RUN × 100 / chance (DEFAULT_CHANCE sans taux, MIN_CHANCE au
 --   moins) + trajet ; artisanat = CRAFT si player.professions[skillLine], CRAFT_UNKNOWN sinon.
 -- steps : étapes restantes de la quête (nil hors quête).
+--   effort(source, player, data, opts?) -> secondes, étapes (quête) | nil (source écartée) : effort d'une source
+--     seule, mêmes règles que rank (opts.isDone, includeRaids, travel, tuning) ; Wishlist.
 -- XP : quêtes seulement, nombre d'étapes restantes non grises ; 0 au niveau 60.
 
 local _, ns = ...
@@ -238,6 +240,15 @@ local function evaluateReference(candidate, delta, player, profile, data, opts, 
     local done = source.type == "quest" and opts.isDone ~= nil and opts.isDone(source.id) == true
     return { effort = effort, seconds = effort, xp = 0, hops = hops, steps = steps, level = level,
         priority = score / (effort / 60), done = done, beaten = delta.abs <= 0 }
+end
+
+function Planner.effort(source, player, data, opts)
+    opts = opts or {}
+    local seconds, _, _, steps = effortOf(source, player, data, opts, tuningOf(opts))
+    if not seconds or seconds <= 0 then
+        return nil
+    end
+    return seconds, steps
 end
 
 function Planner.rank(candidates, player, profile, data, opts)
