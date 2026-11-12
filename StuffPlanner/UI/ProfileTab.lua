@@ -222,4 +222,6 @@ local function create(parent)
     return panel
 end
 
-ns.MainFrame.addTab("profile", { create = create, refresh = refresh })
+ns.MainFrame.addTab("profile", {
+    create = create, refresh = refresh, order = 4, label = L.TAB_PROFILE, icon = "Interface\\Icons\\INV_Misc_Note_01",
+})

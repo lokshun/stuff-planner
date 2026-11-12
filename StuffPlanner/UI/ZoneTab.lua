@@ -143,7 +143,9 @@ local function create(parent)
     return panel
 end
 
-ns.MainFrame.addTab("zone", { create = create, refresh = refresh })
+ns.MainFrame.addTab("zone", {
+    create = create, refresh = refresh, order = 1, label = L.TAB_ZONE, icon = "Interface\\Icons\\INV_Misc_Map_01",
+})
 
 ns:On("SP_RESULTS_UPDATED", ns.MainFrame.refresh)
 

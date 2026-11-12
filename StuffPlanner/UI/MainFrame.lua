@@ -1,18 +1,19 @@
 -- CONTRAT
--- Fenêtre principale à onglets (ns.Skin). Charger après Core.lua, Compat.lua et Skin.lua, avant les onglets.
---   ns.MainFrame.addTab(key, tab) -> tab = {create(parent) -> frame, refresh()?} ; remplace le
---     panneau d'attente de cet onglet ; clés et ordre fixes : zone, route, gear, profile
---   ns.MainFrame.show([key]), hide(), toggle(), isShown() ; show sans clé : dernier onglet ouvert
---   ns.MainFrame.refresh() -> rafraîchit l'onglet affiché s'il est visible
+-- Fenêtre principale (ns.Skin) : barre d'icônes à gauche (ns.NavBar), titre de la page, engrenage et aide en
+-- haut à droite. Charger après Core.lua, Compat.lua, Skin.lua et NavBar.lua, avant les pages.
+--   ns.MainFrame.addTab(key, tab) -> tab = {create(parent) -> frame, refresh()?, icon, label, order} ;
+--     clés existantes : zone, route, gear, profile ; une page inscrite après la création est ajoutée à la barre
+--   ns.MainFrame.show([key]), hide(), toggle(), isShown() ; show sans clé : dernière page ouverte
+--     (StuffPlannerDB.ui.tab, NavBar.pick : page inconnue -> première)
+--   ns.MainFrame.refresh() -> rafraîchit la page affichée si la fenêtre est visible
 --   ns.MainFrame.frame() -> cadre de la fenêtre | nil avant le premier affichage (panneaux accolés)
+--   ns.MainFrame.resetPosition() -> fenêtre recentrée
 -- Commandes : /splan show (bascule, aussi par le menu des addons), /splan scale <0.6-1.5>.
 -- Sauvegarde : StuffPlannerDB.ui = {point, relativePoint, x, y, tab} ; échelle et opacité par ns.Options
--- (window.scale, window.alpha), appliquées sur SP_OPTION_CHANGED. Engrenage : ns.OptionsPanel.open().
---   ns.MainFrame.resetPosition() -> fenêtre recentrée
+-- (window.scale, window.alpha), appliquées sur SP_OPTION_CHANGED. Engrenage : ns.OptionsPanel.open() ;
+-- « ? » : info-bulle des gestes (clics des lignes, menu).
 -- Fermeture par Échap (OnKeyDown, sans nom global) ; cachée en combat, ouverte hors combat seulement.
 -- Créée au premier affichage : rien n'est construit tant que le joueur ne l'ouvre pas.
--- Boutons d'onglet réduits (Theme.fitWidths) si les libellés dépassent la largeur : texte tronqué,
--- libellé complet en info-bulle.
 
 local _, ns = ...
 
@@ -21,17 +22,14 @@ local L = ns.L
 local MainFrame = {}
 ns.MainFrame = MainFrame
 
-local WIDTH, HEIGHT = 460, 520
-local TAB_KEYS = { "zone", "route", "gear", "profile" }
-local TAB_LABELS = { zone = "TAB_ZONE", route = "TAB_ROUTE", gear = "TAB_GEAR", profile = "TAB_PROFILE" }
+local CONTENT_WIDTH, HEIGHT = 436, 520
 local PORTRAIT = ns.ICON -- logo de l'addon
 local GEAR_ICON = "Interface\\Icons\\INV_Misc_Gear_01"
-local TOP_INSET, SIDE_INSET, BOTTOM_INSET = 60, 12, 12
--- Boutons d'onglet : marge gauche (portrait), marge droite, rembourrage du texte, largeur minimale.
-local TAB_LEFT, TAB_RIGHT, TAB_PADDING, TAB_TEXT_INSET, TAB_MIN_WIDTH = 64, 10, 24, 12, 40
+local HELP_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
+local TOP_INSET, SIDE_INSET, BOTTOM_INSET, TITLE_TOP = 60, 12, 12, -34
 
-local frame
-local tabs, panels, buttons = {}, {}, {}
+local frame, navBar, pageTitle
+local tabs, panels = {}, {}
 local current
 
 local function settings()
@@ -56,44 +54,42 @@ local function restorePosition()
     frame:SetAlpha(ns.Options.get("window.alpha"))
 end
 
-local function createGear()
+local function iconButton(icon, anchor, x, onClick, onEnter)
+    local button = CreateFrame("Button", nil, frame)
+    button:SetSize(18, 18)
     -- Au-dessus du cadre du modèle (TitleContainer, NineSlice) : sinon caché sur Forever.
-    local close = frame.CloseButton
-    local gear = CreateFrame("Button", nil, frame)
-    gear:SetSize(18, 18)
-    gear:SetFrameLevel((close or frame):GetFrameLevel() + 2)
-    if close then
-        gear:SetPoint("RIGHT", close, "LEFT", -2, 0)
-    else
-        gear:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -26, -3)
-    end
-    gear:SetNormalTexture(GEAR_ICON)
-    gear:SetHighlightTexture(GEAR_ICON, "ADD")
-    gear:SetScript("OnClick", function()
+    button:SetFrameLevel((frame.CloseButton or frame):GetFrameLevel() + 2)
+    button:SetPoint("RIGHT", anchor, "LEFT", x, 0)
+    button:SetNormalTexture(icon)
+    button:SetHighlightTexture(icon, "ADD")
+    button:SetScript("OnClick", onClick)
+    button:SetScript("OnEnter", onEnter)
+    button:SetScript("OnLeave", GameTooltip_Hide)
+    return button
+end
+
+local function createButtons()
+    local gear = iconButton(GEAR_ICON, frame.CloseButton, -2, function()
         if ns.OptionsPanel then
             ns.OptionsPanel.open()
         end
-    end)
-    gear:SetScript("OnEnter", function(self)
+    end, function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(L.OPTIONS_OPEN)
         GameTooltip:Show()
     end)
-    gear:SetScript("OnLeave", GameTooltip_Hide)
-end
-
-local function placeholder(parent)
-    local panel = CreateFrame("Frame", nil, parent)
-    local text = panel:CreateFontString(nil, "OVERLAY", ns.Theme.fonts.body)
-    text:SetPoint("CENTER")
-    text:SetText(L.TAB_SOON)
-    return panel
+    iconButton(HELP_ICON, gear, -4, nil, function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(L.WINDOW_TITLE)
+        GameTooltip:AddLine(L.ROW_CLICK_HINT, 1, 1, 1, true)
+        GameTooltip:AddLine(L.ROW_MENU_HINT, 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
 end
 
 local function panelFor(key)
     if not panels[key] then
-        local tab = tabs[key]
-        local panel = tab and tab.create(frame.content) or placeholder(frame.content)
+        local panel = tabs[key].create(frame.content)
         panel:SetAllPoints(frame.content)
         panels[key] = panel
     end
@@ -101,16 +97,17 @@ local function panelFor(key)
 end
 
 local function selectTab(key)
+    if not key then
+        return
+    end
     current = key
     settings().tab = key
-    for _, tabKey in ipairs(TAB_KEYS) do
-        local active = tabKey == key
-        if panels[tabKey] then
-            panels[tabKey]:SetShown(active)
-        end
-        buttons[tabKey]:SetEnabled(not active)
+    for tabKey, panel in pairs(panels) do
+        panel:SetShown(tabKey == key)
     end
     panelFor(key):Show()
+    pageTitle:SetText(tabs[key].label or "")
+    navBar.setActive(key)
     MainFrame.refresh()
 end
 
@@ -122,51 +119,9 @@ local function onKeyDown(self, key)
     end
 end
 
-local function showLabel(button)
-    GameTooltip:SetOwner(button, "ANCHOR_TOP")
-    GameTooltip:SetText(button:GetText())
-    GameTooltip:Show()
-end
-
-local function fitTabButtons()
-    local widths = {}
-    for i, key in ipairs(TAB_KEYS) do
-        widths[i] = buttons[key]:GetFontString():GetStringWidth() + TAB_PADDING
-    end
-    local available = WIDTH - TAB_LEFT - TAB_RIGHT
-    local fitted, shrunk = ns.Theme.fitWidths(widths, available, ns.Theme.spacing.gap, TAB_MIN_WIDTH)
-    for i, key in ipairs(TAB_KEYS) do
-        local button = buttons[key]
-        button:SetWidth(fitted[i])
-        local text = button:GetFontString()
-        text:SetWordWrap(false)
-        text:SetWidth(shrunk and fitted[i] - TAB_TEXT_INSET or 0)
-        button:SetScript("OnEnter", shrunk and fitted[i] < widths[i] and showLabel or nil)
-        button:SetScript("OnLeave", shrunk and GameTooltip_Hide or nil)
-    end
-end
-
-local function createTabButtons()
-    local previous
-    for _, key in ipairs(TAB_KEYS) do
-        local button = ns.Skin.button(frame)
-        button:SetText(L[TAB_LABELS[key]])
-        button:SetHeight(22)
-        if previous then
-            button:SetPoint("LEFT", previous, "RIGHT", ns.Theme.spacing.gap, 0)
-        else
-            button:SetPoint("TOPLEFT", frame, "TOPLEFT", TAB_LEFT, -30)
-        end
-        button:SetScript("OnClick", function()
-            selectTab(key)
-        end)
-        buttons[key], previous = button, button
-    end
-    fitTabButtons()
-end
-
 local function create()
-    frame = ns.Skin.window({ width = WIDTH, height = HEIGHT, title = L.WINDOW_TITLE, portrait = PORTRAIT })
+    local width = CONTENT_WIDTH + ns.NavBar.WIDTH + SIDE_INSET * 3
+    frame = ns.Skin.window({ width = width, height = HEIGHT, title = L.WINDOW_TITLE, portrait = PORTRAIT })
     frame:SetMovable(true)
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
@@ -176,17 +131,28 @@ local function create()
     end)
     frame:EnableKeyboard(true)
     frame:SetScript("OnKeyDown", onKeyDown)
+    navBar = ns.NavBar.new(frame, selectTab)
+    navBar.frame:SetPoint("TOPLEFT", SIDE_INSET, -TOP_INSET)
+    navBar.frame:SetPoint("BOTTOMLEFT", SIDE_INSET, BOTTOM_INSET)
+    navBar.render(ns.NavBar.order(tabs))
+    local contentLeft = SIDE_INSET * 2 + ns.NavBar.WIDTH
+    pageTitle = frame:CreateFontString(nil, "OVERLAY", ns.Theme.fonts.title)
+    pageTitle:SetPoint("TOPLEFT", contentLeft, TITLE_TOP)
+    pageTitle:SetJustifyH("LEFT")
     frame.content = CreateFrame("Frame", nil, frame)
-    frame.content:SetPoint("TOPLEFT", SIDE_INSET, -TOP_INSET)
+    frame.content:SetPoint("TOPLEFT", contentLeft, -TOP_INSET)
     frame.content:SetPoint("BOTTOMRIGHT", -SIDE_INSET, BOTTOM_INSET)
-    createTabButtons()
-    createGear()
+    createButtons()
     restorePosition()
     frame:Hide()
 end
 
 function MainFrame.addTab(key, tab)
     tabs[key] = tab
+    if navBar then
+        navBar.render(ns.NavBar.order(tabs))
+        navBar.setActive(current)
+    end
 end
 
 function MainFrame.frame()
@@ -212,7 +178,7 @@ function MainFrame.show(key)
         create()
     end
     frame:Show()
-    selectTab(TAB_LABELS[key] and key or settings().tab or TAB_KEYS[1])
+    selectTab(ns.NavBar.pick(tabs, key, settings().tab))
 end
 
 function MainFrame.hide()

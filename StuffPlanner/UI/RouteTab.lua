@@ -251,7 +251,9 @@ local function create(parent)
     return panel
 end
 
-ns.MainFrame.addTab("route", { create = create, refresh = refresh })
+ns.MainFrame.addTab("route", {
+    create = create, refresh = refresh, order = 2, label = L.TAB_ROUTE, icon = "Interface\\Icons\\INV_Misc_Book_09",
+})
 
 ns:On("SP_ROUTE_UPDATED", ns.MainFrame.refresh)
 ns:On("SP_PLAYER_CHANGED", ns.MainFrame.refresh)

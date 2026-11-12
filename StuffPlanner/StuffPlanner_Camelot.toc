@@ -129,6 +129,7 @@ DungeonRun.lua
 Data\Timings.lua
 Data\History.lua
 Data\Alts.lua
+UI\NavBar.lua
 UI\MainFrame.lua
 UI\Chips.lua
 UI\RowMenu.lua

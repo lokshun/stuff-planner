@@ -162,7 +162,9 @@ local function create(parent)
     return panel
 end
 
-ns.MainFrame.addTab("gear", { create = create, refresh = refresh })
+ns.MainFrame.addTab("gear", {
+    create = create, refresh = refresh, order = 3, label = L.TAB_GEAR, icon = "Interface\\Icons\\INV_Chest_Chain_05",
+})
 
 ns:On("SP_SELECTION_CHANGED", function()
     if scrollBox then
