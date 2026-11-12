@@ -13,7 +13,9 @@
 -- « leveling » avant ; l'autre phase si celle-ci manque. Manuel disparu : automatique.
 -- Profils personnalisés (ns.Customs, StuffPlannerCharDB.profiles.customs ; ancien `custom` repris) :
 --   isCustom(id) ; profil construit {id, spec = "CUSTOM", name?, source = « priorities » (order) | « import »,
---     weights, caps, order?, class, fallback = profil de baseID() | nil (Scoring : repli hors profil)}
+--     weights, caps, order?, class, fallback = profil de baseID() | nil (Scoring : repli hors profil)} ;
+--     avec order : rankWeights = poids de rang sauvegardés, weights = StatValue.expand(rankWeights, classe,
+--     niveau), recalculés quand le niveau change (StatValue absent : poids de rang tels quels)
 --   saveCustom(id | nil, name?, {weights, caps, order?}) -> id | nil, code (FULL, UNKNOWN) : enregistre (nil =
 --     nouveau), active en manuel, émet même s'il était déjà actif
 --   renameCustom(id, text) -> bool, code (NAME, UNKNOWN), sans message ; deleteCustom(id) -> bool, retour à
@@ -79,11 +81,17 @@ local function custom(id)
             weights = copy(entry.weights),
             caps = copy(entry.caps),
             order = order,
+            rankWeights = order and copy(entry.weights) or nil,
         }
         built[entry] = profile
     end
     profile.name = entry.name
     profile.class = playerClass()
+    local level = UnitLevel("player")
+    if profile.rankWeights and ns.StatValue and profile.level ~= level then
+        profile.level = level
+        profile.weights = ns.StatValue.expand(profile.rankWeights, profile.class, level)
+    end
     profile.fallback = defaults()[Profiles.baseID()]
     return profile
 end

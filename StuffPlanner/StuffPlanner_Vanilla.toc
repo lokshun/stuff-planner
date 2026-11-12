@@ -62,6 +62,7 @@ Data\Collector.lua
 Data\Loader.lua
 Data\Export.lua
 Engine\StatKeys.lua
+Engine\StatValue.lua
 Engine\StatParser.lua
 Data\ItemProbe.lua
 Engine\Proficiency.lua

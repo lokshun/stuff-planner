@@ -9,7 +9,8 @@
 --     {id, active}}}, …} (ordre de ids, case absente si la phase manque), extras = {{id, label,
 --     active}, …} (profils CUSTOM : Mes stats ou importés)} ; active = id == activeID ; secondary = true sur
 --     la case ou le profil personnalisé de secondaryID (absent ailleurs)
---   weightRows(profile) -> {{key, label, valueText, capText, fraction}, …} : poids décroissant puis
+--   weightRows(profile) -> {{key, label, valueText, capText, fraction}, …} : poids (rankWeights s'il existe :
+--     poids de rang de « Mes stats », pas les poids effectifs) décroissant puis
 --     clé ; fraction = poids / plus fort poids (0-1, 0 si négatif ou sans poids positif) ;
 --     clés plafonnées sans poids incluses (poids 0) ; vide sans profil
 --   priorityRows(order, weights?, caps?, cappable?) -> {{key, label = "<rang>. <stat>", weightText,
@@ -125,7 +126,7 @@ function ProfilePresenter.weightRows(profile)
     if not profile then
         return {}
     end
-    local weights, caps = profile.weights or {}, profile.caps or {}
+    local weights, caps = profile.rankWeights or profile.weights or {}, profile.caps or {}
     local keys, seen = {}, {}
     for _, values in ipairs({ weights, caps }) do
         for key in pairs(values) do
@@ -167,7 +168,7 @@ function ProfilePresenter.tooltip(profile, auto)
     local name = label(profile)
     local tip = { title = auto and L.PROFILE_TOOLTIP_AUTO:format(name) or name, lines = {}, more = 0 }
     for _, row in ipairs(ProfilePresenter.weightRows(profile)) do
-        if ((profile.weights or {})[row.key] or 0) > 0 then
+        if ((profile.rankWeights or profile.weights or {})[row.key] or 0) > 0 then
             if #tip.lines < TOOLTIP_LINES then
                 tip.lines[#tip.lines + 1] = { label = row.label, valueText = row.valueText, capText = row.capText }
             else
