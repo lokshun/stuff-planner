@@ -8,6 +8,8 @@
 --   ns.MainFrame.refresh() -> rafraîchit la page affichée si la fenêtre est visible
 --   ns.MainFrame.frame() -> cadre de la fenêtre | nil avant le premier affichage (panneaux accolés)
 --   ns.MainFrame.resetPosition() -> fenêtre recentrée
+--   ns.MainFrame.setBehind(on) : fenêtre passée sous le panneau de réglages du client (strate MEDIUM, Échap
+--     laissé au client) tant que on est vrai
 -- Commandes : /splan show (bascule, aussi par le menu des addons), /splan scale <0.6-1.5>.
 -- Sauvegarde : StuffPlannerDB.ui = {point, relativePoint, x, y, tab} ; échelle et opacité par ns.Options
 -- (window.scale, window.alpha), appliquées sur SP_OPTION_CHANGED. Engrenage : ns.OptionsPanel.open() ;
@@ -31,6 +33,7 @@ local TOP_INSET, SIDE_INSET, BOTTOM_INSET, TITLE_TOP = 60, 12, 12, -34
 local frame, navBar, pageTitle
 local tabs, panels = {}, {}
 local current
+local behind = false
 
 local function settings()
     return ns.DB.account("ui")
@@ -112,7 +115,7 @@ local function selectTab(key)
 end
 
 local function onKeyDown(self, key)
-    local escape = key == "ESCAPE"
+    local escape = key == "ESCAPE" and not behind
     self:SetPropagateKeyboardInput(not escape)
     if escape then
         self:Hide()
@@ -122,6 +125,7 @@ end
 local function create()
     local width = CONTENT_WIDTH + ns.NavBar.WIDTH + SIDE_INSET * 3
     frame = ns.Skin.window({ width = width, height = HEIGHT, title = L.WINDOW_TITLE, portrait = PORTRAIT })
+    frame:SetFrameStrata(behind and "MEDIUM" or "HIGH")
     frame:SetMovable(true)
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
@@ -179,6 +183,13 @@ function MainFrame.show(key)
     end
     frame:Show()
     selectTab(ns.NavBar.pick(tabs, key, settings().tab))
+end
+
+function MainFrame.setBehind(on)
+    behind = on and true or false
+    if frame then
+        frame:SetFrameStrata(behind and "MEDIUM" or "HIGH")
+    end
 end
 
 function MainFrame.hide()

@@ -7,6 +7,8 @@
 --     InterfaceOptionsFrame_OpenToCategory (appelé deux fois : le premier appel ne déroule pas la liste)
 --     Le client rouvre le menu du jeu (GameMenuFrame) en fermant le panneau : s'il était fermé à
 --     l'ouverture par l'addon, il est refermé à l'image suivante (crochet OnHide posé une fois).
+--   OnOptionsClosed(handle, fn) -> bool : fn() à chaque fermeture du panneau du client (SettingsPanel ou
+--     InterfaceOptionsFrame, selon handle) ; faux sans panneau
 
 local _, ns = ...
 
@@ -85,4 +87,13 @@ function Compat.OpenOptionsPanel(handle)
         return true
     end
     return false
+end
+
+function Compat.OnOptionsClosed(handle, fn)
+    local container = handle and (handle.category and _G.SettingsPanel or handle.frame and _G.InterfaceOptionsFrame)
+    if type(container) ~= "table" or type(container.HookScript) ~= "function" then
+        return false
+    end
+    container:HookScript("OnHide", fn)
+    return true
 end

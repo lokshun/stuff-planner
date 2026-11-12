@@ -6,6 +6,7 @@
 --   ns.OptionsWidgets.slider(parent, key, label, format(value) -> string)
 --   ns.OptionsWidgets.choice(parent, key, label, {{value, label}...}) : cases radio, une par valeur
 --   ns.OptionsWidgets.button(parent, label, onClick)
+--   ns.OptionsWidgets.note(parent, text) : texte explicatif sur plusieurs lignes, couleur atténuée
 -- Modèles du client présents sur Forever et Classic Era : UICheckButtonTemplate, UIRadioButtonTemplate,
 -- UIPanelButtonTemplate ; curseur = Slider nu avec textures du client (aucun modèle de curseur).
 
@@ -136,4 +137,18 @@ function Widgets.button(parent, text, onClick)
     button:SetScript("OnClick", onClick)
     button.height, button.refresh = 26, noRefresh
     return button
+end
+
+function Widgets.note(parent, text)
+    local frame = CreateFrame("Frame", nil, parent)
+    local fontString = label(frame, text, ns.Theme.fonts.small)
+    fontString:SetWidth(WIDTH)
+    fontString:SetWordWrap(true)
+    fontString:SetPoint("TOPLEFT")
+    local muted = ns.Theme.colors.muted
+    fontString:SetTextColor(muted.r, muted.g, muted.b)
+    local height = math.ceil(fontString:GetStringHeight()) + 6
+    frame:SetSize(WIDTH, height)
+    frame.height, frame.refresh = height, noRefresh
+    return frame
 end
