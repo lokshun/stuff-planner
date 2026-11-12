@@ -12,8 +12,10 @@
 --     rangé dans le palier de son level, même choix par emplacement ; lignes des autres paliers ignorées.
 --     alternatives = {[itemID d'une entrée] = {row...}} : jusqu'à ALTERNATIVES autres lignes du même
 --     groupe, gain > 0, effort plus faible que l'entrée ; effort croissant, puis gain, puis itemID ;
---     vide si past. Entrée d'artisanat (source.type "craft") : la quête de plus fort gain du groupe
---     (gain > 0, tout effort) est placée en tête.
+--     vide si past. Entrée d'artisanat (source.type "craft") : quests[slot] placée en tête.
+--     quests = {[slot] = row} (paliers non passés) : quête de plus fort gain du groupe hors objets choisis
+--     (gain > 0, tout effort), à défaut celle d'un palier suivant (le plus proche) ; anneaux et bijoux :
+--     même ligne sous les deux emplacements ; emplacement sans quête nulle part : absent.
 --   current(tiers, level) -> palier de build contenant level | nil (absent, vide ou tiers nil) ;
 --     un palier passé ne contient jamais le niveau du joueur
 
@@ -104,9 +106,9 @@ local function bestQuest(list, count)
 end
 
 -- Lignes plus faciles que list[index], hors des count premières (choisies) ; artisanat : quête en tête.
-local function easier(list, index, count)
+local function easier(list, index, count, groupQuest)
     local chosen, out = list[index], {}
-    local quest = chosen.source and chosen.source.type == "craft" and bestQuest(list, count) or nil
+    local quest = chosen.source and chosen.source.type == "craft" and groupQuest or nil
     for i = count + 1, #list do
         local row = list[i]
         if row ~= quest and row.delta.abs > 0 and row.effort and chosen.effort and row.effort < chosen.effort then
@@ -123,7 +125,7 @@ local function easier(list, index, count)
     return out
 end
 
-local function entriesOf(slots, past)
+local function entriesOf(slots, past, quests)
     local keys = {}
     for key in pairs(slots) do
         keys[#keys + 1] = key
@@ -132,11 +134,10 @@ local function entriesOf(slots, past)
     local entries, alternatives = {}, {}
     for _, key in ipairs(keys) do
         local list = slots[key]
-        table.sort(list, byPriority)
         local count = math.min(#list, GROUP_SIZE[key] or 1)
         for i = 1, count do
             entries[#entries + 1] = list[i]
-            local found = not past and easier(list, i, count) or {}
+            local found = not past and easier(list, i, count, quests[key]) or {}
             if #found > 0 then
                 alternatives[list[i].itemID] = found
             end
@@ -145,11 +146,39 @@ local function entriesOf(slots, past)
     return entries, alternatives
 end
 
+-- Quête imposée par groupe pour le palier index : la sienne hors choisies, sinon celle d'un palier suivant.
+local function questsOf(buckets, index)
+    local quests = {}
+    for i = #Tiers.BOUNDS, index, -1 do
+        for key, list in pairs(buckets[i] or {}) do
+            local count = i == index and math.min(#list, GROUP_SIZE[key] or 1) or 0
+            quests[key] = bestQuest(list, count) or quests[key]
+        end
+    end
+    return quests
+end
+
+local function bySlotKey(quests)
+    local out = {}
+    for key, row in pairs(quests) do
+        out[key] = row
+    end
+    for slot, key in pairs(GROUP) do
+        out[slot] = quests[key]
+    end
+    return out
+end
+
 function Tiers.build(rows, player, reference)
     local first = Tiers.indexOf(player.level)
     local buckets = {}
     group(rows, first, false, buckets)
     group(reference or {}, first, true, buckets)
+    for _, slots in pairs(buckets) do
+        for _, list in pairs(slots) do
+            table.sort(list, byPriority)
+        end
+    end
     local tiers = {}
     for index, bounds in ipairs(Tiers.BOUNDS) do
         if buckets[index] then
@@ -158,7 +187,9 @@ function Tiers.build(rows, player, reference)
                 max = bounds[2],
                 past = index < first or nil,
             }
-            tiers[#tiers].entries, tiers[#tiers].alternatives = entriesOf(buckets[index], index < first)
+            local quests = index < first and {} or questsOf(buckets, index)
+            tiers[#tiers].entries, tiers[#tiers].alternatives = entriesOf(buckets[index], index < first, quests)
+            tiers[#tiers].quests = bySlotKey(quests)
         end
     end
     return tiers

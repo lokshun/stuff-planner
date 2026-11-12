@@ -4,7 +4,7 @@
 -- Instantané du joueur : ns.Results.player() (partagé, cache de Scoring commun).
 --   ns.RouteResults.get() -> tiers (Tiers.build, paliers passés compris), evaluated (objets évalués) | nil, message
 --     (L.ROUTE_COMPUTING | BEST_NOT_READY | BEST_NO_PROFILE) ; lance le calcul s'il manque
---   ns.RouteResults.current(level) -> entrées, alternatives du palier contenant level (Tiers.current)
+--   ns.RouteResults.current(level) -> entrées, alternatives, quests du palier contenant level (Tiers.current)
 --     | nil ;
 --     ne lance pas le calcul
 --   ns.RouteResults.busy() -> vrai pendant le calcul
@@ -131,7 +131,7 @@ function RouteResults.current(level)
     if not tier then
         return nil
     end
-    return tier.entries, tier.alternatives
+    return tier.entries, tier.alternatives, tier.quests
 end
 
 local function shorter(best, row, source)
