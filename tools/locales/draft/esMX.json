@@ -303,6 +303,8 @@
   "ROLL_NEED_EMPTY": "Necesidad: casilla vacía",
   "ROLL_GREED": "Codicia",
   "ROLL_CHAT": "%s: %s",
+  "PROFILE_SECONDARY_HINT": "Clic derecho: comparar con este perfil",
+  "PROFILE_SECONDARY_ON": "Perfil de comparación · Clic derecho: quitar",
   "ARROW_ZONE": "Zona: %s (%d zonas)",
   "ARROW_ZONE_FAR": "Zona: %s",
   "ARROW_ON_TAXI": "En vuelo",

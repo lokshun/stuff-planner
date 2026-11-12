@@ -82,11 +82,17 @@ local gridActions = {
         ns.Profiles.deleteCustom(id)
         ns.MainFrame.refresh()
     end,
+    -- Clic droit : profil de comparaison ; sur le secondaire actuel, retiré ; profil actif refusé.
+    secondary = function(id)
+        if ns.Profiles.setSecondary(ns.Profiles.secondaryID() ~= id and id or nil) then
+            ns.MainFrame.refresh()
+        end
+    end,
 }
 
 local function renderGrid()
     local grid = ns.ProfilePresenter.grid(ns.Profiles.available(), ns.Profiles.get,
-        ns.Profiles.activeID(), ns.Profiles.manualID())
+        ns.Profiles.activeID(), ns.Profiles.manualID(), ns.Profiles.secondaryID())
     return ns.ProfileGrid.render(grid, selectProfile, describeProfile, gridActions)
 end
 

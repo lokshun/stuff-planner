@@ -122,6 +122,7 @@ UI\GearTab.lua
 UI\StatPicker.lua
 UI\PriorityRows.lua
 UI\PriorityList.lua
+UI\ProfileTooltip.lua
 UI\ProfileGrid.lua
 UI\ProfileSummary.lua
 UI\WeightBars.lua

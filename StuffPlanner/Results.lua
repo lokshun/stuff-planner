@@ -7,6 +7,9 @@
 --   ns.Results.delta(itemID) -> Scoring.delta pour cet instantané et le profil actif, gardé ;
 --     nil si player() l'est
 --   ns.Results.busy() -> vrai pendant le calcul de la portée
+--   ns.Results.secondaryDelta(itemID) -> Scoring.delta pour le même instantané et Profiles.secondary() ;
+--     calculé à la demande seulement (aucun calcul de portée), gardé ; nil sans secondaire ou si player()
+--     l'est. SP_SECONDARY_CHANGED : oublié, puis SP_RESULTS_UPDATED (hors calcul en cours).
 -- SP_PLAYER_CHANGED : nouvel instantané, seuls les objets touchés sont oubliés (Recompute) ;
 -- SP_PROFILE_CHANGED, SP_DATA_READY, SP_ITEMS_CONFIRMED (stats lues en jeu), SP_QUEST_OBSERVED
 -- (récompenses observées) : tout est oublié.
@@ -24,6 +27,7 @@ ns.Results = Results
 local COMBAT_DELAY = 0.5
 
 local store = ns.Recompute.new()
+local secondaryStore = ns.Recompute.new()
 local current, job, sliceStart
 
 local function activeProfile()
@@ -53,6 +57,18 @@ function Results.delta(itemID)
         return nil
     end
     return store:delta(itemID)
+end
+
+function Results.secondaryDelta(itemID)
+    local player = snapshot(false)
+    local profile = player and ns.Profiles.secondary()
+    if not profile then
+        return nil
+    end
+    if secondaryStore.player ~= player or secondaryStore.profile ~= profile then
+        secondaryStore:apply(player, profile, ns.Data)
+    end
+    return secondaryStore:delta(itemID)
 end
 
 function Results.busy()
@@ -118,6 +134,7 @@ end
 local function restart()
     ns:RunOutOfCombat(function()
         store:reset()
+        secondaryStore:reset()
         start()
     end)
 end
@@ -129,6 +146,12 @@ ns:On("SP_PROFILE_CHANGED", restart)
 ns:On("SP_DATA_READY", restart)
 ns:On("SP_ITEMS_CONFIRMED", restart)
 ns:On("SP_QUEST_OBSERVED", restart)
+ns:On("SP_SECONDARY_CHANGED", function()
+    secondaryStore:reset()
+    if not Results.busy() then
+        ns:Send("SP_RESULTS_UPDATED")
+    end
+end)
 ns:On("SP_QUEST_LOG_CHANGED", function()
     if not Results.busy() then
         ns:Send("SP_RESULTS_UPDATED")

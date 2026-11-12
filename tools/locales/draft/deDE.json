@@ -303,6 +303,8 @@
   "ROLL_NEED_EMPTY": "Bedarf: leerer Platz",
   "ROLL_GREED": "Gier",
   "ROLL_CHAT": "%s: %s",
+  "PROFILE_SECONDARY_HINT": "Rechtsklick: mit diesem Profil vergleichen",
+  "PROFILE_SECONDARY_ON": "Vergleichsprofil · Rechtsklick: entfernen",
   "ARROW_ZONE": "Zone: %s (%d Zonen)",
   "ARROW_ZONE_FAR": "Zone: %s",
   "ARROW_ON_TAXI": "Im Flug",

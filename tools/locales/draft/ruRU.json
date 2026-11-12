@@ -306,6 +306,8 @@
   "ROLL_NEED_EMPTY": "Нужно: пустая ячейка",
   "ROLL_GREED": "Не откажусь",
   "ROLL_CHAT": "%s: %s",
+  "PROFILE_SECONDARY_HINT": "ПКМ: сравнить с этим профилем",
+  "PROFILE_SECONDARY_ON": "Профиль для сравнения · ПКМ: убрать",
   "ARROW_ZONE": "Зона: %s (%d зон)",
   "ARROW_ZONE_FAR": "Зона: %s",
   "ARROW_ON_TAXI": "В полете",

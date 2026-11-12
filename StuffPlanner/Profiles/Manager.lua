@@ -20,6 +20,11 @@
 --     l'automatique s'il était actif
 --   ns.Profiles.baseID() -> profil par défaut de départ : choix manuel s'il n'est pas personnalisé, sinon
 --     automatique ; nil si la classe n'en a pas
+-- Profil secondaire (comparaison, T12) : secondaryID() -> profileID | nil, gardé dans
+--   StuffPlannerCharDB.profiles.secondary, ignoré tant qu'il est inconnu ou égal au profil actif ;
+--   secondary() -> profil | nil ; setSecondary(id | nil) -> bool (false : profil actif, inconnu ou d'une autre
+--   classe) ; SP_SECONDARY_CHANGED(profileID | nil) émis si le secondaire change (setSecondary, ou deleteCustom
+--   de ce profil).
 -- SP_PROFILE_CHANGED(profileID) émis une fois par changement réel (set, saveCustom, deleteCustom, ou
 -- SP_PLAYER_CHANGED qui franchit le niveau 60) ; le premier calcul est silencieux. Abonné : Scoring.invalidate().
 
@@ -198,6 +203,31 @@ function Profiles.set(profileID)
     return true
 end
 
+function Profiles.secondaryID()
+    local id = store().secondary
+    if id and id ~= Profiles.activeID() and contains(Profiles.available(), id) then
+        return id
+    end
+    return nil
+end
+
+function Profiles.secondary()
+    local id = Profiles.secondaryID()
+    return id and lookup(id)
+end
+
+function Profiles.setSecondary(profileID)
+    if profileID ~= nil and (profileID == Profiles.activeID() or not contains(Profiles.available(), profileID)) then
+        return false
+    end
+    local known = Profiles.secondaryID()
+    store().secondary = profileID
+    if known ~= profileID then
+        ns:Send("SP_SECONDARY_CHANGED", profileID)
+    end
+    return true
+end
+
 function Profiles.saveCustom(id, name, profile)
     Profiles.activeID()
     local saved = store()
@@ -228,6 +258,10 @@ function Profiles.deleteCustom(id)
         saved.manual = nil
     end
     refresh()
+    if saved.secondary == id then
+        saved.secondary = nil
+        ns:Send("SP_SECONDARY_CHANGED", nil)
+    end
     return true
 end
 

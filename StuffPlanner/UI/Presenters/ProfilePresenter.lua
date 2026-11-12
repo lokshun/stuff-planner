@@ -4,10 +4,11 @@
 --     get(id) -> profil ; label = L.PROFILE_OPTION (spé, phase), L.PROFILE_CUSTOM pour le profil importé,
 --     L.PROFILE_MY_STATS s'il vient des priorités (champ order) ; profil personnalisé nommé : son nom ;
 --     spé sans libellé SPEC_<jeton> : jeton en casse de titre
---   grid(ids, get, activeID?, manualID?) -> {auto = {label, active = pas de choix manuel},
+--   grid(ids, get, activeID?, manualID?, secondaryID?) -> {auto = {label, active = pas de choix manuel},
 --     phases = {{key = "leveling" | "60", label}, …}, specs = {{spec, label, cells = {[phase] =
 --     {id, active}}}, …} (ordre de ids, case absente si la phase manque), extras = {{id, label,
---     active}, …} (profils CUSTOM : Mes stats ou importés)} ; active = id == activeID
+--     active}, …} (profils CUSTOM : Mes stats ou importés)} ; active = id == activeID ; secondary = true sur
+--     la case ou le profil personnalisé de secondaryID (absent ailleurs)
 --   weightRows(profile) -> {{key, label, valueText, capText, fraction}, …} : poids décroissant puis
 --     clé ; fraction = poids / plus fort poids (0-1, 0 si négatif ou sans poids positif) ;
 --     clés plafonnées sans poids incluses (poids 0) ; vide sans profil
@@ -68,7 +69,7 @@ function ProfilePresenter.options(ids, get, activeID)
     return options
 end
 
-function ProfilePresenter.grid(ids, get, activeID, manualID)
+function ProfilePresenter.grid(ids, get, activeID, manualID, secondaryID)
     local grid = {
         auto = { label = L.PROFILE_AUTO, active = manualID == nil },
         phases = {
@@ -82,7 +83,8 @@ function ProfilePresenter.grid(ids, get, activeID, manualID)
     for _, id in ipairs(ids) do
         local profile = get(id)
         if profile and profile.spec == CUSTOM_SPEC then
-            grid.extras[#grid.extras + 1] = { id = id, label = label(profile), active = id == activeID }
+            grid.extras[#grid.extras + 1] = { id = id, label = label(profile), active = id == activeID,
+                secondary = id == secondaryID or nil }
         elseif profile then
             local row = bySpec[profile.spec]
             if not row then
@@ -90,7 +92,7 @@ function ProfilePresenter.grid(ids, get, activeID, manualID)
                 bySpec[profile.spec] = row
                 grid.specs[#grid.specs + 1] = row
             end
-            row.cells[profile.phase] = { id = id, active = id == activeID }
+            row.cells[profile.phase] = { id = id, active = id == activeID, secondary = id == secondaryID or nil }
         end
     end
     return grid

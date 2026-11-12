@@ -1,11 +1,13 @@
 -- CONTRAT
 -- Tableau de choix du profil de l'onglet Profil : « Choix automatique », une ligne par spé
 -- (colonnes montée de niveau et 60), puis les profils personnalisés. Cadres seulement (vérifiés en jeu).
--- Charger après Theme.lua, ProfilePresenter.lua et Profiles/Customs.lua.
+-- Charger après Theme.lua, ProfilePresenter.lua, ProfileTooltip.lua et Profiles/Customs.lua.
 --   ns.ProfileGrid.create(parent) -> frame
 --   ns.ProfileGrid.render(grid, onSelect, describe?) -> hauteur (pixels) ; grid = ProfilePresenter.grid ;
 --     onSelect(id | nil) au clic (nil = automatique) ; describe(id | nil) -> ProfilePresenter.tooltip | nil,
---     affiché dans GameTooltip au survol d'une case ; actions? = {rename(id, text) -> bool, delete(id)} :
+--     affiché au survol d'une case (ProfileTooltip) ; actions? = {rename(id, text) -> bool, delete(id),
+--     secondary(id)?} : clic droit sur une case de profil = secondary(id) (case comparée en bleu, conseil au
+--     survol) ;
 --     boutons Renommer (champ sur la case ; Entrée, perte du focus ou nouveau clic sur Renommer gardent le
 --     nom, Échap annule) et Supprimer (second clic sur « Confirmer ? ») à droite de chaque profil personnalisé
 -- Case active : fond et texte verts. Aucune case n'est désactivée (cliquer l'active ne change rien).
@@ -37,22 +39,11 @@ local function setColor(region, color)
 end
 
 local function showTooltip(cell)
-    local tip = cell.describe and cell.describe(cell.profileID)
-    if not tip then
-        return
+    local hint
+    if cell.profileID and nameActions and nameActions.secondary and cell.state ~= true then
+        hint = cell.state == "secondary" and L.PROFILE_SECONDARY_ON or L.PROFILE_SECONDARY_HINT
     end
-    local colors = ns.Theme.colors
-    GameTooltip:SetOwner(cell, "ANCHOR_RIGHT")
-    GameTooltip:AddLine(tip.title, colors.title.r, colors.title.g, colors.title.b)
-    for _, line in ipairs(tip.lines) do
-        local right = line.capText ~= "" and line.valueText .. "  (" .. line.capText .. ")" or line.valueText
-        GameTooltip:AddDoubleLine(line.label, right, colors.text.r, colors.text.g, colors.text.b,
-            colors.muted.r, colors.muted.g, colors.muted.b)
-    end
-    if tip.more > 0 then
-        GameTooltip:AddLine(L.PROFILE_TOOLTIP_MORE:format(tip.more), colors.muted.r, colors.muted.g, colors.muted.b)
-    end
-    GameTooltip:Show()
+    ns.ProfileTooltip.show(cell, cell.describe and cell.describe(cell.profileID), hint)
 end
 
 local function newCell()
@@ -69,8 +60,13 @@ local function newCell()
     cell.text:SetPoint("RIGHT", -6, 0)
     cell.text:SetJustifyH("CENTER")
     cell.text:SetWordWrap(false)
-    cell:SetScript("OnClick", function(self)
-        self.onSelect(self.profileID)
+    cell:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    cell:SetScript("OnClick", function(self, button)
+        if button ~= "RightButton" then
+            self.onSelect(self.profileID)
+        elseif self.profileID and nameActions and nameActions.secondary then
+            nameActions.secondary(self.profileID)
+        end
     end)
     cell:SetScript("OnEnter", showTooltip)
     cell:SetScript("OnLeave", function()
@@ -80,7 +76,8 @@ local function newCell()
 end
 
 -- Case suivante, placée en (x, y) depuis le haut à gauche du tableau.
-local function placeCell(x, y, width, text, active, id, onSelect, describe)
+-- state : true (actif, vert), "secondary" (comparaison, bleu) ou faux.
+local function placeCell(x, y, width, text, state, id, onSelect, describe)
     used = used + 1
     local cell = cells[used] or newCell()
     cells[used] = cell
@@ -89,10 +86,11 @@ local function placeCell(x, y, width, text, active, id, onSelect, describe)
     cell:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
     cell:SetWidth(width)
     cell.text:SetText(text)
-    local tint = active and theme.colors.gain or theme.colors.border
-    cell.bg:SetColorTexture(tint.r, tint.g, tint.b, active and 0.35 or 0.1)
-    setColor(cell.text, active and theme.colors.gain or theme.colors.text)
-    cell.profileID, cell.onSelect, cell.describe = id, onSelect, describe
+    local color = state == true and theme.colors.gain or state and theme.colors.instance or nil
+    local tint = color or theme.colors.border
+    cell.bg:SetColorTexture(tint.r, tint.g, tint.b, color and 0.35 or 0.1)
+    setColor(cell.text, color or theme.colors.text)
+    cell.profileID, cell.onSelect, cell.describe, cell.state = id, onSelect, describe, state
     cell:Show()
 end
 
@@ -233,6 +231,7 @@ function ProfileGrid.render(grid, onSelect, describe, actions)
     local theme = ns.Theme
     local gap = theme.spacing.gap / 2
     used = 0
+    nameActions = actions
     placeCell(0, 0, LABEL_WIDTH + 2 * CELL_WIDTH + gap, grid.auto.label, grid.auto.active, nil, onSelect,
         describe)
     local y = -(CELL_HEIGHT + theme.spacing.gap)
@@ -257,7 +256,7 @@ function ProfileGrid.render(grid, onSelect, describe, actions)
             local cell = spec.cells[phase.key]
             if cell then
                 placeCell(LABEL_WIDTH + (index - 1) * (CELL_WIDTH + gap), y, CELL_WIDTH, phase.label,
-                    cell.active, cell.id, onSelect, describe)
+                    cell.active or (cell.secondary and "secondary"), cell.id, onSelect, describe)
             end
         end
         y = y - CELL_HEIGHT - gap
@@ -265,7 +264,6 @@ function ProfileGrid.render(grid, onSelect, describe, actions)
     for row = #grid.specs + 1, #labels do
         labels[row]:Hide()
     end
-    nameActions = actions
     local shown, placed = {}, 0
     for _, extra in ipairs(grid.extras) do
         y = y - gap
@@ -273,7 +271,8 @@ function ProfileGrid.render(grid, onSelect, describe, actions)
         if actions then
             width = width - 2 * (ACTION_WIDTH + gap)
         end
-        placeCell(0, y, width, extra.label, extra.active, extra.id, onSelect, describe)
+        placeCell(0, y, width, extra.label, extra.active or (extra.secondary and "secondary"), extra.id, onSelect,
+            describe)
         if actions then
             placed = placed + 1
             placeActions(placed, width, y, extra, actions)
