@@ -348,5 +348,9 @@
   "SOURCE_DETAIL_WORLD": "Добыча в мире",
   "SOURCE_DETAIL_CREATURE": "Существо",
   "SOURCE_DETAIL_ZONE": "Зона",
-  "FILTER_WORLD": "Мир"
+  "FILTER_WORLD": "Мир",
+  "OPTION_WINDOW_SKIN": "Стиль окна",
+  "OPTIONS_SKIN_NOTEBOOK": "Блокнот искателя приключений",
+  "OPTIONS_SKIN_BLIZZARD": "Blizzard",
+  "OPTIONS_RELOAD": "Перезагрузить интерфейс для применения"
 }

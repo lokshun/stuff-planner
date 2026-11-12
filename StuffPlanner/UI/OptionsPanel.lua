@@ -4,7 +4,8 @@
 -- Onboarding.lua.
 --   ns.OptionsPanel.open() -> ouvre le panneau (hors combat ; fenêtre principale cachée)
 -- Contenu construit au premier affichage, dans un cadre défilant ; contrôles relus à chaque affichage
--- et sur SP_OPTION_CHANGED (commandes /splan pris en compte). Sections : fenêtre, info-bulles,
+-- et sur SP_OPTION_CHANGED (commandes /splan pris en compte). Habillage (window.skin) : appliqué au
+-- rechargement, bouton « Recharger l'interface ». Sections : fenêtre, info-bulles,
 -- mini-suivi, carte, flèche et repère, suivi de suite de quêtes. Commandes : /splan options, /splan config.
 
 local _, ns = ...
@@ -48,6 +49,12 @@ local function resetPositions()
     ns.DungeonPanel.resetPosition()
 end
 
+local function reload()
+    if not InCombatLockdown() then
+        ReloadUI()
+    end
+end
+
 local function welcome()
     ns:RunOutOfCombat(ns.Onboarding.show)
 end
@@ -58,6 +65,11 @@ local function layout()
         W.header(nil, L.OPTIONS_SECTION_WINDOW),
         W.slider(nil, "window.scale", labelOf("window.scale"), decimal),
         W.slider(nil, "window.alpha", labelOf("window.alpha"), percent),
+        W.choice(nil, "window.skin", labelOf("window.skin"), {
+            { "notebook", L.OPTIONS_SKIN_NOTEBOOK },
+            { "blizzard", L.OPTIONS_SKIN_BLIZZARD },
+        }),
+        W.button(nil, L.OPTIONS_RELOAD, reload),
         W.checkbox(nil, "minimap.shown", labelOf("minimap.shown")),
         W.button(nil, L.OPTIONS_RESET_POSITIONS, resetPositions),
         W.button(nil, L.OPTIONS_WELCOME, welcome),

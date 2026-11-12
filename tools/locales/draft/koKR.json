@@ -344,5 +344,9 @@
   "SOURCE_DETAIL_WORLD": "필드 전리품",
   "SOURCE_DETAIL_CREATURE": "생물",
   "SOURCE_DETAIL_ZONE": "지역",
-  "FILTER_WORLD": "필드"
+  "FILTER_WORLD": "필드",
+  "OPTION_WINDOW_SKIN": "창 스타일",
+  "OPTIONS_SKIN_NOTEBOOK": "모험가의 수첩",
+  "OPTIONS_SKIN_BLIZZARD": "블리자드",
+  "OPTIONS_RELOAD": "적용하려면 UI 다시 불러오기"
 }

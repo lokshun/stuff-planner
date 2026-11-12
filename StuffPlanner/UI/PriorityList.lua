@@ -87,7 +87,7 @@ local handlers = {
 }
 
 local function button(parent, text, onClick)
-    local result = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local result = ns.Skin.button(parent)
     result:SetText(text)
     result:SetSize(result:GetFontString():GetStringWidth() + 24, BUTTON_HEIGHT)
     result:SetScript("OnClick", onClick)

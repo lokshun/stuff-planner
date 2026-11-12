@@ -18,6 +18,7 @@ ns.Options = Options
 local CATALOG = {
     { key = "window.scale", default = 1, min = 0.6, max = 1.5, step = 0.05, path = { "ui", "scale" } },
     { key = "window.alpha", default = 1, min = 0.3, max = 1, step = 0.05, path = { "ui", "alpha" } },
+    { key = "window.skin", default = "notebook", values = { "notebook", "blizzard" }, path = { "ui", "skin" } },
     { key = "minimap.shown", default = true, invert = true, path = { "ui", "minimap", "hide" } },
     { key = "tooltip.enabled", default = true, invert = true, path = { "ui", "tooltipDisabled" } },
     { key = "tooltip.alts", default = true, invert = true, path = { "ui", "tooltipAltsHidden" } },

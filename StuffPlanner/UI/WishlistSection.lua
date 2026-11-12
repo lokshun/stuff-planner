@@ -118,7 +118,7 @@ local function onExport()
 end
 
 local function smallButton(text, onClick)
-    local button = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    local button = ns.Skin.button(frame)
     button:SetText(text)
     button:SetSize(button:GetFontString():GetStringWidth() + 20, BOX_HEIGHT)
     button:SetScript("OnClick", onClick)

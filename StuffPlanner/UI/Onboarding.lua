@@ -31,7 +31,7 @@ end
 local function optionButton(index)
     local button = optionButtons[index]
     if not button then
-        button = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+        button = ns.Skin.button(frame)
         button:SetSize(BUTTON_WIDTH, BUTTON_HEIGHT)
         local column, row = (index - 1) % 2, math.floor((index - 1) / 2)
         button:SetPoint("TOPLEFT", bodyText, "BOTTOMLEFT", column * (BUTTON_WIDTH + 8),
@@ -99,7 +99,7 @@ local function onKeyDown(self, key)
 end
 
 local function button(text, onClick)
-    local result = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    local result = ns.Skin.button(frame)
     result:SetText(text)
     result:SetSize(100, BUTTON_HEIGHT)
     result:SetScript("OnClick", onClick)
@@ -108,17 +108,11 @@ end
 
 local function create()
     local theme = ns.Theme
-    frame = CreateFrame("Frame", nil, UIParent, "PortraitFrameTemplate")
-    frame:SetSize(WIDTH, HEIGHT)
+    frame = ns.Skin.window({ width = WIDTH, height = HEIGHT, title = L.ONBOARD_TITLE, portrait = PORTRAIT,
+        strata = "DIALOG" })
     frame:SetPoint("CENTER", 0, 80)
-    frame:SetFrameStrata("DIALOG")
-    frame:SetToplevel(true)
-    frame:SetClampedToScreen(true)
-    frame:EnableMouse(true)
     frame:EnableKeyboard(true)
     frame:SetScript("OnKeyDown", onKeyDown)
-    ns.Compat.SetFrameTitle(frame, L.ONBOARD_TITLE)
-    ns.Compat.SetFramePortrait(frame, PORTRAIT)
     stepText = frame:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     stepText:SetPoint("TOPLEFT", 70, -34)
     stepText:SetTextColor(theme.colors.muted.r, theme.colors.muted.g, theme.colors.muted.b)

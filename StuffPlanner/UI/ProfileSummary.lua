@@ -29,7 +29,7 @@ function ProfileSummary.create(parent, onEdit)
     local theme = ns.Theme
     frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(parent:GetWidth(), BUTTON_HEIGHT)
-    editButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    editButton = ns.Skin.button(frame)
     editButton:SetText(L.PROFILE_EDIT)
     editButton:SetSize(editButton:GetFontString():GetStringWidth() + 24, BUTTON_HEIGHT)
     editButton:SetPoint("TOPRIGHT")

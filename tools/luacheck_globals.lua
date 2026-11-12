@@ -28,6 +28,7 @@ return {
     "GameFontNormal",
     "GameTooltip",
     "GameTooltip_Hide",
+    "ReloadUI",
     "GetBuildInfo",
     "geterrorhandler",
     "GetHitModifier",

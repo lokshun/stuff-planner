@@ -31,7 +31,7 @@ local CAP_WIDTH = 40
 local ARROW_UP = PriorityRows.ARROW_UP
 
 function PriorityRows.smallButton(parent, text, onClick)
-    local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local button = ns.Skin.button(parent)
     button:SetSize(SMALL_BUTTON, PriorityRows.ROW_HEIGHT)
     button:SetText(text)
     button:SetScript("OnClick", onClick)

@@ -51,10 +51,7 @@ function DetailWidgets.newPanel()
     parent:HookScript("OnHide", function()
         panel:Hide()
     end)
-    local background = panel:CreateTexture(nil, "BACKGROUND")
-    background:SetAllPoints()
-    local bg = theme.colors.background
-    background:SetColorTexture(bg.r, bg.g, bg.b, 0.92)
+    ns.Skin.panel(panel, { alpha = 0.92, edges = "none" })
     local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", 2, 2)
     local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
@@ -124,7 +121,7 @@ function DetailWidgets.hoverRow(content)
 end
 
 function DetailWidgets.button(content, text)
-    local result = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    local result = ns.Skin.button(content)
     result:SetText(text)
     result:SetSize(result:GetFontString():GetStringWidth() + 24, DetailWidgets.BUTTON_HEIGHT)
     return result

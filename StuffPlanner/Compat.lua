@@ -19,6 +19,8 @@
 --   GetHitModifiers() -> melee, spell ; 0 si inconnu
 --   GetSkillRanks() -> {[skillID]=rank} ; vide sur Classic Era, qui ne donne pas d'identifiant
 --   SetFrameTitle(frame, text), SetFramePortrait(frame, texture) -> cadre PortraitFrameTemplate
+--   SetBackdrop(frame, backdrop, r?, g?, b?, a?) -> bool : fond du client (BackdropTemplateMixin mélangé
+--     si le cadre n'a pas SetBackdrop) ; false sans API
 
 local _, ns = ...
 
@@ -218,4 +220,21 @@ function Compat.SetFramePortrait(frame, texture)
     elseif frame.portrait and SetPortraitToTexture then
         SetPortraitToTexture(frame.portrait, texture)
     end
+end
+
+function Compat.SetBackdrop(frame, backdrop, r, g, b, a)
+    if not frame.SetBackdrop then
+        local mixin = rawget(_G, "BackdropTemplateMixin")
+        local mix = rawget(_G, "Mixin")
+        if not (mixin and mix) then
+            return false
+        end
+        mix(frame, mixin)
+        frame:HookScript("OnSizeChanged", frame.OnBackdropSizeChanged)
+    end
+    frame:SetBackdrop(backdrop)
+    if r and frame.SetBackdropColor then
+        frame:SetBackdropColor(r, g, b, a or 1)
+    end
+    return true
 end

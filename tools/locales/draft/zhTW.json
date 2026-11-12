@@ -345,5 +345,9 @@
   "SOURCE_DETAIL_WORLD": "野外掉落",
   "SOURCE_DETAIL_CREATURE": "生物",
   "SOURCE_DETAIL_ZONE": "區域",
-  "FILTER_WORLD": "野外"
+  "FILTER_WORLD": "野外",
+  "OPTION_WINDOW_SKIN": "視窗樣式",
+  "OPTIONS_SKIN_NOTEBOOK": "冒險者筆記",
+  "OPTIONS_SKIN_BLIZZARD": "暴雪",
+  "OPTIONS_RELOAD": "重新載入介面以套用"
 }

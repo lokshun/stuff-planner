@@ -93,6 +93,7 @@ Profiles\Priorities.lua
 Results.lua
 RouteResults.lua
 UI\Theme.lua
+UI\Skin.lua
 UI\NameAsker.lua
 UI\Presenters\SecondaryGain.lua
 UI\Presenters\AltGain.lua

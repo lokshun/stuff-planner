@@ -1,5 +1,5 @@
 -- CONTRAT
--- Fenêtre principale à onglets. Charger après Core.lua, Compat.lua et Theme.lua, avant les onglets.
+-- Fenêtre principale à onglets (ns.Skin). Charger après Core.lua, Compat.lua et Skin.lua, avant les onglets.
 --   ns.MainFrame.addTab(key, tab) -> tab = {create(parent) -> frame, refresh()?} ; remplace le
 --     panneau d'attente de cet onglet ; clés et ordre fixes : zone, route, gear, profile
 --   ns.MainFrame.show([key]), hide(), toggle(), isShown() ; show sans clé : dernier onglet ouvert
@@ -149,7 +149,7 @@ end
 local function createTabButtons()
     local previous
     for _, key in ipairs(TAB_KEYS) do
-        local button = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+        local button = ns.Skin.button(frame)
         button:SetText(L[TAB_LABELS[key]])
         button:SetHeight(22)
         if previous then
@@ -166,13 +166,8 @@ local function createTabButtons()
 end
 
 local function create()
-    frame = CreateFrame("Frame", nil, UIParent, "PortraitFrameTemplate")
-    frame:SetSize(WIDTH, HEIGHT)
-    frame:SetFrameStrata("HIGH")
-    frame:SetToplevel(true)
-    frame:SetClampedToScreen(true)
+    frame = ns.Skin.window({ width = WIDTH, height = HEIGHT, title = L.WINDOW_TITLE, portrait = PORTRAIT })
     frame:SetMovable(true)
-    frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", function(self)
@@ -181,8 +176,6 @@ local function create()
     end)
     frame:EnableKeyboard(true)
     frame:SetScript("OnKeyDown", onKeyDown)
-    ns.Compat.SetFrameTitle(frame, L.WINDOW_TITLE)
-    ns.Compat.SetFramePortrait(frame, PORTRAIT)
     frame.content = CreateFrame("Frame", nil, frame)
     frame.content:SetPoint("TOPLEFT", SIDE_INSET, -TOP_INSET)
     frame.content:SetPoint("BOTTOMRIGHT", -SIDE_INSET, BOTTOM_INSET)

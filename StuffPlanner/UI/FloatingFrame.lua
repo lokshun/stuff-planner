@@ -1,6 +1,5 @@
 -- CONTRAT
--- Cadre flottant déplaçable (fond du thème, filets dorés, position sauvegardée). Charger après Theme.lua
--- et Options.lua.
+-- Cadre flottant déplaçable (fond de ns.Skin, position sauvegardée). Charger après Skin.lua et Options.lua.
 --   ns.FloatingFrame.new(opts) -> frame
 --     opts = {width, saved = function() -> table {point, relativePoint, x, y}, locked = clé ns.Options
 --             (pas de glisser si vraie), default = {point, x, y}, alpha = opacité du fond}
@@ -12,19 +11,7 @@ local _, ns = ...
 local FloatingFrame = {}
 ns.FloatingFrame = FloatingFrame
 
-local function border(frame, color)
-    local size = ns.Theme.spacing.border
-    for _, side in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" } }) do
-        local edge = frame:CreateTexture(nil, "BORDER")
-        edge:SetColorTexture(color.r, color.g, color.b, 0.8)
-        edge:SetHeight(size)
-        edge:SetPoint(side[1])
-        edge:SetPoint(side[2])
-    end
-end
-
 function FloatingFrame.new(opts)
-    local theme = ns.Theme
     local frame = CreateFrame("Frame", nil, UIParent)
     frame:SetWidth(opts.width)
     frame:SetFrameStrata("LOW")
@@ -66,11 +53,7 @@ function FloatingFrame.new(opts)
     end
 
     frame.draggable(frame)
-    local background = frame:CreateTexture(nil, "BACKGROUND")
-    background:SetAllPoints()
-    local bg = theme.colors.background
-    background:SetColorTexture(bg.r, bg.g, bg.b, opts.alpha)
-    border(frame, theme.colors.border)
+    ns.Skin.panel(frame, { alpha = opts.alpha })
     restore()
     return frame
 end

@@ -107,7 +107,7 @@ local function fontString(pool, index, font)
 end
 
 local function actionButton(text, onClick)
-    local button = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    local button = ns.Skin.button(frame)
     button:SetSize(ACTION_WIDTH, CELL_HEIGHT)
     button:SetText(text)
     button:SetScript("OnClick", onClick)
