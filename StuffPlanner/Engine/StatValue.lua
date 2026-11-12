@@ -10,7 +10,8 @@
 --        de la classe dont base[to] > 0 (une passe, sans enchaînement), même si from n'est pas classée.
 --   Conversions : INT -> SPELL_CRIT ; AGI -> CRIT, DODGE (x2 voleur, chasseur), ARMOR (2) ; STR -> AP
 --     (2 guerrier, paladin, chaman, druide ; 1 sinon) ; AGI -> AP (1 voleur, chasseur) ; AGI -> RAP
---     (2 chasseur, 1 guerrier, voleur) ; STR -> BLOCK_VALUE (1/20 guerrier, paladin, chaman).
+--     (2 chasseur, 1 guerrier, voleur) ; STR -> BLOCK_VALUE (1/20 guerrier, paladin, chaman) ;
+--     SPELL_POWER (dégâts et soins) -> HEALING (1).
 --     SPI -> MP5 (classes à mana) et HP5 : regen Classic 1.12 par 5 s * REGEN_SHARE (0,5 : l'Esprit ne
 --     rend que hors règle des 5 s ou hors combat, MP5/HP5 tout le temps), sans échelle de niveau.
 --     Crit et esquive avant 60 : ratio * 60 / niveau (niveau borné à 10). Classe inconnue : coûts seuls.
@@ -67,6 +68,7 @@ local function conversions(class, level)
         { "AGI", "DODGE", agiCrit * (DODGE_FACTOR[class] or 1) },
         { "AGI", "ARMOR", 2 },
         { "STR", "AP", STR_AP[class] or 1 },
+        { "SPELL_POWER", "HEALING", 1 },
     }
     local optional = {
         { "INT", "SPELL_CRIT", StatValue.CRIT_PER_INT[class] and StatValue.CRIT_PER_INT[class] * scale },
