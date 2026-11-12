@@ -134,6 +134,7 @@ UI\BagBadges.lua
 UI\MerchantBadges.lua
 UI\AuctionBadges.lua
 UI\ZoneToast.lua
+UI\RollHint.lua
 UI\QuestFrameHint.lua
 UI\DetailWidgets.lua
 UI\QuestTooltip.lua

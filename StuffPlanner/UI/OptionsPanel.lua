@@ -94,6 +94,7 @@ local function layout()
         W.checkbox(nil, "follow.locked", labelOf("follow.locked")),
         W.header(nil, L.OPTIONS_SECTION_DUNGEON),
         W.checkbox(nil, "dungeon.panel", labelOf("dungeon.panel")),
+        W.checkbox(nil, "roll.hint", labelOf("roll.hint")),
         W.header(nil, L.OPTIONS_SECTION_PLANNER),
         W.checkbox(nil, "planner.calibrate", labelOf("planner.calibrate")),
     }
