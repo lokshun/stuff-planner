@@ -1,7 +1,7 @@
 -- CONTRAT
 -- Onglet « Parcours 1-60 » : meilleur objet par emplacement et par palier de niveau
 -- (RouteResults, RoutePresenter), ScrollBox avec en-têtes de palier. Charger après MainFrame.lua,
--- RouteResults.lua, RoutePresenter.lua, Chips.lua et AltLines.lua.
+-- RouteResults.lua, RoutePresenter.lua, Chips.lua, ItemRow.lua et AltLines.lua.
 -- S'inscrit par ns.MainFrame.addTab("route", …). Classement partagé (RouteResults), recalculé
 -- à l'affichage de l'onglet après SP_PLAYER_CHANGED, SP_DATA_READY ou SP_PROFILE_CHANGED :
 -- « calcul en cours » d'ici là ; rafraîchi sur SP_ROUTE_UPDATED ;
@@ -12,6 +12,7 @@
 -- l'en-tête : tri dans chaque palier (StuffPlannerDB.ui.routeByGain).
 -- Raids exclus. Clic sur une ligne de quête : fiche (QuestDetail) ; Maj+clic : repère ;
 -- donjon, artisanat : fiche de la source (SourceDetail). Objet sélectionné : cadre (RowActions.mark).
+-- Ligne d'objet : ns.ItemRow (ancrée en haut), survol = info-bulle de l'objet.
 -- Alternatives plus faciles (AltLines) : bouton flèche à droite (gain à sa gauche), sous-lignes sous la
 -- ligne, cadre de sélection sur la sous-ligne choisie ; état
 -- déplié local (non gardé), par clé RoutePresenter expandKey.
@@ -24,7 +25,6 @@ local _, ns = ...
 local L = ns.L
 
 local RETRY_DELAY, RETRY_MAX = 1, 10
-local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
 
 local panel, header, sortBar, sessionBar, footer, scrollBox, emptyText
 local expanded = {}
@@ -59,34 +59,26 @@ local function onToggle(key)
     ns.MainFrame.refresh()
 end
 
+local onRowClick
+
 -- Parties ancrées en haut : la ligne grandit vers le bas quand ses alternatives sont dépliées.
 local function buildRow(button)
     local theme = ns.Theme
-    local size, height = theme.spacing.iconSize, theme.spacing.rowHeight
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetSize(size, size)
-    button.icon:SetPoint("TOPLEFT", 2, -(height - size) / 2)
-    button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
+    local height = theme.spacing.rowHeight
+    ns.ItemRow.build(button, {
+        top = true, gainWidth = 1, markHeight = height,
+        onClick = function(self)
+            onRowClick(self)
+        end,
+    })
     ns.AltLines.build(button, onToggle)
     button.altToggle:SetPoint("RIGHT", button, "TOPRIGHT", -4, -height / 2)
+    button.gain:ClearAllPoints()
+    button.gain:SetWidth(0)
     button.gain:SetPoint("RIGHT", button.altToggle, "LEFT", -theme.spacing.gap, 0)
-    button.name = button:CreateFontString(nil, "OVERLAY", theme.fonts.body)
-    button.name:SetPoint("TOPLEFT", button.icon, "TOPRIGHT", theme.spacing.gap, 1)
-    button.name:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
-    button.name:SetJustifyH("LEFT")
-    button.name:SetWordWrap(false)
-    button.source = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    button.source:SetPoint("BOTTOMLEFT", button.icon, "BOTTOMRIGHT", theme.spacing.gap, -1)
-    button.source:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
-    button.source:SetJustifyH("LEFT")
-    button.source:SetWordWrap(false)
-    setColor(button.source, theme.colors.muted)
     button.title = button:CreateFontString(nil, "OVERLAY", theme.fonts.header)
     button.title:SetPoint("BOTTOMLEFT", 2, 4)
     setColor(button.title, theme.colors.title)
-    button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    button.highlight:SetAllPoints()
-    button.highlight:SetColorTexture(1, 1, 1, 0.08)
 end
 
 local function uiState()
@@ -99,7 +91,7 @@ local function pastOpen()
     return ui.routePastOpen
 end
 
-local function onRowClick(button)
+function onRowClick(button)
     if button.toggle then
         local open = pastOpen()
         open[button.toggle] = not open[button.toggle] or nil
@@ -109,14 +101,15 @@ local function onRowClick(button)
     if button.isHeader then
         return
     end
-    ns.RowActions.click(button.questID, button.itemID, button.itemSource)
+    local view = button.view
+    ns.RowActions.click(view.questID, view.itemID, view.itemSource)
 end
 
 local function showParts(button, isHeader, toggle)
     button.title:SetShown(isHeader)
     button.icon:SetShown(not isHeader)
     button.name:SetShown(not isHeader)
-    button.source:SetShown(not isHeader)
+    button.detail:SetShown(not isHeader)
     button.gain:SetShown(not isHeader)
     button.highlight:SetShown(not isHeader or toggle)
 end
@@ -147,28 +140,26 @@ end
 local function initRow(button, row)
     if not button.icon then
         buildRow(button)
-        button:SetScript("OnClick", onRowClick)
     end
-    showParts(button, row.header == true, row.toggle ~= nil)
-    button.questID, button.itemID, button.itemSource = row.questID, row.itemID, row.source
-    button.isHeader, button.toggle = row.header == true, row.toggle
-    ns.RowActions.mark(button, row.questID, row.itemID, ns.Theme.spacing.rowHeight)
-    local muted = ns.Theme.colors.muted
-    ns.AltLines.render(button, row.header and {} or row, ns.Theme.spacing.rowHeight,
-        ns.Theme.spacing.iconSize + ns.Theme.spacing.gap + 2)
-    if row.header then
+    local isHeader = row.header == true
+    showParts(button, isHeader, row.toggle ~= nil)
+    button.isHeader, button.toggle = isHeader, row.toggle
+    local theme = ns.Theme
+    local muted = theme.colors.muted
+    if isHeader then
+        ns.ItemRow.set(button, { row = row })
         button.title:SetText(row.text)
-        setColor(button.title, row.toggle and muted or ns.Theme.colors.title)
-        return
+        setColor(button.title, row.toggle and muted or theme.colors.title)
+    else
+        ns.ItemRow.set(button, {
+            row = row, questID = row.questID, itemID = row.itemID, itemSource = row.source,
+            icon = row.icon, muted = row.muted, name = row.name,
+            nameColor = row.muted and muted or row.nameColor, detail = sourceLine(row),
+            gain = row.gainLabel, gainColor = row.muted and muted or row.gainColor, hint = L.ROW_CLICK_HINT,
+        })
     end
-    button.icon:SetTexture(row.icon or UNKNOWN_ICON)
-    button.icon:SetDesaturated(row.muted == true)
-    button.icon:SetAlpha(row.muted and 0.6 or 1)
-    button.name:SetText(row.name)
-    setColor(button.name, row.muted and muted or row.nameColor)
-    button.gain:SetText(row.gainLabel)
-    setColor(button.gain, row.muted and muted or row.gainColor)
-    button.source:SetText(sourceLine(row))
+    ns.AltLines.render(button, isHeader and {} or row, theme.spacing.rowHeight,
+        theme.spacing.iconSize + theme.spacing.gap + 2)
 end
 
 -- Noms demandés pour les lignes affichées (sous-lignes dépliées comprises).

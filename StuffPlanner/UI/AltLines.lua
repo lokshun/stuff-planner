@@ -1,6 +1,6 @@
 -- CONTRAT
 -- Bouton à flèche (celui de « Mes stats », PriorityRows) et sous-lignes d'alternatives d'une ligne de
--- liste (Parcours, Équipement). Charger après Theme.lua et RowActions.lua ; PriorityRows lu à build.
+-- liste (Parcours, Équipement). Charger après Theme.lua, RowActions.lua et ItemRow.lua ; PriorityRows lu à build.
 --   ns.AltLines.LINE_HEIGHT, ns.AltLines.TOGGLE_WIDTH
 --   ns.AltLines.extra(row) -> hauteur à ajouter à la ligne (0 si repliée ou sans row.alternatives)
 --   ns.AltLines.build(button, onToggle) -> crée button.altToggle (à placer par l'appelant : à droite,
@@ -9,7 +9,7 @@
 --     row.alternatives, sinon caché (largeur 1) ; sous-lignes sous top (px depuis le haut), décalées de
 --     left, si row.expanded, gain aligné sur celui de la ligne ; cadre de sélection (mark).
 --   ns.AltLines.mark(button) : cadre de sélection des sous-lignes (RowActions.mark), sur SP_SELECTION_CHANGED
--- Sous-ligne (RowPresenter.alternative) : icône, nom, lineText, gain ; clic = RowActions.click
+-- Sous-ligne (RowPresenter.alternative, ns.ItemRow compacte) : icône, nom, lineText, gain ; clic = RowActions.click
 -- (fiche, Maj : repère, Ctrl : essayage), survol = info-bulle de l'objet.
 
 local _, ns = ...
@@ -24,13 +24,9 @@ AltLines.TOGGLE_WIDTH = 22
 
 local MAX_LINES = 3
 local ICON_SIZE = 14
-local UNKNOWN_ICON = 134400
 local PADDING = 4
 local NAME_WIDTH = 150
-
-local function setColor(region, color)
-    region:SetTextColor(color.r, color.g, color.b)
-end
+local GAIN_WIDTH = 60
 
 function AltLines.extra(row)
     if not row.expanded or not row.alternatives then
@@ -39,14 +35,8 @@ function AltLines.extra(row)
     return math.min(#row.alternatives, MAX_LINES) * AltLines.LINE_HEIGHT + PADDING
 end
 
-local function showTooltip(line)
-    if not line.alt then
-        return
-    end
-    GameTooltip:SetOwner(line, "ANCHOR_RIGHT")
-    GameTooltip:SetHyperlink("item:" .. line.alt.itemID)
-    GameTooltip:AddLine(line.alt.lineText, 1, 1, 1, true)
-    GameTooltip:Show()
+local function lineText(_, alt)
+    GameTooltip:AddLine(alt.lineText, 1, 1, 1, true)
 end
 
 local function showToggleTooltip(toggle)
@@ -59,40 +49,13 @@ local function hideTooltip()
     GameTooltip:Hide()
 end
 
-local function onLineClick(line)
-    local alt = line.alt
-    if alt then
-        ns.RowActions.click(alt.questID, alt.itemID, alt.itemSource)
-    end
-end
+local LINE_OPTS = {
+    height = AltLines.LINE_HEIGHT, iconSize = ICON_SIZE, compact = true, nameWidth = NAME_WIDTH,
+    gainWidth = GAIN_WIDTH, tooltip = lineText,
+}
 
 local function buildLine(button)
-    local theme = ns.Theme
-    local line = CreateFrame("Button", nil, button)
-    line:SetHeight(AltLines.LINE_HEIGHT)
-    line.icon = line:CreateTexture(nil, "ARTWORK")
-    line.icon:SetSize(ICON_SIZE, ICON_SIZE)
-    line.icon:SetPoint("LEFT")
-    line.gain = line:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-    line.gain:SetPoint("RIGHT")
-    line.name = line:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    line.name:SetPoint("LEFT", line.icon, "RIGHT", theme.spacing.gap / 2, 0)
-    line.name:SetWidth(NAME_WIDTH)
-    line.name:SetJustifyH("LEFT")
-    line.name:SetWordWrap(false)
-    line.text = line:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    line.text:SetPoint("LEFT", line.name, "RIGHT", theme.spacing.gap, 0)
-    line.text:SetPoint("RIGHT", line.gain, "LEFT", -theme.spacing.gap, 0)
-    line.text:SetJustifyH("LEFT")
-    line.text:SetWordWrap(false)
-    setColor(line.text, theme.colors.muted)
-    local highlight = line:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
-    line:SetScript("OnEnter", showTooltip)
-    line:SetScript("OnLeave", hideTooltip)
-    line:SetScript("OnClick", onLineClick)
-    return line
+    return ns.ItemRow.new(button, LINE_OPTS)
 end
 
 function AltLines.build(button, onToggle)
@@ -128,12 +91,11 @@ function AltLines.render(button, row, top, left)
             local y = -(top + (i - 1) * AltLines.LINE_HEIGHT)
             line:SetPoint("TOPLEFT", left, y)
             line:SetPoint("TOPRIGHT", -(PADDING + AltLines.TOGGLE_WIDTH + ns.Theme.spacing.gap), y)
-            line.icon:SetTexture(alt.icon or UNKNOWN_ICON)
-            line.name:SetText(alt.name)
-            setColor(line.name, alt.nameColor)
-            line.text:SetText(alt.lineText)
-            line.gain:SetText(alt.gainLabel)
-            setColor(line.gain, alt.gainColor)
+            ns.ItemRow.set(line, {
+                row = alt, questID = alt.questID, itemID = alt.itemID, itemSource = alt.itemSource,
+                icon = alt.icon, name = alt.name, nameColor = alt.nameColor, detail = alt.lineText,
+                gain = alt.gainLabel, gainColor = alt.gainColor,
+            })
         end
     end
     AltLines.mark(button)

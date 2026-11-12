@@ -1,12 +1,12 @@
 -- CONTRAT
 -- Briques des fiches accolées à la fenêtre principale (QuestDetail, SourceDetail).
--- Charger après MainFrame.lua et Theme.lua, avant les fiches. Cadres seulement (vérifiés en jeu).
+-- Charger après MainFrame.lua, Theme.lua et ItemRow.lua, avant les fiches. Cadres seulement (vérifiés en jeu).
 --   ns.DetailWidgets.WIDTH (largeur du panneau), BUTTON_HEIGHT, UNKNOWN_ICON
 --   newPanel() -> panel, content : panneau accolé à droite de la fenêtre principale (fond, croix,
 --     caché avec elle) ; content = enfant d'un ScrollFrame (UIPanelScrollFrameTemplate, barre cachée
 --     quand tout tient, molette) ; tout s'ajoute dans content.
 --   fontString(content, font, color?) -> FontString à gauche, largeur du contenu
---   hoverRow(content) -> Button : icon, name (ligne 1), tag (ligne 2), gain (à droite) ; survol :
+--   hoverRow(content) -> ns.ItemRow : icon, name (ligne 1), tag = detail (ligne 2), gain (à droite) ; survol :
 --     info-bulle de row.link (« item:N », « spell:N »), rien sans lien ; Alt+clic sur un objet :
 --     RowActions.togglePin
 --   button(content, text) -> bouton du jeu à la taille de son texte
@@ -73,50 +73,19 @@ function DetailWidgets.fontString(content, font, color)
     return text
 end
 
-local function showTooltip(row)
-    if not row.link then
-        return
+local function onHoverClick(self)
+    local itemID = IsAltKeyDown() and self.link and tonumber(self.link:match("^item:(%d+)"))
+    if itemID then
+        ns.RowActions.togglePin(itemID)
     end
-    GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
-    GameTooltip:SetHyperlink(row.link)
-    GameTooltip:Show()
 end
 
-local function hideTooltip()
-    GameTooltip:Hide()
-end
+local HOVER_OPTS = { nameFont = ns.Theme.fonts.small, onClick = onHoverClick }
 
 function DetailWidgets.hoverRow(content)
-    local theme = ns.Theme
-    local row = CreateFrame("Button", nil, content)
-    row:SetSize(contentWidth(), theme.spacing.rowHeight)
-    row.icon = row:CreateTexture(nil, "ARTWORK")
-    row.icon:SetSize(theme.spacing.iconSize, theme.spacing.iconSize)
-    row.icon:SetPoint("LEFT")
-    row.gain = row:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-    row.gain:SetPoint("RIGHT")
-    row.gain:SetJustifyH("RIGHT")
-    row.name = row:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    row.name:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", theme.spacing.gap, 0)
-    row.name:SetPoint("RIGHT", row.gain, "LEFT", -theme.spacing.gap, 0)
-    row.name:SetJustifyH("LEFT")
-    row.name:SetWordWrap(false)
-    row.tag = row:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    row.tag:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", theme.spacing.gap, 0)
-    row.tag:SetPoint("RIGHT", row.gain, "LEFT", -theme.spacing.gap, 0)
-    row.tag:SetJustifyH("LEFT")
-    row.tag:SetWordWrap(false)
-    local highlight = row:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
-    row:SetScript("OnEnter", showTooltip)
-    row:SetScript("OnLeave", hideTooltip)
-    row:SetScript("OnClick", function(self)
-        local itemID = IsAltKeyDown() and self.link and tonumber(self.link:match("^item:(%d+)"))
-        if itemID then
-            ns.RowActions.togglePin(itemID)
-        end
-    end)
+    local row = ns.ItemRow.new(content, HOVER_OPTS)
+    row:SetWidth(contentWidth())
+    row.tag = row.detail
     return row
 end
 

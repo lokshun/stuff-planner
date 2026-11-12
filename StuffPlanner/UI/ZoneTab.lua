@@ -1,7 +1,7 @@
 -- CONTRAT
 -- Onglet « Zone actuelle » : améliorations de la zone (Chat.bestInZone, quêtes et butin des
 -- instances dont l'entrée est sur la carte), filtres en puces, ScrollBox.
--- Charger après MainFrame.lua, Chat.lua, RowPresenter.lua et Filters.lua.
+-- Charger après MainFrame.lua, Chat.lua, RowPresenter.lua, Filters.lua et ItemRow.lua.
 -- S'inscrit par ns.MainFrame.addTab("zone", …). Rafraîchi à l'ouverture et sur SP_RESULTS_UPDATED
 -- (Results, après joueur, base ou profil changés) si la fenêtre est visible ; noms reçus du client : un
 -- rafraîchissement regroupé (NameAsker). Filtres sauvegardés dans StuffPlannerDB.ui.zoneFilters.
@@ -12,17 +12,14 @@
 -- Ctrl+clic : essayage (Compat.DressUpItem). Objet sélectionné (RowActions.select, mini-suivi compris) :
 -- cadre de sélection, liste défilée jusqu'à lui si reveal (SP_SELECTION_CHANGED).
 -- Survol : info-bulle de l'objet (gain ajouté par Tooltip.lua), états de la ligne et aide des clics.
--- Ligne : icône ; nom de l'objet puis emplacement · detailText (états colorés, quête) ; gainLabel seul à droite,
--- colonne de largeur fixe centrée en hauteur ; ligne grisée si dimmed.
+-- Ligne (ns.ItemRow) : icône ; nom de l'objet puis emplacement · detailText (états colorés, quête) ;
+-- gainLabel seul à droite, colonne de largeur fixe centrée en hauteur ; ligne grisée si dimmed.
 
 local _, ns = ...
 
 local L = ns.L
 
 local MAX_ROWS = 100
-local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
-local GAIN_WIDTH = 70
-local DIMMED_ALPHA = 0.5
 
 local panel, header, chipBar, sortBar, scrollBox, emptyText
 local lastShown
@@ -41,73 +38,35 @@ local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
 end
 
-local function buildRow(button)
-    local theme = ns.Theme
-    local size = theme.spacing.iconSize
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetSize(size, size)
-    button.icon:SetPoint("LEFT", 2, 0)
-    button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-    button.gain:SetPoint("RIGHT", -4, 0)
-    button.gain:SetWidth(GAIN_WIDTH)
-    button.gain:SetJustifyH("RIGHT")
-    button.name = button:CreateFontString(nil, "OVERLAY", theme.fonts.body)
-    button.name:SetPoint("TOPLEFT", button.icon, "TOPRIGHT", theme.spacing.gap, 1)
-    button.name:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
-    button.name:SetJustifyH("LEFT")
-    button.name:SetWordWrap(false)
-    button.source = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    button.source:SetPoint("BOTTOMLEFT", button.icon, "BOTTOMRIGHT", theme.spacing.gap, -1)
-    button.source:SetJustifyH("LEFT")
-    button.source:SetWordWrap(false)
-    button.source:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
-    setColor(button.source, theme.colors.muted)
-    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
-end
-
-local function showTooltip(button)
-    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
-    GameTooltip:SetHyperlink("item:" .. button.itemID)
-    local row = button.row
+local function stateLines(_, row)
     if row.stateText ~= "" then
         GameTooltip:AddLine(row.stateText, row.stateColor.r, row.stateColor.g, row.stateColor.b)
     end
     if row.badge then
         GameTooltip:AddLine(row.badge, row.badgeColor.r, row.badgeColor.g, row.badgeColor.b)
     end
-    GameTooltip:AddLine(L.ROW_CLICK_HINT, 0.6, 0.6, 0.6)
-    GameTooltip:Show()
 end
 
-local function hideTooltip()
-    GameTooltip:Hide()
-end
+local ROW_OPTS = { tooltip = stateLines }
 
-local function onRowClick(button)
-    ns.RowActions.click(button.questID, button.itemID, button.row and button.row.itemSource)
+local function detailOf(row)
+    local slotName = row.slot and ns.GearPresenter.slotName(row.slot)
+    local slot = slotName and ns.Compat.GlobalString(slotName) or (row.slot and L.SLOT_FALLBACK:format(row.slot))
+    if not slot then
+        return row.detailText
+    end
+    return row.detailText ~= "" and (slot .. " · " .. row.detailText) or slot
 end
 
 local function initRow(button, row)
     if not button.icon then
-        buildRow(button)
-        button:SetScript("OnClick", onRowClick)
-        button:SetScript("OnEnter", showTooltip)
-        button:SetScript("OnLeave", hideTooltip)
+        ns.ItemRow.build(button, ROW_OPTS)
     end
-    button.questID, button.itemID, button.row = row.questID, row.itemID, row
-    ns.RowActions.mark(button, row.questID, row.itemID)
-    button:SetAlpha(row.dimmed and DIMMED_ALPHA or 1)
-    button.icon:SetTexture(row.icon or UNKNOWN_ICON)
-    button.name:SetText(row.name)
-    setColor(button.name, row.nameColor)
-    button.gain:SetText(row.gainLabel)
-    setColor(button.gain, row.gainColor)
-    local slotName = row.slot and ns.GearPresenter.slotName(row.slot)
-    local slot = slotName and ns.Compat.GlobalString(slotName) or (row.slot and L.SLOT_FALLBACK:format(row.slot))
-    button.source:SetText(slot and (row.detailText ~= "" and (slot .. " · " .. row.detailText) or slot)
-        or row.detailText)
+    ns.ItemRow.set(button, {
+        row = row, questID = row.questID, itemID = row.itemID, itemSource = row.itemSource,
+        icon = row.icon, name = row.name, nameColor = row.nameColor, detail = detailOf(row),
+        gain = row.gainLabel, gainColor = row.gainColor, dimmed = row.dimmed, hint = L.ROW_CLICK_HINT,
+    })
 end
 
 -- Renvoie les lignes présentées, ou nil et le message d'état.

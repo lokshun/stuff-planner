@@ -2,16 +2,20 @@
 -- Ligne d'objet commune : icône, nom, détail, gain à droite, coche facultative, grisé, cadre de sélection
 -- (RowActions.mark), info-bulle de l'objet, clics. Charger après Theme.lua et RowActions.lua.
 --   ns.ItemRow.build(button, opts?) : décore un bouton existant (ligne de ScrollBox ou ItemRow.new) ;
---     une fois par bouton. opts = {
---       iconSize, gainWidth (0 : pas de gain),
+--     une fois par bouton ; crée button.icon, name, detail, gain (si gainWidth > 0), check, highlight.
+--     opts = {
+--       iconSize, gainWidth (0 : pas de gain), nameFont,
 --       compact = détail à droite du nom sur une ligne (nameWidth = largeur du nom), sinon sous le nom,
---       check = coche à gauche de l'icône,
---       onClick(button, mouseButton) : remplace RowActions.click(questID, itemID, itemSource),
---       onRightClick(button), tooltip(button, row) : lignes ajoutées sous l'objet, avant row.hint }
+--       top = icône centrée dans les rowHeight premiers pixels (ligne qui grandit vers le bas),
+--       check = coche à gauche de l'icône, markHeight = hauteur du cadre de sélection,
+--       onClick(button, mouseButton) : remplace RowActions.click(questID, itemID, itemSource), appelé
+--         même sans ligne ; onRightClick(button) ; tooltip(button, row) : lignes sous l'objet }
 --   ns.ItemRow.new(parent, opts?) -> bouton construit (hauteur Theme.spacing.rowHeight, ou opts.height)
---   ns.ItemRow.set(button, row) : row = {questID, itemID, itemSource, icon, name, nameColor, detail,
---     detailColor, gain, gainColor, dimmed, checked, hint} ; button.row = row ; champs absents = vides
--- Info-bulle : lien item:<itemID> puis opts.tooltip, puis row.hint en gris ; aucune sans itemID.
+--   ns.ItemRow.set(button, view) : view = {row?, questID, itemID, itemSource, link, icon, muted, name,
+--     nameColor, detail, detailColor, gain, gainColor, dimmed, checked, hint} ; champs absents = vides ;
+--     button.view = view, button.row = view.row or view, button.questID, button.itemID
+-- Info-bulle : view.link (sinon item:<itemID>, sinon button.link) puis opts.tooltip, puis view.hint en gris.
+-- muted : icône désaturée et pâlie (couleurs du texte au choix de l'appelant) ; dimmed : ligne pâlie.
 
 local _, ns = ...
 
@@ -20,6 +24,7 @@ ns.ItemRow = ItemRow
 
 local GAIN_WIDTH = 70
 local DIMMED_ALPHA = 0.5
+local MUTED_ICON_ALPHA = 0.6
 local CHECK_SIZE = 16
 local UNKNOWN_ICON = 134400 -- INV_Misc_QuestionMark
 local CHECK_ICON = "Interface\\Buttons\\UI-CheckBox-Check"
@@ -31,33 +36,41 @@ local function setColor(region, color)
 end
 
 local function onClick(button, mouseButton)
-    local opts, row = button.itemRowOpts, button.row
-    if not row then
-        return
-    end
+    local opts, view = button.itemRowOpts, button.view
     if mouseButton == "RightButton" then
-        if opts.onRightClick then
+        if opts.onRightClick and view then
             opts.onRightClick(button)
         end
     elseif opts.onClick then
         opts.onClick(button, mouseButton)
-    else
-        ns.RowActions.click(row.questID, row.itemID, row.itemSource)
+    elseif view then
+        ns.RowActions.click(view.questID, view.itemID, view.itemSource)
     end
 end
 
+local function linkOf(button)
+    local view = button.view
+    if view and view.link then
+        return view.link
+    elseif view and view.itemID then
+        return "item:" .. view.itemID
+    end
+    return button.link
+end
+
 local function onEnter(button)
-    local row = button.row
-    if not (row and row.itemID) then
+    local link = linkOf(button)
+    if not link then
         return
     end
     GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
-    GameTooltip:SetHyperlink("item:" .. row.itemID)
-    if button.itemRowOpts.tooltip then
-        button.itemRowOpts.tooltip(button, row)
+    GameTooltip:SetHyperlink(link)
+    if button.itemRowOpts.tooltip and button.row then
+        button.itemRowOpts.tooltip(button, button.row)
     end
-    if row.hint then
-        GameTooltip:AddLine(row.hint, 0.6, 0.6, 0.6)
+    local hint = button.view and button.view.hint
+    if hint then
+        GameTooltip:AddLine(hint, 0.6, 0.6, 0.6)
     end
     GameTooltip:Show()
 end
@@ -80,7 +93,7 @@ local function buildTexts(button, opts, left)
     local rightPoint = button.gain and "LEFT" or "RIGHT"
     local rightGap = button.gain and -gap or 0
     if opts.compact then
-        button.name = fontString(button, theme.fonts.small)
+        button.name = fontString(button, opts.nameFont or theme.fonts.small)
         button.name:SetPoint("LEFT", left, "RIGHT", gap, 0)
         button.name:SetWidth(opts.nameWidth or 170)
         button.detail = fontString(button, theme.fonts.small)
@@ -88,12 +101,21 @@ local function buildTexts(button, opts, left)
         button.detail:SetPoint("RIGHT", right, rightPoint, rightGap, 0)
         return
     end
-    button.name = fontString(button, theme.fonts.body)
+    button.name = fontString(button, opts.nameFont or theme.fonts.body)
     button.name:SetPoint("TOPLEFT", left, "TOPRIGHT", gap, 1)
     button.name:SetPoint("RIGHT", right, rightPoint, rightGap, 0)
     button.detail = fontString(button, theme.fonts.small)
     button.detail:SetPoint("BOTTOMLEFT", left, "BOTTOMRIGHT", gap, -1)
     button.detail:SetPoint("RIGHT", right, rightPoint, rightGap, 0)
+end
+
+-- Ancrage à gauche, centré sur la ligne ou dans ses rowHeight premiers pixels (opts.top).
+local function placeLeft(region, opts, x, size)
+    if opts.top then
+        region:SetPoint("TOPLEFT", x, -(ns.Theme.spacing.rowHeight - size) / 2)
+    else
+        region:SetPoint("LEFT", x, 0)
+    end
 end
 
 function ItemRow.build(button, opts)
@@ -104,14 +126,14 @@ function ItemRow.build(button, opts)
     if opts.check then
         button.check = button:CreateTexture(nil, "OVERLAY")
         button.check:SetSize(CHECK_SIZE, CHECK_SIZE)
-        button.check:SetPoint("LEFT", x, 0)
+        placeLeft(button.check, opts, x, CHECK_SIZE)
         button.check:SetTexture(CHECK_ICON)
         x = x + CHECK_SIZE + 2
     end
     local size = opts.iconSize or theme.spacing.iconSize
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(size, size)
-    button.icon:SetPoint("LEFT", x, 0)
+    placeLeft(button.icon, opts, x, size)
     local gainWidth = opts.gainWidth or GAIN_WIDTH
     if gainWidth > 0 then
         button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
@@ -120,9 +142,9 @@ function ItemRow.build(button, opts)
         button.gain:SetJustifyH("RIGHT")
     end
     buildTexts(button, opts, button.icon)
-    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
+    button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
+    button.highlight:SetAllPoints()
+    button.highlight:SetColorTexture(1, 1, 1, 0.08)
     button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:SetScript("OnClick", onClick)
     button:SetScript("OnEnter", onEnter)
@@ -136,21 +158,23 @@ function ItemRow.new(parent, opts)
     return ItemRow.build(button, opts)
 end
 
-function ItemRow.set(button, row)
-    button.row = row
-    button.questID, button.itemID = row.questID, row.itemID
-    ns.RowActions.mark(button, row.questID, row.itemID)
-    button:SetAlpha(row.dimmed and DIMMED_ALPHA or 1)
+function ItemRow.set(button, view)
+    button.view, button.row = view, view.row or view
+    button.questID, button.itemID = view.questID, view.itemID
+    ns.RowActions.mark(button, view.questID, view.itemID, button.itemRowOpts.markHeight)
+    button:SetAlpha(view.dimmed and DIMMED_ALPHA or 1)
     if button.check then
-        button.check:SetShown(row.checked == true)
+        button.check:SetShown(view.checked == true)
     end
-    button.icon:SetTexture(row.icon or UNKNOWN_ICON)
-    button.name:SetText(row.name or "")
-    setColor(button.name, row.nameColor)
-    button.detail:SetText(row.detail or "")
-    setColor(button.detail, row.detailColor or ns.Theme.colors.muted)
+    button.icon:SetTexture(view.icon or UNKNOWN_ICON)
+    button.icon:SetDesaturated(view.muted == true)
+    button.icon:SetAlpha(view.muted and MUTED_ICON_ALPHA or 1)
+    button.name:SetText(view.name or "")
+    setColor(button.name, view.nameColor)
+    button.detail:SetText(view.detail or "")
+    setColor(button.detail, view.detailColor or ns.Theme.colors.muted)
     if button.gain then
-        button.gain:SetText(row.gain or "")
-        setColor(button.gain, row.gainColor)
+        button.gain:SetText(view.gain or "")
+        setColor(button.gain, view.gainColor)
     end
 end

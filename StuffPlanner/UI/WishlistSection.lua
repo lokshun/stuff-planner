@@ -118,7 +118,7 @@ end
 local function renderRow(index, row)
     local button = rows[index] or newRow(index)
     if not row then
-        button.row = nil
+        button.row, button.view = nil, nil
         button:Hide()
         return
     end
