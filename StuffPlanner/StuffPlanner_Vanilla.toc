@@ -46,6 +46,7 @@ CompatMap.lua
 CompatTravel.lua
 CompatInstance.lua
 CompatChat.lua
+CompatLoot.lua
 CompatOptions.lua
 Debug\Pseudo.lua
 Debug\Perf.lua

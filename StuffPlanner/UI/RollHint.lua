@@ -1,13 +1,14 @@
 -- CONTRAT
 -- Conseil au jet de butin de groupe : « Besoin : +12 % » (amélioration, BadgePresenter) ou « Cupidité ».
 -- Affichage seul : aucun jet n'est jamais fait par l'addon. Charger après BadgePresenter.lua, LiveItem.lua,
--- Manager.lua et Results.lua.
+-- Manager.lua, Results.lua et CompatLoot.lua.
 --   ns.RollHint.text(link) -> L.ROLL_NEED (gain en points) | L.ROLL_GREED
 --     (suivi de « · » view.keep si l'objet ne sert qu'au profil secondaire) ;
 --     nil sans lien, base pas prête ou sans profil actif
---   ns.RollHint.show(rollID) : lien GetLootRollItemLink(rollID) ; texte posé au-dessus du cadre de jet affiché
---     GroupLootFrame1..MAX_FRAMES dont rollID est égal (un texte par cadre, réutilisé), sinon une ligne
---     L.ROLL_CHAT dans la discussion ; sans conseil : texte du cadre masqué. Option roll.hint coupée : rien.
+--   ns.RollHint.show(rollID) : lien Compat.LootRollLink ; texte posé au-dessus du cadre de jet affiché
+--     (Compat.LootRollFrame ; un texte par cadre, réutilisé, rangé ici dans une table à clés faibles : rien
+--     n'est écrit sur le cadre du client), sinon une ligne L.ROLL_CHAT dans la discussion ; sans conseil :
+--     texte du cadre masqué. Option roll.hint coupée : rien.
 -- START_LOOT_ROLL(rollID) : show une image plus tard (le client ouvre d'abord son cadre), hors combat
 -- (ns:RunOutOfCombat). CANCEL_LOOT_ROLL : texte du cadre de ce jet masqué, même si le cadre l'est déjà (un
 -- cadre réutilisé pour un autre jet ne garde pas l'ancien conseil).
@@ -20,8 +21,9 @@ local RollHint = {}
 ns.RollHint = RollHint
 
 local OPTION = "roll.hint"
-local MAX_FRAMES = 4
 local OFFSET_Y = 2
+
+local labels = setmetatable({}, { __mode = "k" })
 
 function RollHint.text(link)
     if not link or not ns.Data.ready() then
@@ -41,38 +43,31 @@ function RollHint.text(link)
     return L.ROLL_NEED:format(view.text)
 end
 
-local function frameFor(rollID, hiddenToo)
-    for index = 1, MAX_FRAMES do
-        local frame = _G["GroupLootFrame" .. index]
-        if frame and frame.rollID == rollID and (hiddenToo or frame:IsShown()) then
-            return frame
-        end
-    end
-    return nil
-end
-
 local function label(frame)
-    local text = frame.stuffPlannerRoll
+    local text = labels[frame]
     if not text then
         text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         text:SetPoint("BOTTOM", frame, "TOP", 0, OFFSET_Y)
-        frame.stuffPlannerRoll = text
+        labels[frame] = text
     end
     return text
+end
+
+local function hideLabel(frame)
+    if frame and labels[frame] then
+        labels[frame]:Hide()
+    end
 end
 
 function RollHint.show(rollID)
     if not ns.Options.get(OPTION) then
         return
     end
-    local getLink = _G.GetLootRollItemLink
-    local link = getLink and getLink(rollID)
+    local link = ns.Compat.LootRollLink(rollID)
     local text = RollHint.text(link)
-    local frame = frameFor(rollID)
+    local frame = ns.Compat.LootRollFrame(rollID)
     if not text then
-        if frame and frame.stuffPlannerRoll then
-            frame.stuffPlannerRoll:Hide()
-        end
+        hideLabel(frame)
         return
     end
     if not frame then
@@ -87,10 +82,7 @@ function RollHint.show(rollID)
 end
 
 local function cancel(rollID)
-    local frame = frameFor(rollID, true)
-    if frame and frame.stuffPlannerRoll then
-        frame.stuffPlannerRoll:Hide()
-    end
+    hideLabel(ns.Compat.LootRollFrame(rollID, true))
 end
 
 local events = CreateFrame("Frame")
