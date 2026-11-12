@@ -29,6 +29,7 @@ local PORTRAIT = ns.ICON -- logo de l'addon
 local GEAR_ICON = "Interface\\Icons\\INV_Misc_Gear_01"
 local HELP_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
 local TOP_INSET, SIDE_INSET, BOTTOM_INSET, TITLE_TOP = 60, 12, 12, -34
+local TITLE_LEFT = 62 -- après le portrait rond (PortraitFrameTemplate ~60 px, carnet 52 px)
 
 local frame, navBar, pageTitle
 local tabs, panels = {}, {}
@@ -143,7 +144,7 @@ local function create()
     navBar.render(ns.NavBar.order(tabs))
     local contentLeft = SIDE_INSET
     pageTitle = frame:CreateFontString(nil, "OVERLAY", ns.Theme.fonts.title)
-    pageTitle:SetPoint("TOPLEFT", contentLeft, TITLE_TOP)
+    pageTitle:SetPoint("TOPLEFT", TITLE_LEFT, TITLE_TOP)
     pageTitle:SetJustifyH("LEFT")
     frame.content = CreateFrame("Frame", nil, frame)
     frame.content:SetPoint("TOPLEFT", contentLeft, -TOP_INSET)
