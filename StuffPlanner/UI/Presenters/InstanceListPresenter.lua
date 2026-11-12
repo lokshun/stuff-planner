@@ -4,8 +4,8 @@
 --   ns.InstanceListPresenter.list(data, delta, currentID?, level?) -> {row...}
 --     data : façade Data (instanceIDs, instance, + ce que lit DungeonPresenter.build) ; delta = Results.delta
 --     instance gardée si elle a un objet utile (boss ou hors boss) ; reachable = pas de level, pas de minLevel
---     ou level ≥ minLevel ; tri : instance courante, puis faisable, puis gain espéré du passage décroissant,
---     puis instanceID
+--     ou level ≥ minLevel ; tri : instance courante, puis faisable ; faisables : gain espéré du passage
+--     décroissant ; non faisables : minLevel croissant (la plus proche d'abord), puis gain ; puis instanceID
 --     row = {instanceID, name, detail (« Niv. a-b · Raid · n objets utiles »), gain (« +x »), gainColor,
 --            expected, current, raid, count, reachable, dimmed (= non faisable)}
 --   ns.InstanceListPresenter.detail(view, data) -> {row...} : view = DungeonPresenter.build ; par boss un
@@ -57,6 +57,7 @@ function InstanceListPresenter.list(data, delta, currentID, level)
             local instance = data.instance(instanceID)
             local canGo = reachable(instance, level)
             rows[#rows + 1] = {
+                minLevel = instance and instance.minLevel or 0,
                 instanceID = instanceID, name = ns.Names.instance(instanceID), detail = detailText(instance, count),
                 gain = points(view.expected), gainColor = ns.Theme.colors.gain, expected = view.expected,
                 current = instanceID == currentID, raid = instance and instance.raid == true, count = count,
@@ -69,6 +70,8 @@ function InstanceListPresenter.list(data, delta, currentID, level)
             return a.current
         elseif a.reachable ~= b.reachable then
             return a.reachable
+        elseif not a.reachable and a.minLevel ~= b.minLevel then
+            return a.minLevel < b.minLevel
         elseif a.expected ~= b.expected then
             return a.expected > b.expected
         end
