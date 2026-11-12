@@ -4,7 +4,7 @@
 --   ns.Totals.equipped(player, profile, data) -> total, bySlot = {[slot]=score de l'objet seul}
 --     stats d'un emplacement : player.equippedStats[slot], sinon data.item(itemID).stats, sinon vides ;
 --     plafonds (profile.caps) sur la somme des objets, la part hors équipement des totaux du joueur
---     (Scoring.PLAYER_TOTALS : toucher) comptée d'abord ; bySlot sans plafond. Sans profil : 0, {}.
+--     (Scoring.PLAYER_TOTALS : toucher, critiques subis) comptée d'abord ; bySlot sans plafond. Sans profil : 0, {}.
 
 local _, ns = ...
 
@@ -33,9 +33,9 @@ function Totals.equipped(player, profile, data)
             sum[key] = (sum[key] or 0) + value
         end
     end
-    local base = {}
+    local base, all = {}, ns.StatValue and ns.StatValue.withDerived(sum) or sum
     for key, field in pairs(ns.Scoring.PLAYER_TOTALS) do
-        base[key] = math.max(0, (player[field] or 0) - (sum[key] or 0))
+        base[key] = math.max(0, (player[field] or 0) - (all[key] or 0))
     end
     return ns.Scoring.score(sum, profile.weights, { caps = profile.caps, base = base }), bySlot
 end

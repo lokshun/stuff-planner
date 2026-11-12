@@ -4,7 +4,7 @@
 --   changes(old, new) -> true (tout recalculer) | {slots={[slot]=true}, totals=bool}
 --     true : old nil, classe, race, faction ou niveau différents ; slots : emplacements dont
 --     l'objet porté ou ses stats lues en jeu (equippedStats) ont changé, ajout et retrait
---     compris ; totals : meleeHit ou spellHit changé.
+--     compris ; totals : meleeHit, spellHit ou avoidCrit changé.
 --     La carte n'entre pas en compte : le gain d'un objet n'en dépend pas.
 --   zoneItems(mapIDs, data) -> {itemID...} : récompenses puis choix des quêtes de ces cartes
 --     (data.questsInMap), une fois chacun, dans l'ordre des cartes et des quêtes.
@@ -25,7 +25,7 @@ local Recompute = {}
 ns.Recompute = Recompute
 
 local IDENTITY = { "class", "race", "faction", "level" }
-local TOTALS = { "meleeHit", "spellHit" }
+local TOTALS = { "meleeHit", "spellHit", "avoidCrit" }
 
 local function sameStats(a, b)
     a, b = a or {}, b or {}

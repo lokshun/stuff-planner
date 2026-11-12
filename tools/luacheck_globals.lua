@@ -49,6 +49,7 @@ return {
     "GetQuestID",
     "GetQuestItemLink",
     "GetSpellHitModifier",
+    "UnitDefense",
     "InCombatLockdown",
     "GetTime",
     "IsShiftKeyDown",

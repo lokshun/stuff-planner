@@ -1,7 +1,8 @@
 -- CONTRAT
 -- Instantané du personnage et signal de changement. Charger après Core.lua, Compat.lua, CompatQuest.lua.
 --   ns.Player.snapshot() -> {class, race, raceID, faction, level, mapID, equipped={[slot]=itemID},
---     spellHit, meleeHit, professions={[id]=skill}} ; class et race en jetons anglais, raceID du client ;
+--     spellHit, meleeHit, avoidCrit, professions={[id]=skill}} ; class et race en jetons anglais, raceID du client ;
+--     avoidCrit = % de critiques subis en moins (StatValue.critAvoidance, Compat.GetDefense) ;
 --     mapID nil si carte inconnue ; toucher en points de pourcentage
 --   equippedStats={[slot]={[StatKey]=value}} : objets portés absents de la base ou à suffixe aléatoire
 --     (Data prête), stats lues par Compat.GetItemStats + StatParser.fromApi ; vide avant Data prête
@@ -117,6 +118,7 @@ function Player.snapshot()
         equippedTypes = equippedTypes,
         spellHit = spellHit,
         meleeHit = meleeHit,
+        avoidCrit = ns.StatValue.critAvoidance(Compat.GetDefense(), UnitLevel("player")),
         professions = readProfessions(),
     }
 end

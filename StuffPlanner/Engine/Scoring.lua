@@ -12,7 +12,9 @@
 --     Anneaux, bijoux : emplacement vide d'abord, sinon le plus faible. Deux-mains : comparée
 --     à main droite + main gauche ; arme ou main gauche face à une deux-mains : comparée à elle.
 --     Une main : main droite, ou main gauche si la classe a la double arme, le meilleur gain.
---     Totaux de plafond : HIT = player.meleeHit, SPELL_HIT = player.spellHit, moins les objets
+--     Stats complétées par StatValue.withDerived (DEF -> raté, critiques subis) s'il est chargé.
+--     Totaux de plafond : HIT = player.meleeHit, SPELL_HIT = player.spellHit, AVOID_CRIT =
+--     player.avoidCrit, moins les objets
 --     retirés. Résultat en cache par (itemID, empreinte de weights et caps) : table partagée,
 --     à ne pas modifier. Le cache se vide quand player n'est plus la même table. Empreinte calculée
 --     une fois par table de profil : profil modifié sur place, appeler invalidate().
@@ -55,7 +57,7 @@ local DUAL_WIELD = { ROGUE = 10, WARRIOR = 20, HUNTER = 20 }
 
 
 -- Totaux du joueur connus par l'instantané, pour les plafonds.
-local PLAYER_TOTALS = { HIT = "meleeHit", SPELL_HIT = "spellHit" }
+local PLAYER_TOTALS = { HIT = "meleeHit", SPELL_HIT = "spellHit", AVOID_CRIT = "avoidCrit" }
 Scoring.PLAYER_TOTALS = PLAYER_TOTALS
 
 local cache, cachedPlayer = {}, nil
@@ -66,6 +68,7 @@ function Scoring.score(stats, weights, ctx)
     local caps = ctx and ctx.caps or {}
     local base = ctx and ctx.base or {}
     local total = 0
+    stats = ns.StatValue and ns.StatValue.withDerived(stats) or stats
     for key, value in pairs(stats or {}) do
         local weight = weights[key]
         if weight then
@@ -137,9 +140,10 @@ local function compare(stats, removedSlots, player, profile, data)
         removed[#removed + 1] = equippedStats(slot, player, data)
     end
     local removedStats = sum(removed)
+    local removedAll = ns.StatValue and ns.StatValue.withDerived(removedStats) or removedStats
     local base = {}
     for key, field in pairs(PLAYER_TOTALS) do
-        base[key] = (player[field] or 0) - (removedStats[key] or 0)
+        base[key] = (player[field] or 0) - (removedAll[key] or 0)
     end
     local ctx = { caps = profile.caps, base = base }
     local before = Scoring.score(removedStats, profile.weights, ctx)

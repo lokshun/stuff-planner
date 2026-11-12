@@ -12,11 +12,14 @@
 --     (2 guerrier, paladin, chaman, druide ; 1 sinon) ; AGI -> AP (1 voleur, chasseur, druide) ; AGI -> RAP
 --     (2 chasseur, 1 guerrier, voleur) ; STR -> BLOCK_VALUE (1/20 guerrier, paladin, chaman) ;
 --     SPELL_POWER (dégâts et soins) -> HEALING (1) ; STA -> HEALTH (10) ; INT -> MANA (15, classes à
---     mana) ; AGI -> AP (1 druide, forme de félin) ; DEF -> DODGE, AVOID_MISS, AVOID_CRIT 0,04 % (toutes),
+--     mana) ; AGI -> AP (1 druide, forme de félin) ; DEF -> DODGE 0,04 % (toutes),
 --     PARRY 0,04 % (guerrier,
 --     paladin, voleur, chasseur), BLOCK 0,04 % (guerrier, paladin, chaman), sans échelle de niveau.
 --     SPI -> MP5 (classes à mana) et HP5 : regen Classic 1.12 par 5 s * REGEN_SHARE (0,5 : l'Esprit ne
 --     rend que hors règle des 5 s ou hors combat, MP5/HP5 tout le temps), sans échelle de niveau.
+--   withDerived(stats) -> stats (même table sans DEF) ou copie + AVOID_MISS, AVOID_CRIT = DEF * 0,04 :
+--     parts dérivées gardées dans les stats (et non dans le poids de DEF) pour le plafond d'immunité.
+--   critAvoidance(défenseTotale, niveau) -> % de critiques subis en moins = max(0, déf - 5 * niveau) * 0,04
 --     Crit et esquive avant 60 : ratio * 60 / niveau (niveau borné à 10). Classe inconnue : coûts seuls.
 
 local _, ns = ...
@@ -61,6 +64,8 @@ local STR_BLOCK = { WARRIOR = 0.05, PALADIN = 0.05, SHAMAN = 0.05 }
 -- Défense : 0,04 % par point (Classic) ; parade et blocage selon la classe.
 local DEF_PERCENT = 0.04
 local PARRIES = { WARRIOR = true, PALADIN = true, ROGUE = true, HUNTER = true }
+local DERIVED_FROM_DEF = { "AVOID_MISS", "AVOID_CRIT" }
+local DEFENSE_PER_LEVEL = 5
 
 -- Conversions de la classe : {from, to, parPoint}.
 local function conversions(class, level)
@@ -77,8 +82,6 @@ local function conversions(class, level)
         { "SPELL_POWER", "HEALING", 1 },
         { "STA", "HEALTH", 10 },
         { "DEF", "DODGE", DEF_PERCENT },
-        { "DEF", "AVOID_MISS", DEF_PERCENT },
-        { "DEF", "AVOID_CRIT", DEF_PERCENT },
     }
     local optional = {
         { "INT", "SPELL_CRIT", StatValue.CRIT_PER_INT[class] and StatValue.CRIT_PER_INT[class] * scale },
@@ -112,4 +115,27 @@ function StatValue.expand(rankWeights, class, level)
         end
     end
     return weights
+end
+
+-- Stats d'objet complétées des parts dérivées de DEF (raté, critiques subis), plafonnables par Scoring.
+function StatValue.withDerived(stats)
+    local def = stats and stats.DEF
+    if not def or def == 0 then
+        return stats
+    end
+    local result = {}
+    for key, value in pairs(stats) do
+        result[key] = value
+    end
+    for _, key in ipairs(DERIVED_FROM_DEF) do
+        result[key] = (result[key] or 0) + def * DEF_PERCENT
+    end
+    return result
+end
+
+function StatValue.critAvoidance(defense, level)
+    if not defense then
+        return 0
+    end
+    return math.max(0, defense - DEFENSE_PER_LEVEL * (level or MAX_LEVEL)) * DEF_PERCENT
 end

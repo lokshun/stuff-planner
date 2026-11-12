@@ -33,7 +33,7 @@ function Alts.compact(snapshot, profile, name, realm, at)
         name = name, realm = realm, class = snapshot.class, race = snapshot.race, raceID = snapshot.raceID,
         faction = snapshot.faction, level = snapshot.level, equipped = copy(snapshot.equipped or {}),
         equippedStats = copy(snapshot.equippedStats or {}), spellHit = snapshot.spellHit,
-        meleeHit = snapshot.meleeHit,
+        meleeHit = snapshot.meleeHit, avoidCrit = snapshot.avoidCrit,
         profile = { weights = copy(profile.weights or {}), caps = copy(profile.caps or {}) },
         at = at,
     }

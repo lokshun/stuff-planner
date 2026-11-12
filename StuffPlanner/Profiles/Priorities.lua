@@ -9,7 +9,7 @@
 --   remove(order, index) -> copie sans ce rang ; add(order, key) -> copie avec key en dernier
 --     (doublon, clé inconnue ou liste pleine : copie inchangée)
 --   candidates(order) -> clés absentes de order, dans l'ordre de ns.StatKeyList
---   CAPPABLE = {HIT = true, SPELL_HIT = true} : seuls plafonds gérés par le moteur (en %)
+--   CAPPABLE = {HIT, SPELL_HIT, AVOID_CRIT = true} : seuls plafonds gérés par le moteur (en %)
 --   parseCap(text) -> plafond (0 à 100, arrondi au dixième) | nil, code ; virgule décimale admise ;
 --     codes : EMPTY (texte vide : pas de plafond), VALUE (illisible), RANGE (hors bornes)
 --   KNOWN_CAPS[phase][key] : plafonds connus de Forever (API_NOTES.md) ; defaultCap(key, phase?,
@@ -22,15 +22,16 @@ ns.Priorities = Priorities
 
 Priorities.MAX = 10
 Priorities.DECAY = 0.7
-Priorities.CAPPABLE = { HIT = true, SPELL_HIT = true }
+Priorities.CAPPABLE = { HIT = true, SPELL_HIT = true, AVOID_CRIT = true }
 
 local MAX_CAP = 100
 
 -- Plafonds de Forever (API_NOTES.md) : 60 = cible de raid (+3 niveaux), mêlée et distance 8 %, sorts 17 % ;
 -- montée de niveau = cible de même niveau, 5 % et 4 %. Arme dans chaque main ignorée (coups blancs).
+-- Immunité aux critiques (60, boss +3 niveaux, formule Classic) : 5 % + 15 x 0,04 = 5,6 %.
 Priorities.KNOWN_CAPS = {
     leveling = { HIT = 5, SPELL_HIT = 4 },
-    ["60"] = { HIT = 8, SPELL_HIT = 17 },
+    ["60"] = { HIT = 8, SPELL_HIT = 17, AVOID_CRIT = 5.6 },
 }
 
 function Priorities.defaultCap(key, phase, baseCaps)

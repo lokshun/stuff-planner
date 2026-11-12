@@ -191,6 +191,18 @@ function Compat.GetHitModifiers()
     return melee or 0, spell or 0
 end
 
+-- Défense totale (base + bonus), nil sans UnitDefense (à vérifier sur Forever).
+function Compat.GetDefense()
+    if not UnitDefense then
+        return nil
+    end
+    local base, bonus = UnitDefense("player")
+    if not base then
+        return nil
+    end
+    return base + (bonus or 0)
+end
+
 function Compat.GetSkillRanks()
     local ranks = {}
     if not (C_SkillInfo and C_SkillInfo.GetNumSkillLines and C_SkillInfo.GetSkillLineInfo) then
