@@ -21,6 +21,7 @@
 --   SetFrameTitle(frame, text), SetFramePortrait(frame, texture) -> cadre PortraitFrameTemplate
 --   SetBackdrop(frame, backdrop, r?, g?, b?, a?) -> bool : fond du client (BackdropTemplateMixin mélangé
 --     si le cadre n'a pas SetBackdrop) ; false sans API
+--   CreateLine(frame, layer) -> trait (frame:CreateLine : SetStartPoint, SetEndPoint, SetThickness) | nil sans API
 
 local _, ns = ...
 
@@ -232,6 +233,13 @@ function Compat.SetFramePortrait(frame, texture)
     elseif frame.portrait and SetPortraitToTexture then
         SetPortraitToTexture(frame.portrait, texture)
     end
+end
+
+function Compat.CreateLine(frame, layer)
+    if type(frame.CreateLine) ~= "function" then
+        return nil
+    end
+    return frame:CreateLine(nil, layer)
 end
 
 function Compat.SetBackdrop(frame, backdrop, r, g, b, a)
