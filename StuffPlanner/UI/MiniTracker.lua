@@ -35,7 +35,7 @@ local function showTooltip(button)
     GameTooltip:SetOwner(button, "ANCHOR_LEFT")
     GameTooltip:SetHyperlink("item:" .. row.itemID)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine(row.sourceText, 1, 1, 1)
+    GameTooltip:AddLine(row.originText or row.sourceText, 1, 1, 1)
     if row.stateText ~= "" then
         GameTooltip:AddLine(row.stateText, row.stateColor.r, row.stateColor.g, row.stateColor.b)
     end

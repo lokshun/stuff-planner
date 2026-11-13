@@ -6,7 +6,7 @@
 --     decimals vaut 0 par défaut
 --   ns.Format.points(value [, locale]) -> gain en points signé : « +2,5 », « -0.50 », « 0.00 »
 --     (une décimale, deux sous 1 en valeur absolue)
---   ns.Format.duration(seconds [, L]) -> « ~12 min » | nil (seconds nil ou infini) ; L = ns.L par défaut
+--   ns.Format.duration(seconds [, L]) -> « 12 min » | nil (seconds nil ou infini) ; L = ns.L par défaut
 --     (DURATION_UNDER_MINUTE sous 60 s, DURATION_MINUTES sous l'heure, sinon DURATION_HOURS ou
 --     DURATION_HOURS_MINUTES, minutes arrondies à 5)
 -- locale vaut GetLocale() par défaut ; une langue inconnue suit enUS.

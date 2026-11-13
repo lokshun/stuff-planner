@@ -29,8 +29,9 @@ function RouteRows.sourceLine(row)
     if row.tagText then
         parts[#parts + 1] = ns.Theme.colorize(row.tagText, row.tagColor)
     end
-    if row.sourceText and row.sourceText ~= "" then
-        parts[#parts + 1] = row.sourceText
+    local origin = row.originText or row.sourceText
+    if origin and origin ~= "" then
+        parts[#parts + 1] = origin
     end
     local text = table.concat(parts, " · ")
     if row.badge then

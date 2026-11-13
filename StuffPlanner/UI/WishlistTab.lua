@@ -4,8 +4,9 @@
 -- WishlistIO), statut. Cadres seulement. Charger après Wishlist.lua, WishlistStore.lua, WishlistPresenter.lua,
 -- ItemRow.lua et MainFrame.lua.
 -- S'inscrit par ns.MainFrame.addTab("wishlist", …). Lignes ns.ItemRow : clic = RowActions.click (source),
--- clic droit = menu (Désépingler) ; invitation si vide. Obtenu : porté, ou Compat.GetItemCount > 0 (sacs et
--- banque). Rafraîchi par ns.MainFrame.refresh sur SP_WISHLIST_CHANGED et BAG_UPDATE_DELAYED (page affichée).
+-- clic droit = menu (Désépingler) ; vide : titre et explication (rôle de la page, ajout, import).
+-- Obtenu : porté, ou Compat.GetItemCount > 0 (sacs et banque). Rafraîchi par ns.MainFrame.refresh sur
+-- SP_WISHLIST_CHANGED et BAG_UPDATE_DELAYED (page affichée).
 
 local _, ns = ...
 
@@ -15,7 +16,7 @@ local ROW_HEIGHT = 24
 local BOX_HEIGHT = 20
 local FOOTER_HEIGHT = BOX_HEIGHT + 18
 
-local panel, header, scrollBox, empty, ioBox, status
+local panel, header, scrollBox, emptyTitle, emptyBody, ioBox, status
 
 local askName = ns.NameAsker.new(function()
     ns.MainFrame.refresh()
@@ -83,7 +84,8 @@ local function refresh()
     if not ns.Data.ready() then
         header:SetText(L.BEST_NOT_READY)
         scrollBox:SetDataProvider(CreateDataProvider({}))
-        empty:SetText("")
+        emptyTitle:SetText("")
+        emptyBody:SetText("")
         return
     end
     local view = currentView()
@@ -92,7 +94,8 @@ local function refresh()
     end
     header:SetText(view.title)
     scrollBox:SetDataProvider(CreateDataProvider(view.rows))
-    empty:SetText(view.empty or "")
+    emptyTitle:SetText(view.empty and view.empty.title or "")
+    emptyBody:SetText(view.empty and view.empty.body or "")
 end
 
 local function createFooter()
@@ -133,10 +136,19 @@ local function create(parent)
     view:SetElementExtent(ROW_HEIGHT)
     view:SetElementInitializer("Button", initRow)
     ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view)
-    empty = panel:CreateFontString(nil, "OVERLAY", theme.fonts.body)
-    empty:SetPoint("LEFT", scrollBox, "LEFT", 20, 0)
-    empty:SetPoint("RIGHT", scrollBox, "RIGHT", -20, 0)
-    setColor(empty, theme.colors.muted)
+    emptyTitle = panel:CreateFontString(nil, "OVERLAY", theme.fonts.title)
+    emptyTitle:SetPoint("TOPLEFT", scrollBox, "TOPLEFT", 20, -24)
+    emptyTitle:SetPoint("RIGHT", scrollBox, "RIGHT", -20, 0)
+    emptyTitle:SetJustifyH("LEFT")
+    setColor(emptyTitle, theme.colors.title)
+    emptyBody = panel:CreateFontString(nil, "OVERLAY", theme.fonts.body)
+    emptyBody:SetPoint("TOPLEFT", emptyTitle, "BOTTOMLEFT", 0, -theme.spacing.padding)
+    emptyBody:SetPoint("RIGHT", scrollBox, "RIGHT", -20, 0)
+    emptyBody:SetJustifyH("LEFT")
+    emptyBody:SetJustifyV("TOP")
+    emptyBody:SetWordWrap(true)
+    emptyBody:SetSpacing(3)
+    setColor(emptyBody, theme.colors.text)
     return panel
 end
 

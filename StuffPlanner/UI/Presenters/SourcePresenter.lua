@@ -31,7 +31,7 @@ local function othersOf(itemID, source, data)
     local list = {}
     for _, other in ipairs(data.sourcesOf(itemID) or {}) do
         if not sameSource(other, source) then
-            list[#list + 1] = ns.RowPresenter.present({ itemID = itemID, source = other }, data).sourceText
+            list[#list + 1] = ns.RowPresenter.present({ itemID = itemID, source = other }, data).originText
         end
     end
     return list

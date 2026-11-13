@@ -163,7 +163,7 @@ end
 
 local function lineFor(rank, entry, data)
     local text = L.BEST_LINE:format(rank, ns.Names.item(entry.itemID), gainText(entry.delta),
-        ns.Names.quest(entry.questID))
+        ns.RowPresenter.questOrigin(entry.questID, data))
     local fields = data.item(entry.itemID)
     if fields and fields.confidence == LOW_CONFIDENCE then
         text = text .. L.BEST_ESTIMATED

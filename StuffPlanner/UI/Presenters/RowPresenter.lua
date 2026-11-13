@@ -8,6 +8,7 @@
 --            arrow ("▲" | "▼" | ""), gainText (points, signe, 2 décimales sous 1, "" sans delta),
 --            gainColor (Theme.colors gain | loss | neutral),
 --            sourceKind (type de source | nil), sourceText ("" sans source),
+--            originText (quête : questOrigin, « Suite de quêtes : nom » ou « Quête : nom » ; sinon sourceText),
 --            unconfirmed (bool), badge (L.BADGE_UNCONFIRMED | nil), badgeColor,
 --            questState (entry.questState : "log" | "level" | "prereq" | nil, voir Chat.bestInZone),
 --            stateText ("" sans état ; « niv. N » = reqLevel de la quête, minLevel de l'instance),
@@ -21,6 +22,8 @@
 --            detailText (états colorés — état de quête puis badge — séparés par « · »,
 --              puis sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
 --   isChain(quest) -> bool : quête à prérequis (suite de quêtes) ; quest = data.quest(id) | nil
+--   questOrigin(questID, data) -> L.SOURCE_ORIGIN (L.TAG_CHAIN si isChain, sinon L.TAG_QUEST ; nom de quête) ;
+--     pour les textes sans le tag coloré de detailText (info-bulles, parcours, liste cible, autres sources, chat)
 --   offProfile (delta.fallback : repli hors profil, Scoring.fallbackOf) : gainLabel entre parenthèses, couleur
 --     muted, sans flèche ; L.TAG_OFF_PROFILE en tête de detailText
 --   kindText (quête : L.TAG_CHAIN si isChain, sinon L.TAG_QUEST ; en couleur de titre dans detailText,
@@ -36,7 +39,7 @@
 --   instanceTag(quest, data) -> text, color | nil : « Donjon » ou « Raid » si quest.instance (raid lu dans
 --     data.instance) ; lignes de quête et de butin d'instance (source dungeon, raid) : row.tagText,
 --     row.tagColor, placés après l'état dans detailText
---   effortText(entry) -> « ~12 min · Proche · 3 quêtes » (Format.duration de entry.seconds, Distance.label
+--   effortText(entry) -> « 12 min · Proche · 3 quêtes » (Format.duration de entry.seconds, Distance.label
 --     de entry.hops, L.EFFORT_CHAIN si entry.steps > 1) | nil ; entry = ligne de Planner.rank
 --   alternative(entry, data, effortText?) -> present + questID (source quête), itemSource,
 --     effortText (donné, sinon effortText(entry)), lineText (effortText · detailText)
@@ -123,6 +126,11 @@ function RowPresenter.isChain(quest)
     return quest ~= nil and quest.prereq ~= nil
 end
 
+function RowPresenter.questOrigin(questID, data)
+    local kind = RowPresenter.isChain(data.quest(questID)) and L.TAG_CHAIN or L.TAG_QUEST
+    return L.SOURCE_ORIGIN:format(kind, ns.Names.quest(questID))
+end
+
 function RowPresenter.instanceTag(quest, data)
     if not (quest and quest.instance) then
         return nil
@@ -188,10 +196,12 @@ function RowPresenter.present(entry, data)
     if kind == "quest" then
         local quest = data.quest(entry.source.id)
         row.kindText = RowPresenter.isChain(quest) and L.TAG_CHAIN or L.TAG_QUEST
+        row.originText = L.SOURCE_ORIGIN:format(row.kindText, row.sourceText)
         row.tagText, row.tagColor = RowPresenter.instanceTag(quest, data)
     elseif kind == "dungeon" or kind == "raid" then
         row.tagText, row.tagColor = kind == "raid" and L.TAG_RAID or L.TAG_DUNGEON, ns.Theme.colors.instance
     end
+    row.originText = row.originText or row.sourceText
     row.arrow, row.gainText, row.gainColor = RowPresenter.gain(entry.delta)
     if row.unconfirmed then
         row.badge, row.badgeColor = L.BADGE_UNCONFIRMED, ns.Theme.colors.warning

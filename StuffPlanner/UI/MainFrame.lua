@@ -6,6 +6,7 @@
 --   ns.MainFrame.show([key]), hide(), toggle(), isShown() ; show sans clé : dernière page ouverte
 --     (StuffPlannerDB.ui.tab, NavBar.pick : page inconnue -> première)
 --   ns.MainFrame.refresh() -> rafraîchit la page affichée si la fenêtre est visible
+--   ns.MainFrame.pages() -> pages inscrites (ns.NavBar.order), pour l'accueil
 --   ns.MainFrame.frame() -> cadre de la fenêtre | nil avant le premier affichage (panneaux accolés)
 --   ns.MainFrame.resetPosition() -> fenêtre recentrée
 --   ns.MainFrame.setBehind(on) : fenêtre passée sous le panneau de réglages du client (strate MEDIUM, Échap
@@ -13,7 +14,7 @@
 -- Commandes : /splan show (bascule, aussi par le menu des addons), /splan scale <0.6-1.5>.
 -- Sauvegarde : StuffPlannerDB.ui = {point, relativePoint, x, y, tab} ; échelle et opacité par ns.Options
 -- (window.scale, window.alpha), appliquées sur SP_OPTION_CHANGED. Engrenage : ns.OptionsPanel.open() ;
--- « ? » : ns.HelpPanel.toggle() (gestes et commandes).
+-- « ? » : ns.HelpPanel.toggle() (gestes et commandes). Astuce au premier passage sur une page (ns.PageTip).
 -- Fermeture par Échap (OnKeyDown, sans nom global) ; cachée en combat, ouverte hors combat seulement.
 -- Créée au premier affichage : rien n'est construit tant que le joueur ne l'ouvre pas.
 
@@ -31,7 +32,7 @@ local HELP_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
 local TOP_INSET, SIDE_INSET, BOTTOM_INSET, TITLE_TOP = 60, 12, 12, -34
 local TITLE_LEFT = 62 -- après le portrait rond (PortraitFrameTemplate ~60 px, carnet 52 px)
 
-local frame, navBar, pageTitle
+local frame, navBar, pageTitle, pageTip
 local tabs, panels = {}, {}
 local current
 local behind = false
@@ -112,6 +113,7 @@ local function selectTab(key)
     end
     panelFor(key):Show()
     pageTitle:SetText(tabs[key].label or "")
+    pageTip.show(key, tabs[key].icon)
     navBar.setActive(key)
     MainFrame.refresh()
 end
@@ -149,6 +151,7 @@ local function create()
     frame.content = CreateFrame("Frame", nil, frame)
     frame.content:SetPoint("TOPLEFT", contentLeft, -TOP_INSET)
     frame.content:SetPoint("BOTTOMRIGHT", -SIDE_INSET, BOTTOM_INSET)
+    pageTip = ns.PageTip.new(frame, frame.content, contentLeft, TOP_INSET)
     createButtons()
     restorePosition()
     frame:Hide()
@@ -160,6 +163,10 @@ function MainFrame.addTab(key, tab)
         navBar.render(ns.NavBar.order(tabs))
         navBar.setActive(current)
     end
+end
+
+function MainFrame.pages()
+    return ns.NavBar.order(tabs)
 end
 
 function MainFrame.frame()

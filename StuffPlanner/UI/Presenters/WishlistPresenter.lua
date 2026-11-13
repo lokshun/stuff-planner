@@ -1,7 +1,8 @@
 -- CONTRAT
 -- Lignes de la section Liste cible (onglet Équipement). Pur : aucun appel d'API. Charger après RowPresenter.lua.
 --   ns.WishlistPresenter.build(view, data) -> {title, empty, rows}
---     view = Wishlist.status ; title = L.WISHLIST_TITLE (obtenus, total) ; empty = L.WISHLIST_EMPTY | nil ;
+--     view = Wishlist.status ; title = L.WISHLIST_TITLE (obtenus, total) ;
+--     empty = {title = L.WISHLIST_EMPTY_TITLE, body = L.WISHLIST_EMPTY (rôle de la page, ajout, import)} | nil ;
 --     row = {itemID, name, icon, nameColor, checked (obtenu), detail, detailColor, isNext,
 --            questID (première quête restante) | nil, itemSource (source hors quête) | nil}
 --     detail : L.WISHLIST_OBTAINED, L.WISHLIST_BLOCKED, sinon source (RowPresenter), L.EFFORT_CHAIN si plusieurs
@@ -23,7 +24,7 @@ local function detailOf(entry, base)
     elseif entry.blocked then
         return L.WISHLIST_BLOCKED
     end
-    local parts = { base.sourceText }
+    local parts = { base.originText }
     if entry.steps and #entry.steps > 1 then
         parts[#parts + 1] = L.EFFORT_CHAIN:format(#entry.steps)
     end
@@ -57,7 +58,7 @@ function WishlistPresenter.build(view, data)
     end
     return {
         title = L.WISHLIST_TITLE:format(view.progress.done, view.progress.total),
-        empty = #rows == 0 and L.WISHLIST_EMPTY or nil,
+        empty = #rows == 0 and { title = L.WISHLIST_EMPTY_TITLE, body = L.WISHLIST_EMPTY } or nil,
         rows = rows,
     }
 end
