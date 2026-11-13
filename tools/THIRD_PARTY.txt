@@ -14,6 +14,10 @@ pfQuest (https://github.com/shagu/pfQuest)
 WoW-Spyglass (https://github.com/Karl-HeinzSchneider/WoW-Spyglass)
   Butins par rencontre, stats observées sur Forever. Licence ci-dessous.
 
+ForeverChanges (https://foreverchanges.pro), Waypoint Digital SL
+  Répartition fixes / au choix des récompenses des quêtes Forever. Reprise avec
+  l'accord de l'éditeur (2026-11-13) ; ces données ne sont pas sous GPLv3.
+
 wago.tools (https://wago.tools)
   Tables du client du jeu. Le jeu et ses données appartiennent à Blizzard Entertainment, Inc.
 

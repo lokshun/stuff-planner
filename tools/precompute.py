@@ -26,9 +26,10 @@ Précalculs à partir des enregistrements importés.
     (élite rare) à apparition aléatoire (random_spawns, cmangos.load_random_spawns : des boss toujours présents comme
     VanCleef ont aussi le rang 2), dans l'ordre ; absent s'il n'y en a pas. ranks : Questie, sinon CMaNGOS
   mark_forever(records, classic_ids) -> copie ; "forever": 1 sur les enregistrements absents de classic_ids
-  split_rewards(quests, split) -> copies ; split = cmangos.load_quest_rewards ; quête confidence 2 (répartition
-    devinée) dont choices + rewards est exactement l'ensemble de split[id] : sa répartition, confidence 3 ;
-    sinon inchangée (objet ajouté par Forever, quête absente de CMaNGOS)
+  split_rewards(quests, *splits) -> copies ; splits = {id: (choices, rewards)} par ordre de priorité
+    (cmangos.load_quest_rewards, puis foreverchanges.load_split) ; quête confidence 2 (répartition devinée) :
+    première source dont l'ensemble d'objets est exactement choices + rewards, sa répartition, confidence 3 ;
+    sinon inchangée (objet ajouté par Forever, quête absente des sources)
 """
 
 import schema
@@ -195,11 +196,20 @@ GUESSED_SPLIT = 2
 CONFIRMED = 3
 
 
-def split_rewards(quests, split):
+def _known_split(quest, splits):
+    items = set(quest["choices"]) | set(quest["rewards"])
+    for split in splits:
+        known = split.get(quest["id"])
+        if known and set(known[0]) | set(known[1]) == items:
+            return known
+    return None
+
+
+def split_rewards(quests, *splits):
     result = []
     for quest in quests:
-        known = split.get(quest["id"]) if quest.get("confidence") == GUESSED_SPLIT else None
-        if known and set(known[0]) | set(known[1]) == set(quest["choices"]) | set(quest["rewards"]):
+        known = _known_split(quest, splits) if quest.get("confidence") == GUESSED_SPLIT else None
+        if known:
             quest = {**quest, "choices": list(known[0]), "rewards": list(known[1]), "confidence": CONFIRMED}
         result.append(quest)
     return result

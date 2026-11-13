@@ -15,7 +15,7 @@ Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
     de validation ; ValueError sans rien écrire si une erreur bloquante est trouvée
   read_interfaces(addon_dir) -> {"Camelot": 16001, ...}, lu dans les TOC de l'addon principal
 Sources (cache dans tools/cache) : QuestieDB, wago.tools (Forever et Classic Era), NorgannonDB, Spyglass,
-CMaNGOS classic-db (répartition fixes / choix des récompenses de quête).
+CMaNGOS classic-db puis ForeverChanges (répartition fixes / choix des récompenses de quête).
 Quêtes absentes de la base Classic de QuestieDB et objets absents d'ItemSparse Classic Era : forever = 1.
 Usage : python tools/build_db.py ; affiche les comptes en une ligne.
 """
@@ -31,7 +31,7 @@ import merge_exports
 import precompute
 import schema
 import validate_db
-from sources import cmangos, norgannon, quest_steps, questie, spyglass, wago, wago_era, zones
+from sources import cmangos, foreverchanges, norgannon, quest_steps, questie, spyglass, wago, wago_era, zones
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCES = ROOT / "tools" / "tests" / "fixtures"
@@ -136,11 +136,30 @@ def build(
     return counts
 
 
+def _guessed(quests):
+    return sum(1 for quest in quests if quest.get("confidence") == precompute.GUESSED_SPLIT)
+
+
+def _split(quests, cmangos_split, forever_split):
+    before = _guessed(quests)
+    quests = precompute.split_rewards(quests, cmangos_split)
+    after_cmangos = _guessed(quests)
+    quests = precompute.split_rewards(quests, forever_split)
+    remaining = _guessed(quests)
+    print(
+        f"Répartitions : {before - after_cmangos} par CMaNGOS, {after_cmangos - remaining} par ForeverChanges, "
+        f"{remaining} devinées restantes"
+    )
+    return quests
+
+
 def load_sources(world_items=()):
     questie_dir = questie.fetch(CACHE_DIR / "questie")
     quests = questie.load_quests(questie_dir)
     cmangos_dir = cmangos.fetch(CACHE_DIR / "cmangos")
-    quests = precompute.split_rewards(quests, cmangos.load_quest_rewards(cmangos_dir))
+    quests = _split(quests, cmangos.load_quest_rewards(cmangos_dir), foreverchanges.load_split(
+        foreverchanges.fetch(CACHE_DIR / "foreverchanges")
+    ))
     quests = quest_steps.add_steps(quests, questie_dir)
     npcs = questie.load_npcs(questie_dir, quest_steps.npc_ids(quests))
     wago_dir = wago.fetch(CACHE_DIR / "wago")
