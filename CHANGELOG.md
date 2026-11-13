@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.2.1 — unreleased
+## 2.2.1 — 2026-11-13
 
 ### Fixes
 - Lists no longer jump back to the top when you add an item to the target list, expand a row's
