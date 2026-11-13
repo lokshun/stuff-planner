@@ -1,9 +1,10 @@
 -- CONTRAT
 -- Lignes de la section Liste cible (onglet Équipement). Pur : aucun appel d'API. Charger après RowPresenter.lua.
---   ns.WishlistPresenter.build(view, data) -> {title, empty, rows}
---     view = Wishlist.status ; title = L.WISHLIST_TITLE (obtenus, total) ;
---     empty = {title = L.WISHLIST_EMPTY_TITLE, body = L.WISHLIST_EMPTY (rôle de la page, ajout, import)} | nil ;
+--   ns.WishlistPresenter.build(view, data, gainOf?) -> {title, empty, rows}
+--     view = Wishlist.status ; gainOf(itemID) -> delta (Scoring.delta, profil actif) | nil ;
+--     title = L.WISHLIST_TITLE (obtenus, total) ; empty = L.WISHLIST_EMPTY (ajout, partage) | nil ;
 --     row = {itemID, name, icon, nameColor, checked (obtenu), detail, detailColor, isNext,
+--            gain, gainColor (RowPresenter.gain ; absents si obtenu ou sans gainOf),
 --            questID (première quête restante) | nil, itemSource (source hors quête) | nil}
 --     detail : L.WISHLIST_OBTAINED, L.WISHLIST_BLOCKED, sinon source (RowPresenter), L.EFFORT_CHAIN si plusieurs
 --       quêtes restantes, durée (Format.duration), séparés par « · » ; couleur : gain (obtenu), loss
@@ -42,7 +43,7 @@ local function colorOf(entry, isNext)
     return isNext and colors.title or colors.muted
 end
 
-function WishlistPresenter.build(view, data)
+function WishlistPresenter.build(view, data, gainOf)
     local rows = {}
     for index, entry in ipairs(view.entries) do
         local base = ns.RowPresenter.present({ itemID = entry.itemID, source = entry.source }, data)
@@ -55,10 +56,14 @@ function WishlistPresenter.build(view, data)
             questID = quest and entry.steps and entry.steps[1] or nil,
             itemSource = not quest and entry.source or nil,
         }
+        if gainOf and not entry.obtained then
+            local _, text, color = ns.RowPresenter.gain(gainOf(entry.itemID))
+            rows[index].gain, rows[index].gainColor = text, color
+        end
     end
     return {
         title = L.WISHLIST_TITLE:format(view.progress.done, view.progress.total),
-        empty = #rows == 0 and { title = L.WISHLIST_EMPTY_TITLE, body = L.WISHLIST_EMPTY } or nil,
+        empty = #rows == 0 and L.WISHLIST_EMPTY or nil,
         rows = rows,
     }
 end

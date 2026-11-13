@@ -1,11 +1,12 @@
 -- CONTRAT
 -- Fenêtre principale (ns.Skin) : onglets hors du bord gauche (ns.NavBar), titre de la page, engrenage et aide en
--- haut à droite. Charger après Core.lua, Compat.lua, Skin.lua et NavBar.lua, avant les pages.
---   ns.MainFrame.addTab(key, tab) -> tab = {create(parent) -> frame, refresh()?, icon, label, order} ;
---     clés existantes : zone, route, gear, profile ; une page inscrite après la création est ajoutée à la barre
+-- haut à droite. Charger après Core.lua, Compat.lua, Skin.lua, NavBar.lua et PageAliases.lua, avant les pages.
+--   ns.MainFrame.addTab(key, tab) -> tab = {create(parent) -> frame, refresh()?, icon, label, short?, order} ;
+--     clés : zone, route, dungeon, gear, profile ; une page inscrite après la création est ajoutée à la barre
 --   ns.MainFrame.show([key]), hide(), toggle(), isShown() ; show sans clé : dernière page ouverte
 --     (StuffPlannerDB.ui.tab, NavBar.pick : page inconnue -> première) ; en combat, show et toggle reportent
---     l'ouverture à la sortie (ns.WindowCombat.request)
+--     l'ouverture à la sortie (ns.WindowCombat.request) ; key ancienne (ns.PageAliases : wishlist, journal) :
+--     page qui l'accueille, puis la fonction de MainFrame.onReveal(alias, fn) (section dépliée)
 --   ns.MainFrame.page() -> clé de la page affichée en dernier | nil
 --   ns.MainFrame.refresh() -> rafraîchit la page affichée si la fenêtre est visible
 --   ns.MainFrame.pages() -> pages inscrites (ns.NavBar.order), pour l'accueil
@@ -36,7 +37,7 @@ local TOP_INSET, SIDE_INSET, BOTTOM_INSET, TITLE_TOP = 60, 12, 12, -34
 local TITLE_LEFT = 62 -- après le portrait rond (PortraitFrameTemplate ~60 px, carnet 52 px)
 
 local frame, navBar, pageTitle, pageTip
-local tabs, panels = {}, {}
+local tabs, panels, reveals = {}, {}, {}
 local current
 local behind = false
 
@@ -194,6 +195,10 @@ function MainFrame.refresh()
     end
 end
 
+function MainFrame.onReveal(alias, fn)
+    reveals[alias] = fn
+end
+
 function MainFrame.show(key)
     if InCombatLockdown() then
         ns.WindowCombat.request(key)
@@ -203,7 +208,11 @@ function MainFrame.show(key)
         create()
     end
     frame:Show()
-    selectTab(ns.NavBar.pick(tabs, key, settings().tab))
+    local page, alias = ns.PageAliases.resolve(key)
+    selectTab(ns.NavBar.pick(tabs, page, settings().tab))
+    if alias and reveals[alias] and current == page then
+        reveals[alias]()
+    end
 end
 
 function MainFrame.setBehind(on)

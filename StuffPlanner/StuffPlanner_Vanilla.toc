@@ -141,6 +141,7 @@ DungeonRun.lua
 Data\Timings.lua
 Data\History.lua
 Data\Alts.lua
+UI\PageAliases.lua
 UI\NavBar.lua
 UI\PageTip.lua
 UI\MainFrame.lua
@@ -153,10 +154,9 @@ UI\ZoneTab.lua
 UI\AltLines.lua
 UI\RouteTab.lua
 UI\GearRows.lua
-UI\WishlistTab.lua
 UI\DungeonTab.lua
 UI\HistoryChart.lua
-UI\JournalTab.lua
+UI\WishlistSection.lua
 UI\GearTab.lua
 UI\StatPicker.lua
 UI\PriorityRows.lua
@@ -165,6 +165,7 @@ UI\ProfileTooltip.lua
 UI\ProfileGrid.lua
 UI\ProfileSummary.lua
 UI\WeightBars.lua
+UI\JournalSections.lua
 UI\ProfileTab.lua
 UI\Onboarding.lua
 UI\HelpPanel.lua

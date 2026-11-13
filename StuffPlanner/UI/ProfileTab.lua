@@ -2,11 +2,12 @@
 -- Onglet « Profil », contenu défilant (UIPanelScrollFrameTemplate, barre cachée quand tout tient) :
 -- résumé du profil actif (ns.ProfileSummary ; « Modifier » ouvre « Mes stats » et y défile ; « Comparer… »
 -- ouvre la liste des profils (RowMenuPresenter.compareEntries, Profiles.setSecondary), profil comparé affiché), puis
--- trois sections ns.Section repliables : choix du profil (ns.ProfileGrid, ouverte par défaut),
--- « Mes stats » (ns.PriorityList), réglages avancés (poids du profil actif en barres ns.WeightBars,
--- import/export d'une chaîne ProfileIO). Sections indépendantes.
+-- sections ns.Section repliables : choix du profil (ns.ProfileGrid, ouverte par défaut),
+-- « Mes stats » (ns.PriorityList), Progression et Autres personnages (ns.JournalSections), réglages avancés
+-- (poids du profil actif en barres ns.WeightBars, import/export d'une chaîne ProfileIO). Sections indépendantes.
+-- MainFrame.show("journal") : Progression dépliée et amenée en haut.
 -- Charger après MainFrame.lua, Profiles/Manager.lua, ProfileIO.lua, ProfilePresenter.lua,
--- PriorityList.lua, ProfileGrid.lua, ProfileSummary.lua et WeightBars.lua.
+-- PriorityList.lua, ProfileGrid.lua, ProfileSummary.lua, WeightBars.lua et JournalSections.lua.
 -- S'inscrit par ns.MainFrame.addTab("profile", …) ; rafraîchi par ns.MainFrame.refresh
 -- (SP_PROFILE_CHANGED abonné par ZoneTab). Repli sauvegardé dans StuffPlannerDB.ui.profileGrid
 -- (false = replié), profileStats et profileAdvanced (true = ouvert).
@@ -145,16 +146,20 @@ local function addSection(spec, title, body, render)
     sections[#sections + 1] = section
 end
 
--- « Modifier » du résumé : ouvre « Mes stats » et fait défiler jusqu'à son en-tête.
-local function editStats()
-    ns.Section.setOpen(STATS, true)
+-- Ouvre une section et fait défiler jusqu'à son en-tête (« Modifier » du résumé, /splan journal).
+local function reveal(spec)
+    ns.Section.setOpen(spec, true)
     refresh()
     for _, section in ipairs(sections) do
-        if section.key == "profileStats" then
+        if section.key == spec.key then
             scroll:UpdateScrollChildRect()
             scroll:SetVerticalScroll(math.min(section.top, scroll:GetVerticalScrollRange()))
         end
     end
+end
+
+local function editStats()
+    reveal(STATS)
 end
 
 local function onImport()
@@ -243,6 +248,9 @@ local function create(parent)
     statsSection = ns.PriorityList.create(content)
     statsSection:SetSize(content:GetWidth(), ns.PriorityList.HEIGHT)
     addSection(STATS, L.PROFILE_MY_STATS, statsSection, renderStats)
+    for _, journal in ipairs(ns.JournalSections.create(content)) do
+        addSection(journal.spec, journal.title, journal.body, journal.render)
+    end
     createAdvanced()
     addSection({ key = "profileAdvanced" }, L.PROFILE_ADVANCED, advanced, renderAdvanced)
     return panel
@@ -251,3 +259,7 @@ end
 ns.MainFrame.addTab("profile", {
     create = create, refresh = refresh, order = 4, label = L.TAB_PROFILE, icon = "Interface\\Icons\\INV_Misc_Note_01",
 })
+
+ns.MainFrame.onReveal("journal", function()
+    reveal(ns.JournalSections.PROGRESS)
+end)

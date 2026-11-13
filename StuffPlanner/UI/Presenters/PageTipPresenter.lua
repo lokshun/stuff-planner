@@ -13,10 +13,7 @@ local L = ns.L
 local PageTipPresenter = {}
 ns.PageTipPresenter = PageTipPresenter
 
-local KEYS = {
-    zone = "ZONE", wishlist = "WISHLIST", route = "ROUTE", dungeon = "DUNGEON", gear = "GEAR",
-    profile = "PROFILE", journal = "JOURNAL",
-}
+local KEYS = { zone = "ZONE", route = "ROUTE", dungeon = "DUNGEON", gear = "GEAR", profile = "PROFILE" }
 
 function PageTipPresenter.list(pages)
     local rows = {}

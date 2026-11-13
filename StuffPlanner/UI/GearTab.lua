@@ -2,10 +2,10 @@
 -- Onglet « Équipement » : objets portés et meilleure amélioration de chaque emplacement (zone, à défaut
 -- palier courant du Parcours : RouteResults, calcul lancé à l'affichage) ; GearPresenter.
 -- Charger après MainFrame.lua, Chat.lua, RouteResults.lua, GearPresenter.lua, Chips.lua, FilterMenu.lua,
--- GearRows.lua.
+-- GearRows.lua, WishlistSection.lua.
 -- S'inscrit par ns.MainFrame.addTab("gear", …). Rafraîchi à l'ouverture ; les messages
 -- SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED, SP_ROUTE_UPDATED passent par ns.MainFrame.refresh.
--- Tout en haut : lien « Liste cible (n) › » vers la page wishlist (UI/WishlistTab.lua).
+-- Tout en haut : section repliable « Liste cible » (ns.WishlistSection) ; le reste se place dessous.
 -- En-tête : profil actif, résumé (GearPresenter.summary) ; une barre : segment Tous / Améliorations
 --   (StuffPlannerDB.ui.gearOnlyUpgrades), bouton « Tri » à droite (ns.FilterMenu : Par emplacement / Meilleur
 --   gain, StuffPlannerDB.ui.gearByGain, GearPresenter.sortByGain).
@@ -20,7 +20,7 @@ local L = ns.L
 local MAX_ZONE_ENTRIES = 100
 local expanded = {}
 
-local wishlist, profileText, summaryText, chipBar, sortMenu, scrollBox
+local panel, profileText, summaryText, chipBar, sortMenu, scrollBox
 
 local askName = ns.NameAsker.new(function()
     ns.MainFrame.refresh()
@@ -83,7 +83,10 @@ local function profileLabel()
 end
 
 local function refresh()
-    wishlist:SetText(L.WISHLIST_LINK:format(#ns.WishlistStore.list()))
+    local top = ns.WishlistSection.place(0)
+    profileText:ClearAllPoints()
+    profileText:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, top - ns.Theme.spacing.gap)
+    profileText:SetPoint("RIGHT", panel, "RIGHT")
     local player = ns.Player.snapshot()
     local profile = ns.Profiles.active()
     local entries = ns.Chat.currentZone(MAX_ZONE_ENTRIES, false, true)
@@ -118,20 +121,9 @@ end
 
 local function create(parent)
     local theme = ns.Theme
-    local panel = CreateFrame("Frame", nil, parent)
-    wishlist = CreateFrame("Button", nil, panel)
-    wishlist:SetPoint("TOPLEFT")
-    wishlist:SetSize(220, 16)
-    wishlist:SetNormalFontObject(theme.fonts.small)
-    wishlist:SetHighlightFontObject(theme.fonts.body)
-    wishlist:SetText(" ")
-    wishlist:GetFontString():SetPoint("LEFT")
-    wishlist:SetScript("OnClick", function()
-        ns.MainFrame.show("wishlist")
-    end)
+    panel = CreateFrame("Frame", nil, parent)
+    ns.WishlistSection.create(panel)
     profileText = panel:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    profileText:SetPoint("TOPLEFT", wishlist, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    profileText:SetPoint("RIGHT")
     profileText:SetJustifyH("LEFT")
     summaryText = panel:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     summaryText:SetPoint("TOPLEFT", profileText, "BOTTOMLEFT", 0, -2)
