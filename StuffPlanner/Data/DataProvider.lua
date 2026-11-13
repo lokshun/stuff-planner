@@ -1,6 +1,7 @@
 -- CONTRAT
 -- Façade de lecture de StuffPlanner_Data. Aucun appel d'API : Loader la remplit.
--- Schéma 13 : chaînes décodées par ns.Codec (charger Codec.lua avant) ; `forever` (1 | nil) : absent de Classic Era ;
+-- Schéma 14 : chaînes décodées par ns.Codec (charger Codec.lua avant) ; `forever` (1 | nil) : absent de Classic Era ;
+-- conditions skill, minRep, maxRep, flags, exclusive, maxLevel, spell, parent, next (tools/schema.py) ;
 -- quest.starter, quest.ender = npcID | nil ; instance = instanceID | nil ; objMap, objX, objY = lieu d'objectif | nil ;
 -- instance.bosses = {npcID...} dans l'ordre du donjon | nil ; instance.rares = {npcID...} (boss de rang rare) | nil.
 --   ns.Data.ready() -> bool
@@ -11,20 +12,17 @@
 --     baseName("npc"|"quest"|"item", id) -> nom de la base (NpcNames, QuestNames, ItemNames) | nil
 --   sourcesOf(itemID) -> {{type="quest"|"dungeon"|"raid"|"craft"|"world", id, chance, npcID, skillLine}...} ;
 --     id = questID, instance, spellID ou carte (monde : mapID, x, y, npcID nil hors créature) ;
---     vide si inconnu ; artisanat : yellow, grey (seuils de
---     compétence, nil si inconnus), reagents = {{itemID, count}...}
+--     vide si inconnu ; artisanat : yellow, grey (seuils de compétence | nil), reagents = {{itemID, count}...}
 --   itemIDs() -> {itemID...} trié, objets masqués compris (item(id) nil) ; questIDs() -> {questID...} trié ;
 --   questsInMap(mapID) -> {questID...} trié ; neighbors(mapID) -> {mapID...}, vide sans ns.Neighbors
--- Tables renvoyées en cache et partagées : ne pas les modifier. Cache à valeurs faibles : une table
---   que personne ne garde est rendue au ramasse-miettes et décodée de nouveau au besoin.
+-- Tables renvoyées en cache et partagées : ne pas les modifier. Cache faible : décodées de nouveau au besoin.
 -- Couches : base < db.Overlay ({quests={[id]={champ=valeur}}, items={...}}) < observations du
 --   collecteur (quêtes connues de la base : level s'il est connu, mapID, rewards, choices ; la dernière
 --   observation detail ou complete l'emporte ; "log", lue dans le journal, n'apporte que rewards et
 --   choices et ne remplace pas un dialogue ; "peer", reçue d'un autre joueur, passe sous toutes).
 --   Quête confidence 2 dont une couche (Overlay ou observation) fixe rewards et choices : confidence 3
 --   (confirmée). Observations : ns.Observations (Data/Observations.lua, charger avant).
--- observeItem(id, stats) : stats lues en jeu (ItemProbe), au-dessus de l'Overlay, effet immédiat ;
---   objet confidence 1 dont une couche fixe stats : confidence 3.
+-- observeItem(id, stats) : stats lues en jeu (ItemProbe), au-dessus de l'Overlay ; objet confidence 1 -> 3.
 -- observe(record) -> bool (quête changée) : Loader au chargement, Collector, Share ; effet immédiat
 --   sur quest(id) et npc(id), questsInMap garde la carte du chargement.
 -- Réservé à Loader : attach(db [, opts]) -> bool (false si schéma différent), indexQuest(id), finish().
@@ -32,8 +30,8 @@
 --   opts.hideForever : quest, item -> nil pour `forever`, absents de questsInMap et de sourcesOf.
 --   opts.era : item(id) prend quality, ilvl, reqLevel, stats de db.EraItems[id] (Classic Era, couche juste
 --     au-dessus de la base) et confidence 1 (ItemSparse, sans effets « Équipé ») : ItemProbe les confirme.
---   opts.external = QuestieAdapter (quest, npc, npcName) : champs EXTERNAL des quêtes de la base
---     remplacés (couche entre base et Overlay ; mapID et récompenses restent les nôtres) ;
+--   opts.external = QuestieAdapter (quest, npc, npcName) : champs EXTERNAL (et CONDITIONS si quest.conditions) des
+--     quêtes de la base remplacés (entre base et Overlay ; mapID et récompenses restent les nôtres) ;
 --     npc : observé < externe < base ; npcName : externe puis base.
 
 local _, ns = ...
@@ -41,10 +39,11 @@ local _, ns = ...
 local Data = {}
 ns.Data = Data
 
-local SCHEMA_VERSION = 13
+local SCHEMA_VERSION = 14
 local EMPTY = {}
 local WEAK = { __mode = "v" }
 local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "starter", "ender" }
+local CONDITIONS = { "skill", "minRep", "maxRep", "flags", "exclusive", "maxLevel", "spell", "parent", "next" }
 local GUESSED, CONFIRMED, ESTIMATED = 2, 3, 1
 
 local db, overlay, kinds, hideForever, external, eraItems
@@ -133,8 +132,10 @@ local function decode(tableName, rowsName, id)
         decoded[field], decoded.confidence = eraRow[position], ESTIMATED
     end
     local fromExternal = external and tableName == "quests" and external.quest(id)
-    for _, field in ipairs(fromExternal and EXTERNAL or EMPTY) do
-        decoded[field] = fromExternal[field]
+    for _, list in ipairs(fromExternal and { EXTERNAL, fromExternal.conditions and CONDITIONS or EMPTY } or EMPTY) do
+        for _, field in ipairs(list) do
+            decoded[field] = fromExternal[field]
+        end
     end
     local corrected = (overlay[tableName] or EMPTY)[id] or EMPTY
     for field, value in pairs(corrected) do

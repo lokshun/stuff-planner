@@ -249,3 +249,19 @@ def mark_instances(quests, areas, area_instances, instances=None):
         entrance = (instances or {}).get(instance, {}).get("mapID")
         marked.append({**quest, "instance": instance, **({"mapID": entrance} if entrance else {})})
     return marked
+
+
+EVENT_FLAG = 2
+
+
+def available_quests(quests, blacklist):
+    """Retire les quêtes en liste noire et celles d'événement (flags & 2) -> kept, blacklisted, events."""
+    kept, blacklisted, events = [], 0, 0
+    for quest in quests:
+        if quest["id"] in blacklist:
+            blacklisted += 1
+        elif (quest.get("flags") or 0) & EVENT_FLAG:
+            events += 1
+        else:
+            kept.append(quest)
+    return kept, blacklisted, events

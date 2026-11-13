@@ -8,6 +8,8 @@
 --     tools/sources/questie.py : reqLevel <= 0 -> 1 ; level <= 0 -> reqLevel ; prereq = groupe
 --     (valeur absolue, sans la quête elle-même) puis alternatives (une seule : obligatoire,
 --     plusieurs : liste) ; masque 0 -> nil ; starter, ender = PNJ donneur, de rendu (créatures) d'ID le plus bas placé
+--   quest(id) ajoute, si QuestieDB a tous les accesseurs de CONDITION_KEYS : conditions = true, skill,
+--     minRep, maxRep, flags, exclusive, maxLevel, spell, parent, next (mêmes règles que questie.py)
 --   npc(id) -> {id, mapID, x, y} (0–1, 4 décimales) | nil ; zone d'origine (zoneID) d'abord, puis
 --     zones par ID croissant ; premier point dont x et y sont dans 0–100
 --   npcName(id) -> nom dans la langue choisie par QuestieDB | nil
@@ -106,6 +108,49 @@ local function prereqOf(id, group, single)
     return prereq
 end
 
+local function pair(value, default)
+    if type(value) ~= "table" or type(value[1]) ~= "number" then
+        return nil
+    end
+    local second = type(value[2]) == "number" and value[2] or default
+    return second and { value[1], second } or nil
+end
+
+local function others(list, id)
+    local result = {}
+    for _, value in ipairs(ints(list)) do
+        if value ~= id then
+            result[#result + 1] = value
+        end
+    end
+    return result[1] and result or nil
+end
+
+local CONDITION_KEYS = {
+    "exclusiveTo", "requiredSkill", "requiredMinRep", "requiredMaxRep", "specialFlags", "requiredMaxLevel",
+    "requiredSpell", "parentQuest", "nextQuestInChain",
+}
+
+local function addConditions(record, quest, id)
+    for _, key in ipairs(CONDITION_KEYS) do
+        if type(quest[key]) ~= "function" then
+            return record
+        end
+    end
+    local spell = call(quest.requiredSpell, id)
+    record.conditions = true
+    record.skill = pair(call(quest.requiredSkill, id), 1)
+    record.minRep = pair(call(quest.requiredMinRep, id))
+    record.maxRep = pair(call(quest.requiredMaxRep, id))
+    record.flags = positive(call(quest.specialFlags, id))
+    record.exclusive = others(call(quest.exclusiveTo, id), id)
+    record.maxLevel = positive(call(quest.requiredMaxLevel, id))
+    record.spell = type(spell) == "number" and spell ~= 0 and spell or nil
+    record.parent = positive(call(quest.parentQuest, id))
+    record.next = positive(call(quest.nextQuestInChain, id))
+    return record
+end
+
 local function round(value)
     return math.floor(value / 100 * 10000 + 0.5) / 10000
 end
@@ -181,7 +226,7 @@ function Adapter.quest(id)
         return nil
     end
     local reqLevel = positive(call(quest.requiredLevel, id)) or 1
-    return {
+    return addConditions({
         level = positive(call(quest.questLevel, id)) or reqLevel,
         reqLevel = reqLevel,
         prereq = prereqOf(id, call(quest.preQuestGroup, id), call(quest.preQuestSingle, id)),
@@ -189,5 +234,5 @@ function Adapter.quest(id)
         raceMask = positive(call(quest.requiredRaces, id)),
         starter = placedCreature(call(quest.startedBy, id)),
         ender = placedCreature(call(quest.finishedBy, id)),
-    }
+    }, quest, id)
 end

@@ -5,6 +5,11 @@ Stuff Planner est distribué sous GPLv3. Sa base de données est construite à p
 QuestieDB (https://github.com/Questie/QuestieDB)
   Quêtes, récompenses, cartes. Redistribué sous GPLv3.
 
+Questie (https://github.com/Questie/Questie)
+  Liste noire des quêtes (Database/Corrections/QuestieQuestBlacklist.lua), lue à la
+  construction : les quêtes listées sont seulement absentes de la base, rien n'est recopié.
+  L'équipe Questie autorise la reprise sous GPLv3 (LICENSE.md du dépôt).
+
 NorgannonDB (https://github.com/zmarotrix/NorgannonDB), compilé par Maro
   Butin des boss des instances Classic. GPL-3.0.
 

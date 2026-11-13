@@ -20,11 +20,14 @@ Version 11 : `bosses` ({npcID...} | nil) en fin d'instances : boss dans l'ordre 
 Version 12 : type d'origine `world` (butin de monde voté par merge_exports.py) : {5, mapID, nil, npcID | nil, x, y}.
 Version 13 : `rares` ({npcID...} | nil) en fin d'instances : boss de `bosses` de rang élite rare ou rare
   (Questie, sinon CMaNGOS) ; butin des trash rare et mieux de CMaNGOS (tables de référence comprises).
+Version 14 : conditions de faisabilité en fin de quests (Questie, nil si absentes) : `skill` {skillID, rang},
+  `minRep`, `maxRep` {factionID, valeur}, `flags` (specialFlags : 1 répétable), `exclusive` {questID...},
+  `maxLevel`, `spell` (signé), `parent`, `next` (questID). Liste noire et quêtes d'événement retirées.
 quests.prereq : quêtes toutes requises ; un élément liste signifie « l'une de celles-ci ».
 Aucun nom de quête ou d'objet ici : ils viennent du client.
 """
 
-VERSION = 13
+VERSION = 14
 
 FIELDS = {
     "quests": (
@@ -45,6 +48,15 @@ FIELDS = {
         "objMap",
         "objX",
         "objY",
+        "skill",
+        "minRep",
+        "maxRep",
+        "flags",
+        "exclusive",
+        "maxLevel",
+        "spell",
+        "parent",
+        "next",
     ),
     "items": (
         "quality",
@@ -67,7 +79,8 @@ FIELDS = {
 }
 
 OPTIONAL = {
-    "quests": frozenset({"mapID", "classMask", "raceMask", "forever", "starter", "instance", "ender", "objMap", "objX", "objY"}),
+    "quests": frozenset({"mapID", "classMask", "raceMask", "forever", "starter", "instance", "ender", "objMap", "objX", "objY",
+                          "skill", "minRep", "maxRep", "flags", "exclusive", "maxLevel", "spell", "parent", "next"}),
     "items": frozenset({"slot", "classMask", "icon", "forever"}),
     "origins": frozenset(),
     "instances": frozenset({"minLevel", "maxLevel", "reqLevel", "mapID", "size", "bosses", "rares"}),

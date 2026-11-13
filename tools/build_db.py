@@ -2,10 +2,11 @@
 Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
   build(source_dir, out_dir, interfaces, quests=None, items=None, recipes=None, crafts=None, drops=(), instances=(),
         npcs=(), npc_names=None, report=None, overlay=None, era_items=(), quest_names=None, item_names=None,
-        neighbors=None)
+        neighbors=None, blacklist=())
     -> {"quests": n, "items": n, "origins": n, "instances": n, "npcNames": n, "questNames": n, "itemNames": n, "eraItems": n,
         "instanceQuests": n, "worldDrops": n, "memory": octets,
-        "eraMemory": octets} ;
+        "eraMemory": octets, "blacklisted": n, "events": n} ; blacklist ({questID}, questie.load_blacklist) et
+    quêtes d'événement (specialFlags 2) retirées avant tout ;
     npc_names ({langue: {npcID: nom}}) réduit aux donneurs, aux boss et aux créatures du butin de monde, un fichier par langue ; quest_names,
     item_names (même forme) réduits aux quêtes et objets émis : repli des noms du client ; `quests` et `items`
     remplacent les fichiers de source_dir ; overlay ({"quests": {id: champs}}, tools/overlay.json
@@ -16,6 +17,7 @@ Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
   read_interfaces(addon_dir) -> {"Camelot": 16001, ...}, lu dans les TOC de l'addon principal
 Sources (cache dans tools/cache) : QuestieDB, wago.tools (Forever et Classic Era), NorgannonDB, Spyglass,
 CMaNGOS classic-db puis ForeverChanges (répartition fixes / choix des récompenses de quête).
+Quêtes en liste noire Questie ou d'événement (specialFlags 2) retirées (compteur affiché).
 Quêtes absentes de la base Classic de QuestieDB et objets absents d'ItemSparse Classic Era : forever = 1.
 Usage : python tools/build_db.py ; affiche les comptes en une ligne.
 """
@@ -89,6 +91,7 @@ def build(
     quest_names=None,
     item_names=None,
     neighbors=None,
+    blacklist=(),
 ):
     tables = {}
     for table in TABLES:
@@ -98,6 +101,7 @@ def build(
         tables["quests"] = quests
     if items is not None:
         tables["items"] = items
+    tables["quests"], blacklisted, events = precompute.available_quests(tables["quests"], set(blacklist))
     world = precompute.world_drops((overlay or {}).get("world", {}), neighbors or {})
     tables["origins"] = precompute.origin_records(
         tables["quests"], tables["items"], recipes or {}, drops, crafts, world
@@ -123,6 +127,7 @@ def build(
     emit_lua.write_addon(out_dir, {**tables, "eraItems": era}, interfaces, names, overlay, quest_names, item_names, neighbors)
     counts = {table: len(records) for table, records in tables.items()}
     counts["eraItems"] = len(era)
+    counts["blacklisted"], counts["events"] = blacklisted, events
     counts["worldDrops"] = sum(
         1 for origin in tables["origins"] for entry in origin["entries"] if entry[0] == schema.ORIGIN_KINDS["world"]
     )
@@ -209,6 +214,7 @@ def load_sources(world_items=()):
         "quest_names": questie.load_names(questie_dir, "quest"),
         "item_names": questie.load_names(questie_dir, "item"),
         "neighbors": zones.neighbors(questie.area_map(questie_dir)),
+        "blacklist": questie.load_blacklist(questie_dir),
         "era_items": precompute.era_differences(forever_items, era_items, scan),
     }
 
@@ -230,6 +236,7 @@ def main():
         f"{counts['npcs']} PNJ placés (donneurs et rendus), {counts['eraItems']} objets différents sur Classic Era, "
         f"{counts['instanceQuests']} quêtes de donjon ou de raid, "
         f"{counts['guessedQuests']} quêtes aux récompenses devinées, "
+        f"retirées : {counts['blacklisted']} en liste noire Questie, {counts['events']} d'événement, "
         f"{counts['worldDrops']} butins de monde, "
         f"noms de base : {counts['questNames']} quêtes, {counts['itemNames']} objets"
     )

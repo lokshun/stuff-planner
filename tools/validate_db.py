@@ -3,7 +3,8 @@ Valide les enregistrements de la base avant écriture ; aucune lecture de fichie
   validate(tables) -> [Finding], erreurs bloquantes d'abord ; tables = {"quests", "items", "origins", "instances", "npcs"}
   Finding : category, blocking, count, examples (3 identifiants triés au plus)
   report_lines(findings) -> une ligne par catégorie
-Bloquant : doublons, origine sans cible, prérequis négatif ou sur soi-même, niveau < 1, niveaux
+Bloquant : doublons, origine sans cible, prérequis négatif ou sur soi-même, niveau < 1, conditions de quête mal
+formées (paires d'entiers, quêtes liées > 0 et ≠ soi, maxLevel ≥ 1), quête d'événement restante, niveaux
 d'instance inversés, boss en double dans l'ordre, donneur ou PNJ de rendu absent de `npcs`, position ou lieu d'objectif hors de [0, 1]. Le reste signale des manques connus des sources, sans arrêter la construction.
 """
 
@@ -15,6 +16,7 @@ import schema
 MAX_LEVEL = 60
 MAX_EXAMPLES = 3
 ESTIMATED_CONFIDENCE = 1
+EVENT_FLAG = 2
 DUPLICATE_LABELS = {
     "quests": "doublons de quêtes",
     "items": "doublons d'objets",
@@ -96,6 +98,28 @@ def _quest_checks(tables):
         q["id"] for q in quests if q["reqLevel"] > q["level"]
     ]
     yield "quêtes de niveau > 60", False, [q["id"] for q in quests if q["level"] > MAX_LEVEL]
+    yield "conditions de quête invalides", True, [q["id"] for q in quests if not _conditions_ok(q)]
+    yield "quêtes d'événement restantes", True, [q["id"] for q in quests if (q.get("flags") or 0) & EVENT_FLAG]
+    yield "quêtes liées absentes de la base", False, [
+        q["id"] for q in quests if any(linked not in known for linked in _linked(q))
+    ]
+
+
+def _is_int(value):
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _linked(quest):
+    return list(quest.get("exclusive") or ()) + [quest[key] for key in ("parent", "next") if quest.get(key) is not None]
+
+
+def _conditions_ok(quest):
+    pairs = [quest.get(key) for key in ("skill", "minRep", "maxRep") if quest.get(key) is not None]
+    if any(not (isinstance(pair, list) and len(pair) == 2 and all(map(_is_int, pair))) for pair in pairs):
+        return False
+    if quest.get("maxLevel") is not None and not (_is_int(quest["maxLevel"]) and quest["maxLevel"] >= 1):
+        return False
+    return all(_is_int(linked) and 0 < linked != quest["id"] for linked in _linked(quest))
 
 
 def _item_checks(tables):

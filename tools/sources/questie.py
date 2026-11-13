@@ -13,6 +13,8 @@ Importe les quêtes Forever de QuestieDB (github.com/Questie/QuestieDB), sans ex
     catégorie, ignoré), sans réseau ; lu par precompute.mark_instances
   area_map(source_dir) -> {areaID: uiMapID} (areaIdToUiMapId, surcharges prioritaires), sans réseau
   load_classic_quest_ids(source_dir) -> {questID} de Classic Era (base Classic + classicQuestFixes), sans réseau
+  load_blacklist(source_dir) -> {questID} de la liste noire de l'addon Questie (ADDON_COMMIT, autre dépôt)
+    vraies sur Forever (contenu Era, ni SoD ni Titan) ; HIDE_ON_MAP, false, condition inconnue : gardée
   load_names(source_dir, kind) -> {"enUS": {id: nom}, langue: {...}}, kind "npc" | "quest" | "item" :
     anglais de la base (couches comprises), traductions l10n/Forever/lookup<Npcs|Quests|Items> puis traces
     (prioritaires) ; langue sans fichier absente. load_npc_names(source_dir) = load_names(source_dir, "npc")
@@ -34,15 +36,21 @@ Les corrections de faction et par personnage sont ignorées.
     amicaux envers cette seule faction (friendlyToFaction "A" ou "H") ; donneur "AH", inconnu ou
     factions mêlées : nil.
   confidence : 3 sûr, 2 répartition devinée, 1 niveau absent de la source.
+  Faisabilité (nil si absente) : skill = {skillID, rang (1 si absent)}, minRep / maxRep = {factionID, valeur}
+    (sans valeur : nil), flags = specialFlags (1 répétable, 2 événement), exclusive = {questID...} sans la
+    quête elle-même, maxLevel (> 0), spell (signé, tel quel), parent = parentQuest, next = nextQuestInChain.
 """
 
 import re
 from pathlib import Path
 
-from sources import cache, lua_table
+from sources import cache, lua_table, questie_blacklist
 
 COMMIT = "21be34023b72cf2ec3027cb9a61a8b72a1910857"
 RAW_URL = "https://raw.githubusercontent.com/Questie/QuestieDB/{commit}/{path}"
+ADDON_COMMIT = "043e7268b36aa7b0a605290c109cdab46771500b"
+ADDON_URL = "https://raw.githubusercontent.com/Questie/Questie/{commit}/{path}"
+ADDON_FILES = {"QuestieQuestBlacklist.lua": "Database/Corrections/QuestieQuestBlacklist.lua"}
 
 QUEST_DB = "data/Forever/foreverQuestDB.lua"
 ITEM_DB = "data/Forever/foreverItemDB.lua"
@@ -96,6 +104,15 @@ QUEST_FIELDS = (
     "zoneOrSort",
     "requiredRaces",
     "requiredClasses",
+    "exclusiveTo",
+    "requiredSkill",
+    "requiredMinRep",
+    "requiredMaxRep",
+    "nextQuestInChain",
+    "specialFlags",
+    "parentQuest",
+    "requiredSpell",
+    "requiredMaxLevel",
 )
 ALLIANCE_RACES = 1 + 4 + 8 + 64 + 2**32
 HORDE_RACES = 2 + 16 + 32 + 128 + 2**33
@@ -151,6 +168,7 @@ CREATURE_STARTERS = 1
 def fetch(cache_dir, opener=None):
     urls = {Path(path).name: RAW_URL.format(commit=COMMIT, path=path) for path in FILES}
     urls.update({name: RAW_URL.format(commit=COMMIT, path=path) for name, path in L10N_FILES.items()})
+    urls.update({name: ADDON_URL.format(commit=ADDON_COMMIT, path=path) for name, path in ADDON_FILES.items()})
     return cache.complete(Path(cache_dir) / COMMIT, urls, opener)
 
 
@@ -214,7 +232,7 @@ def _entities(source_dir, raw_path, layers, fields, resolve):
     indices = {name: int(index) for name, index in KEY_LINE.findall(text)}
     body = lua_table.long_strings(text)[0].removeprefix("return ")
     entities = {
-        entity_id: {field: raw.get(indices[field]) for field in fields}
+        entity_id: {field: raw.get(indices[field]) if field in indices else None for field in fields}
         for entity_id, raw in lua_table.parse(body).items()
     }
     for path in layers:
@@ -341,6 +359,34 @@ def _race_mask(row, npcs):
     return None
 
 
+def _positive(value):
+    number = _int(value)
+    return number if number and number > 0 else None
+
+
+def _pair(value, default=None):
+    if not isinstance(value, dict) or _int(value.get(1)) is None:
+        return None
+    second = _int(value.get(2))
+    second = default if second is None else second
+    return None if second is None else [value[1], second]
+
+
+def _conditions(quest_id, row):
+    spell = _int(row.get("requiredSpell"))
+    return {
+        "skill": _pair(row.get("requiredSkill"), 1),
+        "minRep": _pair(row.get("requiredMinRep")),
+        "maxRep": _pair(row.get("requiredMaxRep")),
+        "flags": _positive(row.get("specialFlags")),
+        "exclusive": [value for value in _ints(row.get("exclusiveTo")) if value != quest_id] or None,
+        "maxLevel": _positive(row.get("requiredMaxLevel")),
+        "spell": spell or None,
+        "parent": _positive(row.get("parentQuest")),
+        "next": _positive(row.get("nextQuestInChain")),
+    }
+
+
 def _record(quest_id, row, items, npcs, areas):
     required = _int(row.get("requiredLevel"))
     required = required if required and required > 0 else 1
@@ -360,6 +406,7 @@ def _record(quest_id, row, items, npcs, areas):
         "classMask": _mask(row.get("requiredClasses")),
         "raceMask": _race_mask(row, npcs),
         "starter": _starter(row, npcs, areas),
+        **_conditions(quest_id, row),
     }
 
 
@@ -409,6 +456,9 @@ def load_classic_quest_ids(source_dir):
     layers = (QUEST_LAYERS[0],)
     quests = _entities(source_dir, CLASSIC_QUEST_DB, layers, ("name",), _resolver(source_dir))
     return {quest_id for quest_id, row in quests.items() if row.get("name") is not None}
+
+
+load_blacklist = questie_blacklist.load
 
 
 def _l10n_names(path):
