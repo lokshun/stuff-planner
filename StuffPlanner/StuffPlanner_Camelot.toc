@@ -67,6 +67,7 @@ Engine\StatKeys.lua
 Engine\StatValue.lua
 Engine\StatParser.lua
 Data\ItemProbe.lua
+Data\QuestProbe.lua
 Engine\Proficiency.lua
 Engine\Masks.lua
 Engine\ItemLink.lua

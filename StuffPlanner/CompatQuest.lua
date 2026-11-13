@@ -11,6 +11,10 @@
 --   QuestLogRewards(questID) -> choices, rewards ({itemID...} triés) | nil (hors journal, objet pas
 --     en cache, API absente) ; sélectionne la quête (C_QuestLog.SetSelectedQuest, sinon
 --     SelectQuestLogEntry), lit GetQuestLogItemLink, puis rend la sélection précédente
+--   RequestQuestData(questID) -> bool : demande au serveur (C_QuestLog.RequestLoadQuestByID, réponse
+--     QUEST_DATA_LOAD_RESULT) ; false sans l'API
+--   QuestRewardsByID(questID) -> choices, rewards | nil : comme QuestLogRewards, sans sélection, quête hors
+--     journal comprise une fois ses données reçues (docs/API_NOTES.md, T17.0)
 --   IsQuestComplete(id) -> bool : quête du journal prête à rendre (C_QuestLog.IsComplete, sinon
 --     GetQuestLogTitle, 7e retour à 1) ; false hors journal ou sans l'API
 --   QuestObjectives(id) -> {{text, finished}...} (C_QuestLog.GetQuestObjectives, sinon
@@ -233,6 +237,21 @@ function Compat.QuestLogRewards(questID)
         SelectQuestLogEntry(previous)
     end
     return choices, rewards
+end
+
+function Compat.RequestQuestData(questID)
+    if C_QuestLog and C_QuestLog.RequestLoadQuestByID then
+        C_QuestLog.RequestLoadQuestByID(questID)
+        return true
+    end
+    return false
+end
+
+function Compat.QuestRewardsByID(questID)
+    if not (GetQuestLogItemLink and GetNumQuestLogChoices and GetNumQuestLogRewards) then
+        return nil
+    end
+    return readSelected(questID)
 end
 
 function Compat.AcceptedQuestID(...)

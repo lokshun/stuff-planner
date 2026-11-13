@@ -15,6 +15,7 @@
 -- RETRY_DELAY s, RETRY_MAX essais au plus, tant que la même quête est affichée.
 -- Journal (SP_QUEST_LOG_CHANGED, SP_DATA_READY) : chaque quête confidence 2 du journal est lue une
 -- fois par Compat.QuestLogRewards ; objets pas en cache : nouvelle lecture LOG_RETRY_DELAY s plus tard.
+--   ns.Collector.addLog(questID, choices, rewards) : même observation "log", lue hors journal (QuestProbe).
 -- Base prête (ns.Data.ready()) : une observation qu'elle connaît déjà n'est pas gardée : PNJ connu
 -- (Data.npc) ou absent, et quête aux level (si observé), mapID, choices, rewards identiques, ou
 -- butin dont chaque objet a une source chez ce PNJ ; une quête confidence 2 (récompenses devinées) est
@@ -166,6 +167,11 @@ local function add(record)
             end
         end
     end
+end
+
+function Collector.addLog(questID, choices, rewards)
+    logged[questID] = true
+    add({ kind = "log", questID = questID, choices = choices, rewards = rewards })
 end
 
 local function npcIDFromGUID(guid)

@@ -13,7 +13,7 @@
 --     id = questID, instance, spellID ou carte (monde : mapID, x, y, npcID nil hors créature) ;
 --     vide si inconnu ; artisanat : yellow, grey (seuils de
 --     compétence, nil si inconnus), reagents = {{itemID, count}...}
---   itemIDs() -> {itemID...} trié, objets masqués compris (item(id) nil) ;
+--   itemIDs() -> {itemID...} trié, objets masqués compris (item(id) nil) ; questIDs() -> {questID...} trié ;
 --   questsInMap(mapID) -> {questID...} trié ; neighbors(mapID) -> {mapID...}, vide sans ns.Neighbors
 -- Tables renvoyées en cache et partagées : ne pas les modifier. Cache à valeurs faibles : une table
 --   que personne ne garde est rendue au ramasse-miettes et décodée de nouveau au besoin.
@@ -279,6 +279,15 @@ function Data.itemIDs()
         table.sort(itemList)
     end
     return itemList
+end
+
+function Data.questIDs()
+    local list = {}
+    for id in pairs(db and db.Quests or EMPTY) do
+        list[#list + 1] = id
+    end
+    table.sort(list)
+    return list
 end
 
 function Data.questsInMap(mapID)
