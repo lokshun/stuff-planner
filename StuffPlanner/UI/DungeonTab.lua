@@ -17,7 +17,7 @@ local DUNGEON_ICON = "Interface\\Icons\\INV_Misc_Key_03"
 local RAID_ICON = "Interface\\Icons\\INV_Misc_Head_Dragon_01"
 
 local header, back, scrollBox, emptyText
-local openID, lastCurrent
+local openID, lastCurrent, shownID
 
 local askName = ns.NameAsker.new(function()
     ns.MainFrame.refresh()
@@ -81,7 +81,7 @@ local function refresh()
     if not ns.Data.ready() then
         header:SetText(L.BEST_NOT_READY)
         back:Hide()
-        scrollBox:SetDataProvider(CreateDataProvider({}))
+        ns.Compat.SetRows(scrollBox, {}, false)
         emptyText:SetText("")
         return
     end
@@ -106,7 +106,8 @@ local function refresh()
         openID and ns.Theme.spacing.gap or 0, 0)
     header:SetPoint("RIGHT")
     header:SetText(title)
-    scrollBox:SetDataProvider(CreateDataProvider(rows))
+    ns.Compat.SetRows(scrollBox, rows, openID == shownID) -- autre instance ou liste : retour en haut
+    shownID = openID
     emptyText:SetText(#rows == 0 and L.DUNGEON_NONE or "")
 end
 

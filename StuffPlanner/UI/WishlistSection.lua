@@ -176,7 +176,7 @@ local function renderBody()
     scrollBar:SetShown(#rows > MAX_ROWS)
     emptyText:SetShown(#rows == 0)
     body:SetHeight(listHeight)
-    scrollBox:SetDataProvider(CreateDataProvider(rows))
+    ns.Compat.SetRows(scrollBox, rows, true)
     return listHeight
 end
 

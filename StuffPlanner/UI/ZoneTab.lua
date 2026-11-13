@@ -100,7 +100,7 @@ local function renderSession(budget)
     local plan = tiers and ns.SessionPlan.get(budget)
     local rows = plan and ns.SessionPresenter.build(plan, ns.Data, budget) or {}
     ns.RouteRows.askNames(rows, askName)
-    sessionScroll:SetDataProvider(CreateDataProvider(rows))
+    ns.Compat.SetRows(sessionScroll, rows, true)
     emptyText:SetText(#rows == 0 and (not tiers and info or L.SESSION_EMPTY) or "")
     return plan
 end
@@ -137,7 +137,7 @@ local function refreshZone()
     -- Liste inchangée : rien à reconstruire (la ligne survolée et son info-bulle restent).
     if not ns.RowPresenter.sameRows(lastShown, shown) then
         lastShown = shown
-        scrollBox:SetDataProvider(CreateDataProvider(shown))
+        ns.Compat.SetRows(scrollBox, shown, true)
     end
     emptyText:SetText(#shown == 0 and message or "")
 end

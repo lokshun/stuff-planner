@@ -84,7 +84,7 @@ local function refresh()
         ns.MainFrame.refresh()
     end)
     footer:SetText(tiers and L.ROUTE_FOOTER:format(info) or "")
-    scrollBox:SetDataProvider(CreateDataProvider(rows))
+    ns.Compat.SetRows(scrollBox, rows, true)
     emptyText:SetText(#rows == 0 and (not tiers and info or L.ROUTE_EMPTY) or "")
 end
 

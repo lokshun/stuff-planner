@@ -122,7 +122,7 @@ local function refresh()
         ns.MainFrame.refresh()
     end)
     local shown = ns.GearPresenter.filter(rows, only)
-    scrollBox:SetDataProvider(CreateDataProvider(byGain and ns.GearPresenter.sortByGain(shown) or shown))
+    ns.Compat.SetRows(scrollBox, byGain and ns.GearPresenter.sortByGain(shown) or shown, true)
 end
 
 local function create(parent)

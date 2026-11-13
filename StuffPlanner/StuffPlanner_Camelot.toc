@@ -43,6 +43,7 @@ CompatBags.lua
 CompatAuction.lua
 CompatQuest.lua
 CompatMap.lua
+CompatList.lua
 CompatTravel.lua
 CompatInstance.lua
 CompatChat.lua
