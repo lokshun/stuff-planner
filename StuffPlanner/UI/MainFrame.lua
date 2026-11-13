@@ -35,6 +35,7 @@ local GEAR_ICON = "Interface\\Icons\\INV_Misc_Gear_01"
 local HELP_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
 local TOP_INSET, SIDE_INSET, BOTTOM_INSET, TITLE_TOP = 60, 12, 12, -34
 local TITLE_LEFT = 62 -- après le portrait rond (PortraitFrameTemplate ~60 px, carnet 52 px)
+local ICON_BUTTON = 22 -- engrenage et « ? »
 
 local frame, navBar, pageTitle, pageTip
 local tabs, panels, reveals = {}, {}, {}
@@ -65,7 +66,7 @@ end
 
 local function iconButton(icon, anchor, x, onClick, onEnter)
     local button = CreateFrame("Button", nil, frame)
-    button:SetSize(18, 18)
+    button:SetSize(ICON_BUTTON, ICON_BUTTON)
     -- Au-dessus du cadre du modèle (TitleContainer, NineSlice) : sinon caché sur Forever.
     button:SetFrameLevel((frame.CloseButton or frame):GetFrameLevel() + 2)
     button:SetPoint("RIGHT", anchor, "LEFT", x, 0)

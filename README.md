@@ -31,15 +31,13 @@ effort it costs.
 | | |
 |---|---|
 | **Now page** | Quests of the current zone sorted by gear gain, with their source and a confidence level; the play session at the top. |
-| **Target list** | The items you pinned (star on a row or right-click menu), with import and export. |
 | **Route page** | A plan for your next steps: quest chains, dungeons, raids and crafts, weighted by effort, XP and how long the item will last. |
 | **Dungeons page** | Instances sorted by expected gain, with each boss and its useful drops. |
-| **Gear page** | The best upgrade for each slot, where to get it and how much it helps. |
-| **Profile page** | Your stat weights, a stat priority editor, import/export of custom weights (`SPW1` strings), comparison with a secondary profile. |
-| **Journal page** | Your gear score over time, and the bag items worth sending to your other characters. |
-| **Floating frame** | One frame that follows what you do: dungeon bosses, then the followed quest chain, then the best upgrades of the zone. Click its title for the next mode. |
+| **Gear page** | Your target list on top (the items you aim for: star on any item row, share with friends), then the best upgrade for each slot, where to get it and how much it helps. |
+| **Profile page** | Your stat weights, a stat priority editor, import/export of custom weights (`SPW1` strings), comparison with a secondary profile; your gear score over time and the bag items worth sending to your other characters. |
+| **Floating frame** | One frame that follows what you do: dungeon bosses, then the followed quest chain, then the best upgrades of the zone. Its mode icons switch mode; right-click its header for its menu. |
 | **Tooltips** | Gain line on item tooltips (also for your other characters); badges on bags, merchants and the auction house; best quest reward highlighted; Need/Greed advice on rolls. |
-| **Navigation** | Built-in 3D waypoint arrow, world map and minimap pins. Uses TomTom when installed. |
+| **Navigation** | Built-in 3D waypoint arrow; world map and minimap pins shown as small round badges beside the quest giver, so the `!` and `?` stay visible. Uses TomTom when installed. |
 | **Stat weights** | 27 specializations, each with a leveling and a level 60 profile (several imported from WoWSims). |
 
 Also:
@@ -75,7 +73,7 @@ Optional companions: [QuestieDB](https://github.com/Questie/QuestieDB), [TomTom]
 ## Getting started
 
 1. Log in: a 4-step welcome guide lets you pick the weight profile that matches your specialization and tours the pages.
-2. Open the main window with `/splan` (or the minimap button); the icons on the left switch pages.
+2. Open the main window with `/splan` (or the minimap button, or a key binding); the five tabs on the left switch pages.
 3. Follow the **Now** page while questing, or the **Route** page to plan ahead.
 4. The **?** button of the window lists every gesture (clicks, modifiers, right-click menu) and command; the gear opens the settings.
 
@@ -86,7 +84,7 @@ Optional companions: [QuestieDB](https://github.com/Questie/QuestieDB), [TomTom]
 | `/splan` | Open or close the main window |
 | `/splan best` | List the 5 best quest rewards of the current zone in chat |
 | `/splan tracker` | Turn the zone mode of the floating frame on or off |
-| `/splan journal` | Open the Journal page |
+| `/splan journal` | Open the Profile page on your progress |
 | `/splan arrow` | Turn the waypoint arrow on or off (used without TomTom) |
 | `/splan pins` | Show or hide map pins |
 | `/splan options` | Open the settings panel |

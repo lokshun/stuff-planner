@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.2.0 — unreleased
+
+Ergonomics pass: fewer pages, WoW-style gestures, clearer floating frame and settings.
+
+### Window
+- Five pages with a label under each tab: Now, Route, Dungeons, Gear, Profile. The target list is now a
+  collapsible section at the top of Gear (with the gain column and a "Share…" button for import/export);
+  Progress and Other characters are sections of Profile. Saved windows open on the right page.
+- Now page: a single bar (Zone · 30 min · 1 h · 2 h) and a "Filters" menu; Gear and Route get a "Sort" button.
+- Gestures follow WoW: click = details, Shift+click = link in chat, Ctrl+click = try on, right-click = menu;
+  a star on each item row adds it to the target list or removes it.
+- Importing a target list merges it with yours; "Replace" asks for confirmation.
+- The window closes when combat starts and reopens on the same page when it ends; opening it during combat
+  is postponed. `/splan` alone toggles the window; a key binding is available; Escape closes a detail first.
+- Dungeons page: clicking a boss marks it killed, clicking an item opens its details.
+- Bigger gear and help buttons.
+
+### Floating frame
+- Mode icons in the header (one per available mode) replace the "2/3" counter; an arrow collapses it.
+- Right-click the header: Collapse, Lock, Hide this mode, Open the window, Settings.
+- Taller dungeon lines.
+
+### Map pins
+- Pins are small round badges at the top right of the quest giver: the game's and Questie's `!` and `?`
+  stay visible and clickable. "Pin look" setting brings back the centred icon.
+
+### Settings
+- New "Alerts" section (zone notice, Need/Greed advice), explanation tooltips on the less obvious settings,
+  "Reload" shown only when needed, "Default values" button (two clicks).
+
+### Wording
+- "Waypoint" is the arrow destination, "pin" the map icon; the star adds to / removes from the target list.
+
 ## 2.1.0 — 2026-11-13
 
 ### Dungeons
