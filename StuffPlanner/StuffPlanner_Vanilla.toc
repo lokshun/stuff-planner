@@ -98,6 +98,7 @@ RouteResults.lua
 UI\Theme.lua
 UI\Skin.lua
 UI\Section.lua
+UI\PinStar.lua
 UI\ItemRow.lua
 UI\NameAsker.lua
 UI\Presenters\SecondaryGain.lua

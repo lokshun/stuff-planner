@@ -1,6 +1,6 @@
 -- CONTRAT
 -- Ligne d'objet commune : icône, nom, détail, gain à droite, coche facultative, grisé, cadre de sélection
--- (RowActions.mark), info-bulle de l'objet, clics. Charger après Theme.lua et RowActions.lua.
+-- (RowActions.mark), info-bulle de l'objet, clics. Charger après Theme.lua, RowActions.lua et PinStar.lua.
 --   ns.ItemRow.build(button, opts?) : décore un bouton existant (ligne de ScrollBox ou ItemRow.new) ;
 --     une fois par bouton ; crée button.icon, name, detail, gain (si gainWidth > 0), check, highlight.
 --     opts = {
@@ -10,7 +10,8 @@
 --       check = coche à gauche de l'icône, markHeight = hauteur du cadre de sélection,
 --       onClick(button, mouseButton) : remplace RowActions.click(questID, itemID, itemSource), appelé
 --         même sans ligne ; onRightClick(button) : remplace le menu RowActions.menu ;
---         tooltip(button, row) : lignes sous l'objet }
+--         tooltip(button, row) : lignes sous l'objet ; star = false : pas d'étoile }
+--     Étoile d'épingle (ns.PinStar, sauf star = false) à gauche du gain.
 --   ns.ItemRow.new(parent, opts?) -> bouton construit (hauteur Theme.spacing.rowHeight, ou opts.height)
 --   ns.ItemRow.set(button, view) : view = {row?, questID, itemID, itemSource, link, icon, muted, name,
 --     nameColor, detail, detailColor, gain, gainColor, gain2, gain2Color, dimmed, checked, hint} ; champs
@@ -99,8 +100,14 @@ local function onEnter(button)
     GameTooltip:Show()
 end
 
-local function onLeave()
+local function onRowEnter(button)
+    ns.PinStar.update(button)
+    onEnter(button)
+end
+
+local function onLeave(button)
     GameTooltip:Hide()
+    ns.PinStar.update(button)
 end
 
 local function fontString(button, font)
@@ -116,6 +123,10 @@ local function buildTexts(button, opts, left)
     local right = button.gain or button
     local rightPoint = button.gain and "LEFT" or "RIGHT"
     local rightGap = button.gain and -gap or 0
+    if button.star then
+        button.star:SetPoint("RIGHT", right, rightPoint, button.gain and -gap or -4, 0)
+        right, rightPoint, rightGap = button.star, "LEFT", -gap
+    end
     if opts.compact then
         button.name = fontString(button, opts.nameFont or theme.fonts.small)
         button.name:SetPoint("LEFT", left, "RIGHT", gap, 0)
@@ -168,13 +179,16 @@ function ItemRow.build(button, opts)
         button.gain2:SetWidth(opts.compact and COMPACT_GAIN2_WIDTH or gainWidth)
         button.gain2:SetJustifyH("RIGHT")
     end
+    if opts.star ~= false then
+        ns.PinStar.attach(button)
+    end
     buildTexts(button, opts, button.icon)
     button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
     button.highlight:SetAllPoints()
     button.highlight:SetColorTexture(1, 1, 1, 0.08)
     button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:SetScript("OnClick", onClick)
-    button:SetScript("OnEnter", onEnter)
+    button:SetScript("OnEnter", onRowEnter)
     button:SetScript("OnLeave", onLeave)
     return button
 end
@@ -201,6 +215,7 @@ function ItemRow.set(button, view)
     button.detail:SetText(view.detail or "")
     setColor(button.detail, view.detailColor or ns.Theme.colors.muted)
     ItemRow.setGains(button, view.gain, view.gainColor, view.gain2, view.gain2Color)
+    ns.PinStar.update(button)
 end
 
 function ItemRow.setGainAnchor(button, frame, point, x, y)

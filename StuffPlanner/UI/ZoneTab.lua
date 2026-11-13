@@ -12,7 +12,7 @@
 -- Puces Meilleur gain (défaut) / Par emplacement (GearPresenter.sortBySlot, StuffPlannerDB.ui.zoneBySlot).
 -- Messages d'état (chargement, sans profil, zone inconnue, rien trouvé) au centre de la liste.
 -- Clic sur une ligne : fiche de la quête (QuestDetail) ou de l'instance (SourceDetail) ;
--- Maj+clic : repère vers le donneur (quêtes) ;
+-- Maj+clic : lien dans la discussion ;
 -- Ctrl+clic : essayage (Compat.DressUpItem). Objet sélectionné (RowActions.select, mini-suivi compris) :
 -- cadre de sélection, liste défilée jusqu'à lui si reveal (SP_SELECTION_CHANGED).
 -- Survol : info-bulle de l'objet (gain ajouté par Tooltip.lua), états de la ligne et aide des clics.
@@ -69,7 +69,7 @@ local function initRow(button, row)
     ns.ItemRow.set(button, {
         row = row, questID = row.questID, itemID = row.itemID, itemSource = row.itemSource,
         icon = row.icon, name = row.name, nameColor = row.nameColor, detail = detailOf(row),
-        gain = row.gainLabel, gainColor = row.gainColor, dimmed = row.dimmed, hint = L.ROW_CLICK_HINT,
+        gain = row.gainLabel, gainColor = row.gainColor, dimmed = row.dimmed,
         gain2 = row.secondaryLabel, gain2Color = row.secondaryColor,
     })
 end

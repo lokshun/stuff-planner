@@ -8,7 +8,7 @@
 --     rows.mark(button) : cadres de sélection (ligne et sous-lignes), sur SP_SELECTION_CHANGED
 --   ns.RouteRows.sourceLine(row) -> « emplacement · tag · source · badge · note · durée »
 --   ns.RouteRows.askNames(rows, askName) -> vrai si un nom d'objet ou de quête manque (NameAsker)
--- Ligne : clic = RowActions.click (fiche, Maj : repère, Ctrl : essayage, Alt : épingler), clic droit = menu ;
+-- Ligne : clic = RowActions.click (fiche, Maj : lien, Ctrl : essayage), clic droit = menu ;
 -- en-tête : titre doré (grisé s'il se replie), sans menu ; paliers passés : icône désaturée, textes grisés.
 
 local _, ns = ...
@@ -132,7 +132,7 @@ function RouteRows.new(handlers)
                 row = row, questID = row.questID, itemID = row.itemID, itemSource = row.source,
                 icon = row.icon, muted = row.muted, name = row.name,
                 nameColor = row.muted and muted or row.nameColor, detail = RouteRows.sourceLine(row),
-                gain = row.gainLabel, gainColor = row.muted and muted or row.gainColor, hint = L.ROW_CLICK_HINT,
+                gain = row.gainLabel, gainColor = row.muted and muted or row.gainColor,
                 gain2 = row.secondaryLabel, gain2Color = row.muted and muted or row.secondaryColor,
             })
         end

@@ -34,7 +34,6 @@ local function initRow(button, row)
     if not button.icon then
         ns.ItemRow.build(button, ROW_OPTS)
     end
-    row.hint = L.WISHLIST_ROW_HINT
     ns.ItemRow.set(button, row)
 end
 

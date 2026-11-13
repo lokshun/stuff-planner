@@ -5,6 +5,9 @@
 --     (C_ChatInfo.InChatMessagingLockdown, AreOutgoingAddonChatMessagesRestricted : Forever, API 12.x)
 --   ns.Compat.InGuild() -> bool
 --   ns.Compat.GroupChannel() -> "INSTANCE_CHAT" | "RAID" | "PARTY" | nil (pas de groupe)
+--   ns.Compat.InsertChatLink(itemID) -> bool : lien de l'objet (C_Item.GetItemInfo, sinon GetItemInfo ; objet en
+--     cache) inséré dans la saisie de discussion ouverte (ChatFrameUtil.InsertLink, sinon ChatEdit_InsertLink) ;
+--     faux sans lien, sans API ou sans saisie ouverte
 
 local _, ns = ...
 
@@ -28,6 +31,26 @@ end
 
 function Compat.InGuild()
     return call(IsInGuild) == true
+end
+
+local function itemLink(itemID)
+    local item = _G.C_Item
+    local getInfo = item and item.GetItemInfo or _G.GetItemInfo
+    if not itemID or type(getInfo) ~= "function" then
+        return nil
+    end
+    local ok, _, link = pcall(getInfo, itemID)
+    return ok and link or nil
+end
+
+function Compat.InsertChatLink(itemID)
+    local link = itemLink(itemID)
+    if not link then
+        return false
+    end
+    local util = _G.ChatFrameUtil
+    local insert = util and util.InsertLink or _G.ChatEdit_InsertLink
+    return call(insert, link) == true
 end
 
 function Compat.GroupChannel()

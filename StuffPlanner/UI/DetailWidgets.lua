@@ -7,8 +7,8 @@
 --     quand tout tient, molette) ; tout s'ajoute dans content.
 --   fontString(content, font, color?) -> FontString à gauche, largeur du contenu
 --   hoverRow(content) -> ns.ItemRow : icon, name (ligne 1), tag = detail (ligne 2), gain (à droite) ; survol :
---     info-bulle de row.link (« item:N », « spell:N »), rien sans lien ; Alt+clic sur un objet :
---     RowActions.togglePin
+--     info-bulle de row.link (« item:N », « spell:N »), rien sans lien ; objet : Maj+clic = lien dans la
+--     discussion, Ctrl+clic = essayage ; pas d'étoile (boutons Épingler de la fiche)
 --   button(content, text) -> bouton du jeu à la taille de son texte
 --   itemButtons(content) -> {place(place, itemID?, gapBefore?)} : Épingler / Retirer (RowActions.togglePin)
 --     et Essayer (Compat.DressUpItem) côte à côte pour itemID ; cachés sans objet
@@ -76,13 +76,17 @@ function DetailWidgets.fontString(content, font, color)
 end
 
 local function onHoverClick(self)
-    local itemID = IsAltKeyDown() and self.link and tonumber(self.link:match("^item:(%d+)"))
-    if itemID then
-        ns.RowActions.togglePin(itemID)
+    local itemID = self.link and tonumber(self.link:match("^item:(%d+)"))
+    if not itemID then
+        return
+    elseif IsShiftKeyDown() then
+        ns.Compat.InsertChatLink(itemID)
+    elseif IsControlKeyDown() then
+        ns.Compat.DressUpItem(itemID)
     end
 end
 
-local HOVER_OPTS = { nameFont = ns.Theme.fonts.small, onClick = onHoverClick }
+local HOVER_OPTS = { nameFont = ns.Theme.fonts.small, onClick = onHoverClick, star = false }
 
 function DetailWidgets.hoverRow(content)
     local row = ns.ItemRow.new(content, HOVER_OPTS)

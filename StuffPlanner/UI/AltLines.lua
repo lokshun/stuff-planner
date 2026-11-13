@@ -11,7 +11,7 @@
 --   ns.AltLines.mark(button) : cadre de sélection des sous-lignes (RowActions.mark), sur SP_SELECTION_CHANGED
 -- Sous-ligne (RowPresenter.alternative, ns.ItemRow compacte) : icône, nom, lineText, gain (et gain comparé à
 -- sa droite) ; clic = RowActions.click
--- (fiche, Maj : repère, Ctrl : essayage), survol = info-bulle de l'objet.
+-- (fiche, Maj : lien, Ctrl : essayage), survol = info-bulle de l'objet.
 
 local _, ns = ...
 

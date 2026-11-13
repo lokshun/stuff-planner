@@ -31,7 +31,7 @@ effort it costs.
 | | |
 |---|---|
 | **Now page** | Quests of the current zone sorted by gear gain, with their source and a confidence level; the play session at the top. |
-| **Target list** | The items you pinned (Alt+click or right-click menu), with import and export. |
+| **Target list** | The items you pinned (star on a row or right-click menu), with import and export. |
 | **Route page** | A plan for your next steps: quest chains, dungeons, raids and crafts, weighted by effort, XP and how long the item will last. |
 | **Dungeons page** | Instances sorted by expected gain, with each boss and its useful drops. |
 | **Gear page** | The best upgrade for each slot, where to get it and how much it helps. |

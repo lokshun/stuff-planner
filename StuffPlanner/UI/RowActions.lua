@@ -3,17 +3,18 @@
 -- Modules lus à l'appel (QuestDetail, SourceDetail peuvent se charger après).
 --   ns.RowActions.click(questID, itemID, itemSource) : info-bulle fermée d'abord (la fiche demande noms
 --     et objets au client, leur arrivée reconstruirait l'info-bulle ouverte) ; objet sélectionné (select) ;
---     Alt : épinglé / retiré de la liste cible (togglePin) ;
---     Ctrl : essayage de itemID (Compat.DressUpItem) ; quête : Maj = repère (QuestDetail.waypoint), sinon
---     fiche (QuestDetail.show, avec itemID) ; sans quête : fiche de la source (SourceDetail.show) si itemID et
---     itemSource sont connus.
---   togglePin(itemID) : WishlistStore.toggle, message dans la discussion (épinglé, retiré, liste pleine)
+--     Maj : lien de l'objet dans la discussion (Compat.InsertChatLink ; refusé = clic ordinaire) ;
+--     Ctrl : essayage de itemID (Compat.DressUpItem) ; quête : fiche (QuestDetail.show, avec itemID) ;
+--     sans quête : fiche de la source (SourceDetail.show) si itemID et itemSource sont connus. Repère : menu
+--     ou bouton de la fiche seulement.
+--   togglePin(itemID) -> true (épinglé) | false (retiré) | nil (liste pleine, message ; ou sans objet) :
+--     WishlistStore.toggle ; retour visuel par l'étoile des lignes (ItemRow), pas de message
 --   select(questID, itemID, reveal?) : sélection courante (une seule, gardée jusqu'au prochain clic),
 --     émet SP_SELECTION_CHANGED(reveal) ; rien sans itemID. reveal : les listes font défiler jusqu'à elle.
 --   isSelected(questID, itemID) -> bool : même objet et même quête (nil = sans quête)
 --   menu(questID, itemID, itemSource) : menu clic droit (RowMenuPresenter.entries, RowMenu.open) : fiche,
 --     repère (quête simple) ou suivre (suite de quêtes) / ne plus suivre (Follow), épingler / désépingler,
---     essayer ; objet sélectionné
+--     essayer, lier dans la discussion ; objet sélectionné
 --   mark(button, questID, itemID, height?) : cadre de sélection (créé au premier appel) affiché si
 --     isSelected ; height : cadre limité au haut du bouton (ligne dépliée : sans ses sous-lignes)
 
@@ -86,22 +87,18 @@ end
 
 function RowActions.togglePin(itemID)
     if not itemID then
-        return
+        return nil
     end
-    local L = ns.L
     local pinned = ns.WishlistStore.toggle(itemID)
-    local name = ns.Names.item(itemID)
     if pinned == nil then
-        print(L.WISHLIST_FULL)
-    else
-        print((pinned and L.WISHLIST_PINNED or L.WISHLIST_UNPINNED):format(name))
+        print(ns.L.WISHLIST_FULL)
     end
+    return pinned
 end
 
 function RowActions.click(questID, itemID, itemSource)
     GameTooltip:Hide()
-    if IsAltKeyDown() then
-        RowActions.togglePin(itemID)
+    if IsShiftKeyDown() and itemID and ns.Compat.InsertChatLink(itemID) then
         return
     end
     RowActions.select(questID, itemID)
@@ -110,11 +107,7 @@ function RowActions.click(questID, itemID, itemSource)
             ns.Compat.DressUpItem(itemID)
         end
     elseif questID then
-        if IsShiftKeyDown() then
-            ns.QuestDetail.waypoint(questID)
-        else
-            ns.QuestDetail.show(questID, itemID)
-        end
+        ns.QuestDetail.show(questID, itemID)
     elseif itemID and itemSource then
         ns.SourceDetail.show(itemID, itemSource)
     end
@@ -144,6 +137,9 @@ local MENU_ACTIONS = {
     end,
     dressup = function(_, itemID)
         ns.Compat.DressUpItem(itemID)
+    end,
+    link = function(_, itemID)
+        ns.Compat.InsertChatLink(itemID)
     end,
 }
 MENU_ACTIONS.unpin = MENU_ACTIONS.pin

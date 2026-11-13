@@ -4,7 +4,7 @@
 -- Disponible si tracker.shown est vrai (priorité la plus basse) ; hud.lines lignes (1-5). Rafraîchi sur
 -- SP_RESULTS_UPDATED, SP_OPTION_CHANGED (tracker.*, hud.lines) et à l'arrivée des noms.
 -- Clic sur une ligne : fiche de la quête (QuestDetail, sur la page Maintenant, ligne de l'objet encadrée et
--- amenée en vue : RowActions.select) ; tout clic sélectionne l'objet ; Maj+clic : repère vers le donneur ;
+-- amenée en vue : RowActions.select) ; Maj+clic : lien dans la discussion (Compat.InsertChatLink) ;
 -- Ctrl+clic : essayage (Compat.DressUpItem) ; survol : info-bulle de l'objet (stats, gain), quête,
 -- état (journal, niveau, prérequis), badge « non confirmé ». /splan tracker active ou coupe le mode.
 
@@ -42,7 +42,7 @@ local function showTooltip(button)
     if row.badge then
         GameTooltip:AddLine(row.badge, row.badgeColor.r, row.badgeColor.g, row.badgeColor.b)
     end
-    GameTooltip:AddLine(L.ROW_CLICK_HINT, 0.6, 0.6, 0.6)
+    GameTooltip:AddLine(L.FOLLOW_QUEST_HINT, 0.6, 0.6, 0.6)
     GameTooltip:Show()
 end
 
@@ -55,13 +55,11 @@ local function onLineClick(button)
     if not row then
         return
     end
-    if IsControlKeyDown() or IsShiftKeyDown() then
+    if IsShiftKeyDown() and ns.Compat.InsertChatLink(row.itemID) then
+        return
+    elseif IsControlKeyDown() then
         ns.RowActions.select(row.questID, row.itemID)
-        if IsControlKeyDown() then
-            ns.Compat.DressUpItem(row.itemID)
-        else
-            ns.QuestDetail.waypoint(row.questID)
-        end
+        ns.Compat.DressUpItem(row.itemID)
         return
     end
     ns.WindowCombat.after(function()

@@ -7,7 +7,7 @@
 -- Contours mis à jour sur SP_WAYPOINT_CHANGED et à chaque affichage de la carte.
 -- Cible du repère sans épingle (première quête d'une suite, Waypoint.current) : épingle de plus, icône de
 --   quête disponible ; toutes refaites sur SP_WAYPOINT_CHANGED.
--- Survol : quête, meilleur objet et gain ; clic : fiche (QuestDetail.show) ; Maj+clic : repère.
+-- Survol : quête, meilleur objet et gain ; clic : fiche (QuestDetail.show) ; Maj+clic : lien de l'objet.
 -- Rafraîchies sur SP_RESULTS_UPDATED (Results) ; jamais en combat (reporté).
 -- MapPins.focus(target) : ping pulsant au donneur ({mapID, x, y, title?, giver?}), même épingles masquées ;
 --   retiré à la fermeture de la carte ; false sans HereBeDragons.
@@ -52,7 +52,7 @@ local function showTooltip(pin)
         GameTooltip:AddDoubleLine(row.name, row.gainText, row.nameColor.r, row.nameColor.g, row.nameColor.b,
             row.gainColor.r, row.gainColor.g, row.gainColor.b)
     end
-    GameTooltip:AddLine(L.PIN_HINT, 0.6, 0.6, 0.6)
+    GameTooltip:AddLine(L.FOLLOW_QUEST_HINT, 0.6, 0.6, 0.6)
     GameTooltip:Show()
 end
 
@@ -61,12 +61,11 @@ local function hideTooltip()
 end
 
 local function onClick(pin)
-    local questID = pin.data and pin.data.questID
-    if IsShiftKeyDown() then
-        ns.QuestDetail.waypoint(questID)
-    else
-        ns.QuestDetail.show(questID)
+    local data = pin.data
+    if IsShiftKeyDown() and data and data.itemID and ns.Compat.InsertChatLink(data.itemID) then
+        return
     end
+    ns.QuestDetail.show(data and data.questID)
 end
 
 -- Quatre traits sur les bords du cadre, au-dessus de l'icône ; jamais de fond plein.

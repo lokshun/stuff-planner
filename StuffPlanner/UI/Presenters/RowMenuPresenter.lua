@@ -4,7 +4,7 @@
 --     ctx = {questID?, itemID?, itemSource?, following = questID suivi | nil, pinned = bool, chain = bool}
 --     ordre : details (quête, ou objet et source), quête : follow (suite de quêtes, ctx.chain) ou waypoint
 --     (quête simple), unfollow si elle est suivie,
---     pin / unpin et dressup (objet)
+--     pin / unpin, dressup et link (objet ; lien dans la discussion)
 --   ns.RowMenuPresenter.profileEntries(ctx) -> {{key, label}...}
 --     ctx = {active = profil actif, secondary = profil comparé} : use, compare / uncompare ; rien si actif
 --   ns.RowMenuPresenter.compareEntries(options, secondaryID?) -> {{key, label}...} : bouton « Comparer… » ;
@@ -44,6 +44,7 @@ function RowMenuPresenter.entries(ctx)
             add(entries, "pin", L.WISHLIST_PIN)
         end
         add(entries, "dressup", L.MENU_DRESSUP)
+        add(entries, "link", L.MENU_LINK)
     end
     return entries
 end

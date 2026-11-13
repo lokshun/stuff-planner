@@ -15,10 +15,10 @@ ns.HelpPresenter = HelpPresenter
 local GESTURES = {
     { "HELP_SECTION_ROWS", {
         { "HELP_KEY_CLICK", "HELP_DO_DETAIL" },
-        { "HELP_KEY_SHIFT", "HELP_DO_WAYPOINT" },
-        { "HELP_KEY_CTRL", "HELP_DO_DRESS" },
-        { "HELP_KEY_ALT", "HELP_DO_PIN" },
         { "HELP_KEY_RIGHT", "HELP_DO_MENU" },
+        { "HELP_KEY_STAR", "HELP_DO_PIN" },
+        { "HELP_KEY_SHIFT", "HELP_DO_LINK" },
+        { "HELP_KEY_CTRL", "HELP_DO_DRESS" },
     } },
     { "HELP_SECTION_HUD", {
         { "HELP_KEY_TITLE", "HELP_DO_NEXT_MODE" },

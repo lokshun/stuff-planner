@@ -7,8 +7,8 @@
 -- Ligne : liseré vert si amélioration ; icône portée (sinon icône d'emplacement vide du jeu, grisée) ;
 --   emplacement, nom ; gain à droite, gain du profil comparé dessous (upgrade.secondaryLabel) ;
 --   2e ligne detailText ; 3e ligne si un raid fait mieux : raidText et
---   son gain, cliquable à part (fiche de la source, Ctrl : essayage) ; la hauteur est fixée par GearTab.
--- Clic : RowActions.click sur l'amélioration (fiche, Maj : repère, Ctrl : essayage).
+--   son gain, cliquable à part (mêmes gestes) ; la hauteur est fixée par GearTab.
+-- Clic : RowActions.click sur l'amélioration (fiche, Maj : lien, Ctrl : essayage) ; clic droit : RowActions.menu.
 -- Alternatives (AltLines) : bouton flèche à droite de la 1re ligne, gain à sa gauche.
 --   ns.GearRows.mark(button) : cadres de sélection (amélioration, ligne raid, sous-lignes)
 -- Survol : info-bulle de l'objet porté (ou de l'emplacement vide) + score, remplacement, source, conseil.
@@ -66,7 +66,7 @@ local function addUpgradeLines(row)
         GameTooltip:AddDoubleLine(" ", upgrade.secondaryLabel, 1, 1, 1, second.r, second.g, second.b)
     end
     GameTooltip:AddLine(row.detailText, 1, 1, 1, true)
-    GameTooltip:AddLine(L.GEAR_CLICK_HINT, HINT.r, HINT.g, HINT.b, true)
+    GameTooltip:AddLine(L.ROW_MENU_HINT, HINT.r, HINT.g, HINT.b)
 end
 
 local function showTooltip(button)
@@ -89,14 +89,22 @@ local function showRaidTooltip(line)
     GameTooltip:SetOwner(line, "ANCHOR_RIGHT")
     GameTooltip:SetHyperlink("item:" .. raid.itemID)
     GameTooltip:AddLine(line:GetParent().row.raidText, 1, 1, 1, true)
-    GameTooltip:AddLine(L.GEAR_CLICK_HINT, HINT.r, HINT.g, HINT.b, true)
+    GameTooltip:AddLine(L.ROW_MENU_HINT, HINT.r, HINT.g, HINT.b)
     GameTooltip:Show()
 end
 
-local function onRaidClick(line)
+local function act(mouseButton, questID, itemID, itemSource)
+    if mouseButton == "RightButton" then
+        ns.RowActions.menu(questID, itemID, itemSource)
+    else
+        ns.RowActions.click(questID, itemID, itemSource)
+    end
+end
+
+local function onRaidClick(line, mouseButton)
     local raid = line:GetParent().row.raid
     if raid then
-        ns.RowActions.click(nil, raid.itemID, raid.itemSource)
+        act(mouseButton, nil, raid.itemID, raid.itemSource)
     end
 end
 
@@ -120,14 +128,15 @@ local function buildRaidLine(button)
     line:SetScript("OnLeave", function()
         GameTooltip:Hide()
     end)
+    line:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     line:SetScript("OnClick", onRaidClick)
     button.raidLine = line
 end
 
-local function onRowClick(button)
+local function onRowClick(button, mouseButton)
     local upgrade = button.row and button.row.upgrade
     if upgrade then
-        ns.RowActions.click(upgrade.questID, upgrade.itemID, upgrade.itemSource)
+        act(mouseButton, upgrade.questID, upgrade.itemID, upgrade.itemSource)
     end
 end
 
@@ -173,6 +182,7 @@ local function buildRow(button)
     button:SetScript("OnLeave", function()
         GameTooltip:Hide()
     end)
+    button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:SetScript("OnClick", onRowClick)
     buildRaidLine(button)
 end

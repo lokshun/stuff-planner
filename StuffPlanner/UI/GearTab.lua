@@ -19,7 +19,7 @@ local L = ns.L
 local MAX_ZONE_ENTRIES = 100
 local expanded = {}
 
-local wishlist, profileText, summaryText, chipBar, sortBar, footer, scrollBox
+local wishlist, profileText, summaryText, chipBar, sortBar, scrollBox
 
 local askName = ns.NameAsker.new(function()
     ns.MainFrame.refresh()
@@ -143,15 +143,9 @@ local function create(parent)
     sortBar = ns.Chips.new(panel)
     sortBar.frame:SetPoint("TOPLEFT", chipBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
     sortBar.frame:SetPoint("RIGHT")
-    footer = panel:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    footer:SetPoint("BOTTOMLEFT")
-    footer:SetPoint("RIGHT")
-    footer:SetJustifyH("LEFT")
-    footer:SetText(L.GEAR_CLICK_HINT)
-    setColor(footer, theme.colors.muted)
     scrollBox = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
     scrollBox:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    scrollBox:SetPoint("BOTTOM", footer, "TOP", 0, theme.spacing.gap)
+    scrollBox:SetPoint("BOTTOM")
     scrollBox:SetPoint("RIGHT", -20, 0)
     local scrollBar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")
     scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, 0)
