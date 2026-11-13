@@ -13,7 +13,7 @@
 --     de RouteResults : lignes de Planner.rank), utilisées pour les emplacements sans gain de zone
 --     row = {slot, slotName (nom de chaîne globale, ex. "HEADSLOT"), itemID | nil,
 --            name (L.GEAR_EMPTY si vide), icon, quality, nameColor,
---            scoreText ("" vide ou sans profil, "?" stats inconnues ; info-bulle), estimated (confidence 1),
+--            scoreText ("" vide ou sans profil, "?" stats inconnues ; info-bulle), estimated (RowPresenter.estimated),
 --            upgrade = RowPresenter.resultRow | nil (premier gain > 0 de l'emplacement ; repli hors profil,
 --              delta.fallback, seulement sans vrai gain en zone ni au palier ; upgradeGain nil) ; hors zone :
 --              RowPresenter.present de la ligne du palier + questID (source quête), itemSource, outside = true,
@@ -46,7 +46,6 @@ local L = ns.L
 local GearPresenter = {}
 ns.GearPresenter = GearPresenter
 
-local ESTIMATED_ITEM = 1
 
 local SLOTS = {
     { 1, "HEADSLOT" }, { 2, "NECKSLOT" }, { 3, "SHOULDERSLOT" }, { 15, "BACKSLOT" },
@@ -144,7 +143,7 @@ local function present(slot, slotName, player, profile, data, read)
     row.icon = ns.Names.itemIcon(itemID, (item and item.icon) or (read and read.icon))
     row.quality = (item and item.quality) or (read and read.quality)
     row.nameColor = ns.Theme.quality(row.quality)
-    row.estimated = item ~= nil and item.confidence == ESTIMATED_ITEM
+    row.estimated = ns.RowPresenter.estimated(itemID, item)
     row.scoreText = scoreText((read and read.stats) or (item and item.stats), profile)
     return row
 end

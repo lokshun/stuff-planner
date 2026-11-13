@@ -23,7 +23,7 @@
 --     SP_RESULTS_UPDATED et SP_QUEST_LOG_CHANGED ; chaque appel en reçoit une liste neuve, sans les entrées
 --     d'instance si instances est faux, tronquée à limit (DEFAULT_LIMIT) ; entrées partagées, à ne pas modifier.
 -- Commande /splan best : top 5 de la zone actuelle pour le profil actif ; gain en points de score
---   (même échelle que le tri, 2 décimales sous 1) ; « estimé » si l'objet a confidence 1.
+--   (même échelle que le tri, 2 décimales sous 1) ; « estimé » si RowPresenter.estimated.
 --   Noms demandés au client (Names.onReady) : affichage dès qu'ils sont tous connus, au plus 2 s.
 -- /splan best : quêtes seulement.
 
@@ -37,7 +37,6 @@ ns.Chat = Chat
 local DEFAULT_LIMIT = 5
 local LEVEL_WINDOW = 3
 local INSTANCE_WINDOW = 10
-local LOW_CONFIDENCE = 1
 local NAME_TIMEOUT = 2
 
 local function questAllowed(quest, player, isDone)
@@ -164,8 +163,7 @@ end
 local function lineFor(rank, entry, data)
     local text = L.BEST_LINE:format(rank, ns.Names.item(entry.itemID), gainText(entry.delta),
         ns.RowPresenter.questOrigin(entry.questID, data))
-    local fields = data.item(entry.itemID)
-    if fields and fields.confidence == LOW_CONFIDENCE then
+    if ns.RowPresenter.estimated(entry.itemID, data.item(entry.itemID)) then
         text = text .. L.BEST_ESTIMATED
     end
     return text

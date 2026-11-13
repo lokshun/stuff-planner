@@ -12,7 +12,7 @@
 --               secondColor (SecondaryGain.color) : ligne sous gain, même format,
 --             details = {L.TOOLTIP_STAT...} : 3 stats au plus dont valeur * poids pèse le plus
 --               (valeur absolue décroissante, puis clé), plafonds ignorés,
---             warning = L.TOOLTIP_UNCONFIRMED | nil (objet confidence 1), warningColor,
+--             warning = L.TOOLTIP_UNCONFIRMED | nil (objet confidence 1 hors lecture en cours), warningColor,
 --             keep = L.KEEP_FOR | nil (gain ≤ 0 ici, > 0 pour le profil secondaire), keepColor,
 --             perGold = L.TOOLTIP_PER_GOLD (points ÷ prix en pièces d'or, Format.points) |
 --               nil (sans prix ou gain ≤ 0)}
@@ -27,7 +27,6 @@ local TooltipPresenter = {}
 ns.TooltipPresenter = TooltipPresenter
 
 local MAX_DETAILS = 3
-local ESTIMATED_ITEM = 1
 local PERCENT_KEYS = {
     HIT = true, CRIT = true, SPELL_HIT = true, SPELL_CRIT = true,
     DODGE = true, PARRY = true, BLOCK = true, HASTE = true,
@@ -115,7 +114,7 @@ function TooltipPresenter.build(itemID, player, profile, data, live, price)
     if delta.abs <= 0 and second then
         view.keep, view.keepColor = ns.SecondaryGain.keep(second, name), ns.Theme.colors.instance
     end
-    if item.confidence == ESTIMATED_ITEM then
+    if ns.RowPresenter.estimated(itemID, item) then
         view.warning, view.warningColor = L.TOOLTIP_UNCONFIRMED, ns.Theme.colors.warning
     end
     return view

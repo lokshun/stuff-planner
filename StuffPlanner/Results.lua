@@ -7,6 +7,7 @@
 --   ns.Results.delta(itemID) -> Scoring.delta pour cet instantané et le profil actif, gardé ;
 --     nil si player() l'est
 --   ns.Results.busy() -> vrai pendant le calcul de la portée
+--   ns.Results.scope() -> {itemID...} de la dernière portée (zone et voisines) ; {} avant le premier calcul
 --   ns.Results.secondaryDelta(itemID) -> Scoring.delta pour le même instantané et Profiles.secondary() ;
 --     calculé à la demande seulement (aucun calcul de portée), gardé ; nil sans secondaire ou si player()
 --     l'est. SP_SECONDARY_CHANGED : oublié, puis SP_RESULTS_UPDATED (hors calcul en cours).
@@ -29,6 +30,7 @@ local COMBAT_DELAY = 0.5
 local store = ns.Recompute.new()
 local secondaryStore = ns.Recompute.new()
 local current, job, sliceStart
+local lastScope = {}
 
 local function activeProfile()
     return ns.Data.ready() and ns.Profiles.active() or nil
@@ -69,6 +71,10 @@ function Results.secondaryDelta(itemID)
         secondaryStore:apply(player, profile, ns.Data)
     end
     return secondaryStore:delta(itemID)
+end
+
+function Results.scope()
+    return lastScope
 end
 
 function Results.busy()
@@ -121,6 +127,7 @@ local function start()
         return
     end
     local itemIDs = scope(player)
+    lastScope = itemIDs
     store:keep(itemIDs)
     local idle = job == nil
     job = coroutine.create(function()

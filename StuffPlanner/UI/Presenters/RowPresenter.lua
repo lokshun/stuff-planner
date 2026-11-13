@@ -5,14 +5,12 @@
 --     entry = {itemID, source = {type, id, chance}?, delta = {abs, pct}?, questState?} ; source comme
 --       Data.sourcesOf ; data = façade DataProvider (item, quest)
 --     row = {itemID, name, icon, quality, nameColor,
---            arrow ("▲" | "▼" | ""), gainText (points, signe, 2 décimales sous 1, "" sans delta),
---            gainColor (Theme.colors gain | loss | neutral),
+--            arrow ("▲" | "▼" | ""), gainText (points, signe, 2 déc. sous 1, "" sans delta), gainColor,
 --            sourceKind (type de source | nil), sourceText ("" sans source),
 --            originText (quête : questOrigin, « Suite de quêtes : nom » ou « Quête : nom » ; sinon sourceText),
 --            unconfirmed (bool), badge (L.BADGE_UNCONFIRMED | nil), badgeColor,
 --            questState (entry.questState : "log" | "level" | "prereq" | nil, voir Chat.bestInZone),
---            stateText ("" sans état ; « niv. N » = reqLevel de la quête, minLevel de l'instance),
---            stateColor,
+--            stateText ("" sans état ; « niv. N » = reqLevel de la quête, minLevel de l'instance), stateColor,
 --            unavailable (bool : "level" ou "prereq"),
 --            slot (entry.delta.slot : emplacement comparé, nil sans delta),
 --            gainLabel (= gainText, points signés : « +2.5 », « -0.50 », « 0.00 » ; pas de flèche, absente
@@ -30,14 +28,12 @@
 --   kindText, kindColor (quête : L.TAG_CHAIN si isChain, sinon L.TAG_QUEST, couleur title ; artisanat :
 --     L.SOURCE_CRAFT, couleur craft, sourceText alors omis de detailText) : en couleur dans detailText, avant
 --     le tag d'instance
---   lowDrop (isLowDrop(entry.source)) ; isLowDrop(source) -> bool : butin à faible taux, sans source sûre :
---     source world, ou dungeon / raid sans npcID (trash)
+--   lowDrop (isLowDrop(entry.source)) ; isLowDrop(source) -> bool : butin incertain (world, instance sans npcID)
 --   gain(delta) -> arrow, gainText, gainColor ; mêmes règles que les champs de present
 --   state(questState, quest?) -> stateText, stateColor ("" et muted sans état)
 --   questRow(entry, data) -> present d'un résultat de Chat.bestInZone {itemID, questID, delta,
 --     questState} (source quête) + questID ; à utiliser par toutes les listes de quêtes
---   resultRow(entry, data) -> questRow si entry.questID, sinon present (résultat d'instance de
---     Chat.bestInZone) + itemSource = entry.source (fiche SourceDetail)
+--   resultRow(entry, data) -> questRow si entry.questID, sinon present + itemSource = entry.source (SourceDetail)
 --   sameRows(a, b) -> bool : mêmes lignes affichées (ordre, objet, quête, nom, icône, gainLabel, secondaryLabel,
 --     detailText, dimmed, slot) ; nil d'un côté : faux
 --   instanceTag(quest, data) -> text, color | nil : « Donjon » ou « Raid » si quest.instance (raid lu dans
@@ -47,7 +43,8 @@
 --     de entry.hops, L.EFFORT_CHAIN si entry.steps > 1) | nil ; entry = ligne de Planner.rank
 --   alternative(entry, data, effortText?) -> present + questID (source quête), itemSource,
 --     effortText (donné, sinon effortText(entry)), lineText (effortText · detailText)
---   Non confirmé : objet confidence 1 (stats estimées) ou quête confidence 2 (récompenses devinées).
+--   estimated(itemID, item) -> confidence 1 hors lecture (ItemProbe.pending) ; non confirmé : estimated
+--     ou quête confidence 2
 --   Donjon, raid : « Instance #id » tant que Names ne nomme pas les instances ; taux s'il est connu.
 
 local _, ns = ...
@@ -101,15 +98,14 @@ local function sourceText(source)
     return ""
 end
 
-local function isUnconfirmed(item, source, data)
-    if item and item.confidence == ESTIMATED_ITEM then
-        return true
-    end
-    if source and source.type == "quest" then
-        local quest = data.quest(source.id)
-        return quest ~= nil and quest.confidence == GUESSED_QUEST
-    end
-    return false
+function RowPresenter.estimated(itemID, item)
+    return item ~= nil and item.confidence == ESTIMATED_ITEM
+        and not (ns.ItemProbe ~= nil and ns.ItemProbe.pending(itemID))
+end
+
+local function isUnconfirmed(itemID, item, source, data)
+    local quest = source and source.type == "quest" and data.quest(source.id)
+    return RowPresenter.estimated(itemID, item) or (quest and quest.confidence == GUESSED_QUEST) or false
 end
 
 function RowPresenter.state(state, quest)
@@ -201,7 +197,7 @@ function RowPresenter.present(entry, data)
         nameColor = ns.Theme.quality(quality),
         sourceKind = entry.source and entry.source.type,
         sourceText = sourceText(entry.source),
-        unconfirmed = isUnconfirmed(item, entry.source, data),
+        unconfirmed = isUnconfirmed(entry.itemID, item, entry.source, data),
         questState = entry.questState,
         unavailable = UNAVAILABLE[entry.questState] == true,
         slot = entry.delta and entry.delta.slot,

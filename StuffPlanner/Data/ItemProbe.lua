@@ -5,6 +5,11 @@
 --   ns.ItemProbe.records() -> {{kind="item", itemID, stats}...} triés par itemID (pour l'export)
 --   ns.ItemProbe.progress() -> confirmed, remaining ; remaining nil tant que la liste n'est pas faite
 --   ns.ItemProbe.step() -> une étape (minuterie ou tests) ; true quand il n'y a plus rien à lire
+--   ns.ItemProbe.pending(itemID) -> vrai tant que l'objet peut encore être lu cette session (liste pas
+--     faite ou lecture en cours) ; faux une fois la lecture finie ou l'objet abandonné. Les vues taisent
+--     « non confirmé » tant que c'est vrai (état transitoire).
+-- Ordre : d'abord les objets de ns.Results.scope() (zone et voisines), puis le reste ; la file non lue
+--   est réordonnée de même à chaque SP_RESULTS_UPDATED.
 -- Sauvegarde {schema = 1, build, stats = {[itemID] = {[StatKey] = value}}} ; build de GetBuildInfo
 --   différent : tout est oublié (stats possiblement changées), les objets seront relus.
 -- SP_DATA_READY : stats gardées passées à Data.observeItem, puis liste des objets confidence 1 non
@@ -33,7 +38,7 @@ local ESTIMATED = 1
 local GRACE_SECONDS = 10
 
 local store, patterns
-local queue, position, waiting, scanner, sliceStart, grace
+local queue, position, waiting, scanner, sliceStart, grace, given, done
 local unsent = 0
 
 local function build()
@@ -103,6 +108,28 @@ local function tick()
     end
 end
 
+-- Objets non lus de la file : ceux de la portée affichée d'abord, ordre gardé sinon.
+local function prioritize()
+    local scope = ns.Results and ns.Results.scope and ns.Results.scope()
+    if not (queue and scope and scope[1]) then
+        return
+    end
+    local wanted = {}
+    for _, itemID in ipairs(scope) do
+        wanted[itemID] = true
+    end
+    local first, rest = {}, {}
+    for index = position, #queue do
+        local itemID = queue[index]
+        local list = wanted[itemID] and first or rest
+        list[#list + 1] = itemID
+    end
+    for _, itemID in ipairs(rest) do
+        first[#first + 1] = itemID
+    end
+    queue, position = first, 1
+end
+
 local function scan()
     local list, saved = {}, loadStore().stats
     for _, itemID in ipairs(ns.Data.itemIDs()) do
@@ -113,6 +140,11 @@ local function scan()
         tick()
     end
     queue, position = list, 1
+    prioritize()
+end
+
+function ItemProbe.pending(itemID)
+    return not done and not (given and given[itemID])
 end
 
 function ItemProbe.step()
@@ -136,7 +168,10 @@ function ItemProbe.step()
     if not itemID then
         grace = grace + 1
         if next(waiting) == nil or grace > ItemProbe.RATE * GRACE_SECONDS then
-            waiting = {}
+            for waited in pairs(waiting) do
+                given[waited] = true
+            end
+            waiting, done = {}, true
             notify(true)
             return true
         end
@@ -170,7 +205,7 @@ function ItemProbe.start()
     for itemID, stats in pairs(saved) do
         ns.Data.observeItem(itemID, stats)
     end
-    queue, position, waiting, unsent, grace = nil, 1, {}, 0, 0
+    queue, position, waiting, unsent, grace, given, done = nil, 1, {}, 0, 0, {}, false
     scanner = coroutine.create(scan)
     schedule()
 end
@@ -181,6 +216,7 @@ ItemProbe:RegisterEvent("GET_ITEM_INFO_RECEIVED", function(_, itemID, ok)
     end
     waiting[itemID] = nil
     if ok == false then
+        given[itemID] = true
         return
     end
     if paused() then
@@ -191,3 +227,4 @@ ItemProbe:RegisterEvent("GET_ITEM_INFO_RECEIVED", function(_, itemID, ok)
 end)
 
 ns:On("SP_DATA_READY", ItemProbe.start)
+ns:On("SP_RESULTS_UPDATED", prioritize)
