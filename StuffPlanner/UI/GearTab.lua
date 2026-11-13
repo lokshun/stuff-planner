@@ -1,13 +1,14 @@
 -- CONTRAT
 -- Onglet « Équipement » : objets portés et meilleure amélioration de chaque emplacement (zone, à défaut
 -- palier courant du Parcours : RouteResults, calcul lancé à l'affichage) ; GearPresenter.
--- Charger après MainFrame.lua, Chat.lua, RouteResults.lua, GearPresenter.lua, Chips.lua, GearRows.lua.
+-- Charger après MainFrame.lua, Chat.lua, RouteResults.lua, GearPresenter.lua, Chips.lua, FilterMenu.lua,
+-- GearRows.lua.
 -- S'inscrit par ns.MainFrame.addTab("gear", …). Rafraîchi à l'ouverture ; les messages
 -- SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED, SP_ROUTE_UPDATED passent par ns.MainFrame.refresh.
 -- Tout en haut : lien « Liste cible (n) › » vers la page wishlist (UI/WishlistTab.lua).
--- En-tête : profil actif, résumé (GearPresenter.summary), puces Tous / Améliorations
---   (StuffPlannerDB.ui.gearOnlyUpgrades) ; puces Par emplacement / Meilleur gain (StuffPlannerDB.ui.gearByGain,
---   GearPresenter.sortByGain).
+-- En-tête : profil actif, résumé (GearPresenter.summary) ; une barre : segment Tous / Améliorations
+--   (StuffPlannerDB.ui.gearOnlyUpgrades), bouton « Tri » à droite (ns.FilterMenu : Par emplacement / Meilleur
+--   gain, StuffPlannerDB.ui.gearByGain, GearPresenter.sortByGain).
 -- Lignes : UI/GearRows.lua (40 px, 56 avec une ligne raid, + alternatives dépliées : AltLines) ; état
 -- déplié local (non gardé), par emplacement.
 -- Objets portés absents de la base : stats lues par Compat.GetItemStats + StatParser.fromApi.
@@ -19,7 +20,7 @@ local L = ns.L
 local MAX_ZONE_ENTRIES = 100
 local expanded = {}
 
-local wishlist, profileText, summaryText, chipBar, sortBar, scrollBox
+local wishlist, profileText, summaryText, chipBar, sortMenu, scrollBox
 
 local askName = ns.NameAsker.new(function()
     ns.MainFrame.refresh()
@@ -104,11 +105,11 @@ local function refresh()
         ns.MainFrame.refresh()
     end)
     local byGain = ui.gearByGain == true
-    sortBar:render({
-        { key = "slot", label = L.SORT_SLOT, active = not byGain },
-        { key = "gain", label = L.SORT_GAIN, active = byGain },
-    }, function(key)
-        uiState().gearByGain = key == "gain"
+    local P = ns.FilterMenuPresenter
+    sortMenu:update(P.label(nil), function()
+        return P.entries(nil, P.sorts(uiState().gearByGain and "gain" or "slot", { "slot", "gain" }))
+    end, function(_, value)
+        uiState().gearByGain = value == "gain"
         ns.MainFrame.refresh()
     end)
     local shown = ns.GearPresenter.filter(rows, only)
@@ -137,14 +138,16 @@ local function create(parent)
     summaryText:SetPoint("RIGHT")
     summaryText:SetJustifyH("LEFT")
     setColor(summaryText, theme.colors.text)
-    chipBar = ns.Chips.new(panel)
-    chipBar.frame:SetPoint("TOPLEFT", summaryText, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    chipBar.frame:SetPoint("RIGHT")
-    sortBar = ns.Chips.new(panel)
-    sortBar.frame:SetPoint("TOPLEFT", chipBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    sortBar.frame:SetPoint("RIGHT")
+    local barRow = CreateFrame("Frame", nil, panel)
+    barRow:SetHeight(ns.Chips.HEIGHT)
+    barRow:SetPoint("TOPLEFT", summaryText, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    barRow:SetPoint("RIGHT")
+    chipBar = ns.Chips.new(barRow)
+    chipBar.frame:SetPoint("LEFT")
+    sortMenu = ns.FilterMenu.new(barRow)
+    sortMenu.button:SetPoint("RIGHT")
     scrollBox = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
-    scrollBox:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    scrollBox:SetPoint("TOPLEFT", barRow, "BOTTOMLEFT", 0, -theme.spacing.gap)
     scrollBox:SetPoint("BOTTOM")
     scrollBox:SetPoint("RIGHT", -20, 0)
     local scrollBar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")

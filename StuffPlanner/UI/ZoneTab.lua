@@ -1,15 +1,16 @@
 -- CONTRAT
 -- Page « Maintenant » (clé zone) : améliorations de la zone (Chat.bestInZone, quêtes et butin des
--- instances dont l'entrée est sur la carte), filtres en puces, ScrollBox ; en tête, puces de session
--- (SessionPresenter.chips, SessionPlan.toggle) : Tout / 30 min / 1 h / 2 h, puis Suivre la session ;
--- budget choisi : liste de la session (SessionPlan.get, SessionPresenter.build, ns.RouteRows) à la place
--- de la zone, filtres et tri cachés ; rafraîchi aussi sur SP_ROUTE_UPDATED et SP_FOLLOW_CHANGED.
+-- instances dont l'entrée est sur la carte), ScrollBox. Une barre : segment Zone / 30 min / 1 h / 2 h
+-- (SessionPresenter.chips, SessionPlan.toggle) à gauche ; à droite bouton « Filtres (n) » (ns.FilterMenu :
+-- filtres Filters.chips à cocher, tri) en mode zone, et bouton Suivre / Arrêter la session
+-- (SessionPresenter.follow) ; budget choisi : liste de la session (SessionPlan.get, SessionPresenter.build,
+-- ns.RouteRows) à la place de la zone ; rafraîchi aussi sur SP_ROUTE_UPDATED et SP_FOLLOW_CHANGED.
 -- Charger après MainFrame.lua, Chat.lua, RowPresenter.lua, Filters.lua, ItemRow.lua, RouteRows.lua,
--- SessionPlan.lua et SessionPresenter.lua.
+-- SessionPlan.lua, SessionPresenter.lua et FilterMenu.lua.
 -- S'inscrit par ns.MainFrame.addTab("zone", …). Rafraîchi à l'ouverture et sur SP_RESULTS_UPDATED
 -- (Results, après joueur, base ou profil changés) si la fenêtre est visible ; noms reçus du client : un
 -- rafraîchissement regroupé (NameAsker). Filtres sauvegardés dans StuffPlannerDB.ui.zoneFilters.
--- Puces Meilleur gain (défaut) / Par emplacement (GearPresenter.sortBySlot, StuffPlannerDB.ui.zoneBySlot).
+-- Tri du menu : Meilleur gain (défaut) / Par emplacement (GearPresenter.sortBySlot, StuffPlannerDB.ui.zoneBySlot).
 -- Messages d'état (chargement, sans profil, zone inconnue, rien trouvé) au centre de la liste.
 -- Clic sur une ligne : fiche de la quête (QuestDetail) ou de l'instance (SourceDetail) ;
 -- Maj+clic : lien dans la discussion ;
@@ -25,7 +26,7 @@ local L = ns.L
 
 local MAX_ROWS = 100
 
-local panel, header, sessionBar, chipBar, sortBar, scrollBox, sessionScroll, emptyText
+local panel, header, barRow, sessionBar, filterMenu, followButton, scrollBox, sessionScroll, emptyText
 local lastShown
 
 local function filterState()
@@ -105,8 +106,7 @@ local function renderSession(budget)
 end
 
 local function setMode(session)
-    chipBar.frame:SetShown(not session)
-    sortBar.frame:SetShown(not session)
+    filterMenu:SetShown(not session)
     scrollBox:SetShown(not session)
     scrollBox.bar:SetShown(not session)
     sessionScroll:SetShown(session)
@@ -121,15 +121,17 @@ local function refreshZone()
     if ui.zoneBySlot then
         shown = ns.GearPresenter.sortBySlot(shown)
     end
-    sortBar:render({
-        { key = "slot", label = L.SORT_SLOT, active = ui.zoneBySlot == true },
-        { key = "gain", label = L.SORT_GAIN, active = not ui.zoneBySlot },
-    }, function(key)
-        ui.zoneBySlot = key == "slot" or nil
-        ns.MainFrame.refresh()
-    end)
-    chipBar:render(rows and ns.Filters.chips(state, rows) or {}, function(key)
-        ns.Filters.toggle(filterState(), key)
+    local chips = rows and ns.Filters.chips(state, rows) or {}
+    local P = ns.FilterMenuPresenter
+    filterMenu:update(P.label(chips), function()
+        local current = rows and ns.Filters.chips(filterState(), rows) or {}
+        return P.entries(current, P.sorts(ns.DB.account("ui").zoneBySlot and "slot" or "gain", { "gain", "slot" }))
+    end, function(kind, value)
+        if kind == "filter" then
+            ns.Filters.toggle(filterState(), value)
+        else
+            ns.DB.account("ui").zoneBySlot = value == "slot" or nil
+        end
         ns.MainFrame.refresh()
     end)
     -- Liste inchangée : rien à reconstruire (la ligne survolée et son info-bulle restent).
@@ -150,10 +152,20 @@ local function refresh()
     else
         refreshZone()
     end
-    sessionBar:render(ns.SessionPresenter.chips(budget, plan, ns.SessionPlan.following()), function(key)
+    sessionBar:render(ns.SessionPresenter.chips(budget), function(key)
         ns.SessionPlan.toggle(key, plan)
         ns.MainFrame.refresh()
     end)
+    local follow = ns.SessionPresenter.follow(budget, plan, ns.SessionPlan.following())
+    followButton:SetShown(follow ~= nil)
+    if follow then
+        followButton:SetText(follow.label)
+        followButton:SetWidth(followButton:GetFontString():GetStringWidth() + 24)
+        followButton:ClearAllPoints()
+        followButton:SetPoint("RIGHT", budget and barRow or filterMenu.button, budget and "RIGHT" or "LEFT",
+            budget and 0 or -ns.Theme.spacing.gap, 0)
+        followButton.plan = plan
+    end
 end
 
 local function newScroll(anchor, extent, init)
@@ -183,17 +195,23 @@ local function create(parent)
     header = panel:CreateFontString(nil, "OVERLAY", theme.fonts.header)
     header:SetPoint("TOPLEFT")
     header:SetJustifyH("LEFT")
-    sessionBar = ns.Chips.new(panel)
-    sessionBar.frame:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    sessionBar.frame:SetPoint("RIGHT")
-    chipBar = ns.Chips.new(panel)
-    chipBar.frame:SetPoint("TOPLEFT", sessionBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    chipBar.frame:SetPoint("RIGHT")
-    sortBar = ns.Chips.new(panel)
-    sortBar.frame:SetPoint("TOPLEFT", chipBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    sortBar.frame:SetPoint("RIGHT")
-    scrollBox = newScroll(sortBar.frame, theme.spacing.rowHeight, initRow)
-    sessionScroll = newScroll(sessionBar.frame, sessionRows.extent, sessionRows.init)
+    barRow = CreateFrame("Frame", nil, panel)
+    barRow:SetHeight(ns.Chips.HEIGHT)
+    barRow:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    barRow:SetPoint("RIGHT")
+    sessionBar = ns.Chips.new(barRow)
+    sessionBar.frame:SetPoint("LEFT")
+    filterMenu = ns.FilterMenu.new(barRow)
+    filterMenu.button:SetPoint("RIGHT")
+    followButton = ns.Skin.button(barRow)
+    followButton:SetHeight(ns.Chips.HEIGHT)
+    followButton:SetScript("OnClick", function(self)
+        ns.SessionPlan.toggle("follow", self.plan)
+        ns.MainFrame.refresh()
+    end)
+    followButton:Hide()
+    scrollBox = newScroll(barRow, theme.spacing.rowHeight, initRow)
+    sessionScroll = newScroll(barRow, sessionRows.extent, sessionRows.init)
     emptyText = panel:CreateFontString(nil, "OVERLAY", theme.fonts.body)
     emptyText:SetPoint("CENTER", panel, "CENTER")
     setColor(emptyText, theme.colors.muted)

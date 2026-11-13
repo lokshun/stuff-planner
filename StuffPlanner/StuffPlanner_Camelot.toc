@@ -108,6 +108,7 @@ UI\Presenters\RowPresenter.lua
 UI\Presenters\WishlistPresenter.lua
 UI\Presenters\HistoryPresenter.lua
 UI\Presenters\Filters.lua
+UI\Presenters\FilterMenuPresenter.lua
 UI\Presenters\TrackerPresenter.lua
 UI\Presenters\FollowPresenter.lua
 UI\Presenters\HudPresenter.lua
@@ -145,6 +146,7 @@ UI\PageTip.lua
 UI\MainFrame.lua
 UI\Chips.lua
 UI\RowMenu.lua
+UI\FilterMenu.lua
 UI\RowActions.lua
 UI\RouteRows.lua
 UI\ZoneTab.lua

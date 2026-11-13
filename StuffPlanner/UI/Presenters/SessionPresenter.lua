@@ -5,9 +5,11 @@
 --     {header = true, text = L.SESSION_HEADER (nombre, durée du plan, budget ; Format.duration)}, puis un
 --     objectif par ligne : RowPresenter.present + slot, slotName, source, questID (quête),
 --     name = L.SESSION_ORDER (rang, nom), effortText = Format.duration(objective.seconds) (trajet compris)
---   ns.SessionPresenter.chips(budget, plan, following) -> {{key, label, active}...} : "all" (L.SESSION_ALL,
---     active sans budget), un par budget (L.SESSION_30, _60, _120), puis "follow" (L.SESSION_FOLLOW, ou
---     L.SESSION_STOP active si following) quand le plan a une quête ou qu'une session est suivie
+--   ns.SessionPresenter.chips(budget) -> {{key, label, active}...} : segment "all" (L.SESSION_ALL : la zone,
+--     active sans budget), puis un par budget (L.SESSION_30, _60, _120)
+--   ns.SessionPresenter.follow(budget, plan, following) -> {key = "follow", label (L.SESSION_FOLLOW, ou
+--     L.SESSION_STOP si following), active = following} quand le plan a une quête ou qu'une session est suivie ;
+--     nil sinon
 
 local _, ns = ...
 
@@ -57,14 +59,17 @@ local function hasQuest(plan)
     return false
 end
 
-function SessionPresenter.chips(budget, plan, following)
+function SessionPresenter.chips(budget)
     local chips = { { key = "all", label = L.SESSION_ALL, active = budget == nil } }
     for _, seconds in ipairs(ns.SessionPlan.BUDGETS) do
         chips[#chips + 1] = { key = seconds, label = L[LABELS[seconds]], active = budget == seconds }
     end
-    if following or (budget and hasQuest(plan)) then
-        chips[#chips + 1] = { key = "follow", label = following and L.SESSION_STOP or L.SESSION_FOLLOW,
-            active = following == true }
-    end
     return chips
+end
+
+function SessionPresenter.follow(budget, plan, following)
+    if following or (budget and hasQuest(plan)) then
+        return { key = "follow", label = following and L.SESSION_STOP or L.SESSION_FOLLOW, active = following == true }
+    end
+    return nil
 end

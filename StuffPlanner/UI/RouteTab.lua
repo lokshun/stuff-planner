@@ -1,15 +1,15 @@
 -- CONTRAT
 -- Page « Parcours 1-60 » : meilleur objet par emplacement et par palier de niveau
 -- (RouteResults, RoutePresenter), ScrollBox avec en-têtes de palier (ns.RouteRows). Charger après
--- MainFrame.lua, RouteResults.lua, RoutePresenter.lua, Chips.lua et RouteRows.lua.
+-- MainFrame.lua, RouteResults.lua, RoutePresenter.lua, FilterMenu.lua et RouteRows.lua.
 -- S'inscrit par ns.MainFrame.addTab("route", …). Classement partagé (RouteResults), recalculé
 -- à l'affichage de la page après SP_PLAYER_CHANGED, SP_DATA_READY ou SP_PROFILE_CHANGED :
 -- « calcul en cours » d'ici là ; rafraîchi sur SP_ROUTE_UPDATED ;
 -- noms reçus du client : nouvelle présentation regroupée (NameAsker), sans recalcul ; noms
 -- encore inconnus : nouvelle présentation toutes les RETRY_DELAY s, RETRY_MAX fois au plus.
 -- Paliers passés (référence, grisés) repliés par défaut : clic sur l'en-tête, état gardé dans
--- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}. Puces Par emplacement / Meilleur gain sous
--- l'en-tête : tri dans chaque palier (StuffPlannerDB.ui.routeByGain).
+-- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}. Bouton « Tri » à droite
+-- de l'en-tête (ns.FilterMenu : Par emplacement / Meilleur gain dans chaque palier, StuffPlannerDB.ui.routeByGain).
 -- Raids exclus. Clics des lignes : ns.RouteRows (fiche, repère, essayage, menu clic droit).
 -- Alternatives plus faciles (AltLines) : bouton flèche à droite, état déplié local (non gardé), par clé
 -- RoutePresenter expandKey. Session de jeu : page « Maintenant » (ZoneTab, T14.6).
@@ -20,7 +20,7 @@ local L = ns.L
 
 local RETRY_DELAY, RETRY_MAX = 1, 10
 
-local header, sortBar, footer, scrollBox, emptyText
+local header, sortMenu, footer, scrollBox, emptyText
 local expanded = {}
 local retries, retryPending = 0, false
 
@@ -76,12 +76,11 @@ local function refresh()
         uiState().routeByGain == true) or {}
     scheduleRetry(ns.RouteRows.askNames(rows, askName))
     header:SetText(L.ROUTE_HEADER)
-    local byGain = uiState().routeByGain == true
-    sortBar:render({
-        { key = "slot", label = L.SORT_SLOT, active = not byGain },
-        { key = "gain", label = L.SORT_GAIN, active = byGain },
-    }, function(key)
-        uiState().routeByGain = key == "gain"
+    local P = ns.FilterMenuPresenter
+    sortMenu:update(P.label(nil), function()
+        return P.entries(nil, P.sorts(uiState().routeByGain and "gain" or "slot", { "slot", "gain" }))
+    end, function(_, value)
+        uiState().routeByGain = value == "gain"
         ns.MainFrame.refresh()
     end)
     footer:SetText(tiers and L.ROUTE_FOOTER:format(info) or "")
@@ -93,18 +92,17 @@ local function create(parent)
     local theme = ns.Theme
     local panel = CreateFrame("Frame", nil, parent)
     header = panel:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    header:SetPoint("TOPLEFT")
-    header:SetPoint("RIGHT")
+    sortMenu = ns.FilterMenu.new(panel)
+    sortMenu.button:SetPoint("TOPRIGHT")
+    header:SetPoint("LEFT", panel, "TOPLEFT", 0, -ns.Chips.HEIGHT / 2)
+    header:SetPoint("RIGHT", sortMenu.button, "LEFT", -theme.spacing.gap, 0)
     header:SetJustifyH("LEFT")
-    sortBar = ns.Chips.new(panel)
-    sortBar.frame:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -theme.spacing.gap)
-    sortBar.frame:SetPoint("RIGHT")
     footer = panel:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     footer:SetPoint("BOTTOMLEFT")
     footer:SetJustifyH("LEFT")
     setColor(footer, theme.colors.muted)
     scrollBox = CreateFrame("Frame", nil, panel, "WowScrollBoxList")
-    scrollBox:SetPoint("TOPLEFT", sortBar.frame, "BOTTOMLEFT", 0, -theme.spacing.gap)
+    scrollBox:SetPoint("TOPLEFT", 0, -ns.Chips.HEIGHT - theme.spacing.gap)
     scrollBox:SetPoint("BOTTOMRIGHT", -20, 18)
     local scrollBar = CreateFrame("EventFrame", nil, panel, "MinimalScrollBar")
     scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, 0)
