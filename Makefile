@@ -12,7 +12,7 @@ endif
 # (bash peut désigner le lanceur WSL) ; `|| exit 1` force le passage par sh,
 # sans quoi make lance le .bat via cmd, qui refuse ce chemin.
 
-.PHONY: lint check test data overlay weights arrow wowsims locales locales-push locales-pull deploy zip
+.PHONY: lint check test data overlay weights arrow wowsims locales locales-push locales-pull deploy zip upload
 
 # Analyse statique seule (utilisée par la CI).
 lint:
@@ -62,3 +62,8 @@ deploy:
 zip:
 	@sh tools/fetch_libs.sh
 	@$(PYTHON) tools/package.py || exit 1
+
+# VERSION=x.y.z make upload : envoie build/StuffPlanner-x.y.z.zip sur CurseForge (notes = CHANGELOG).
+upload:
+	@test -n "$(VERSION)" || { echo "Usage : VERSION=x.y.z make upload"; exit 2; }
+	@$(PYTHON) tools/curseforge_upload.py $(VERSION) || exit 1
