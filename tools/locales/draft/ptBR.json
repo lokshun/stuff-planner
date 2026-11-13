@@ -450,5 +450,9 @@
   "OPTION_ROLL_HINT_TIP": "Durante uma rolagem de saque: Necessidade se o item melhora você, senão Ganância.",
   "OPTION_ARROW_ARRIVAL_TIP": "Distância em que um ponto de rota conta como alcançado e passa à etapa seguinte.",
   "OPTION_WAYPOINT_PREFERTOMTOM_TIP": "Os pontos de rota passam pelo TomTom quando ele está carregado, em vez da seta do addon.",
-  "OPTION_PLANNER_CALIBRATE_TIP": "Compara o tempo real das suas missões com as estimativas e corrige as durações exibidas."
+  "OPTION_PLANNER_CALIBRATE_TIP": "Compara o tempo real das suas missões com as estimativas e corrige as durações exibidas.",
+  "OPTION_PINS_STYLE": "Aparência dos marcadores",
+  "OPTIONS_PINS_CORNER": "Selo no canto",
+  "OPTIONS_PINS_CENTER": "Ícone centralizado",
+  "OPTION_PINS_STYLE_TIP": "Selo no canto: pequeno ícone redondo ao lado de quem dá a missão, para que o ! e o ? do jogo ou do Questie continuem visíveis."
 }

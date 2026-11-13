@@ -7,10 +7,14 @@
 --   HookWorldMap(fn) -> fn() à l'affichage de la carte et à chaque changement de carte
 --   PlayerFacing() -> radians (antihoraire depuis le nord) | nil sans l'API ou si le client la refuse
 --     (instances sur les clients récents)
+--   CircleTexture(frame, layer) -> texture, round : texture de frame découpée en disque par un masque
+--     (CreateMaskTexture + AddMaskTexture, masque calé sur la texture) ; round = false sans l'API (carrée)
 
 local _, ns = ...
 
 local Compat = ns.Compat
+
+local CIRCLE_MASK = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 
 function Compat.OpenWorldMap(mapID)
     local map = WorldMapFrame
@@ -47,4 +51,16 @@ function Compat.PlayerFacing()
         return nil
     end
     return GetPlayerFacing()
+end
+
+function Compat.CircleTexture(frame, layer)
+    local texture = frame:CreateTexture(nil, layer)
+    if not (frame.CreateMaskTexture and texture.AddMaskTexture) then
+        return texture, false
+    end
+    local mask = frame:CreateMaskTexture()
+    mask:SetTexture(CIRCLE_MASK, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+    mask:SetAllPoints(texture)
+    texture:AddMaskTexture(mask)
+    return texture, true
 end

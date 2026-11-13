@@ -20,7 +20,7 @@ ns.OptionsLayout = OptionsLayout
 local TIPS = {
     ["window.skin"] = true, ["tooltip.alts"] = true, ["questHint.enabled"] = true, ["hud.lines"] = true,
     ["toast.zone"] = true, ["roll.hint"] = true, ["arrow.arrival"] = true, ["waypoint.preferTomTom"] = true,
-    ["planner.calibrate"] = true,
+    ["planner.calibrate"] = true, ["pins.style"] = true,
 }
 
 local function suffix(key)
@@ -72,7 +72,10 @@ function OptionsLayout.sections()
         { title = L.OPTIONS_SECTION_ALERTS, rows = { check("toast.zone"), check("roll.hint") } },
         { title = L.OPTIONS_SECTION_MAP, rows = {
             check("pins.world"), check("pins.minimap"), slider("pins.worldScale", "percent"),
-            slider("pins.minimapScale", "percent"), check("arrow.enabled"), check("arrow.locked"),
+            slider("pins.minimapScale", "percent"),
+            { kind = "choice", key = "pins.style", values = {
+                { "corner", L.OPTIONS_PINS_CORNER }, { "center", L.OPTIONS_PINS_CENTER } } },
+            check("arrow.enabled"), check("arrow.locked"),
             check("waypoint.preferTomTom"), slider("arrow.scale", "decimal"), slider("arrow.arrival", "yards"),
             { kind = "choice", key = "arrow.color", values = {
                 { "direction", L.OPTIONS_COLOR_DIRECTION }, { "gold", L.OPTIONS_COLOR_GOLD } } },

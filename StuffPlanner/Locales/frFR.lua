@@ -544,3 +544,8 @@ L.OPTION_ARROW_ARRIVAL_TIP = "Distance à laquelle un repère est atteint et pas
 L.OPTION_WAYPOINT_PREFERTOMTOM_TIP = "Les repères passent par TomTom quand il est chargé, à la place de la flèche de "
     .. "l'addon."
 L.OPTION_PLANNER_CALIBRATE_TIP = "Compare le temps réel de vos quêtes aux estimations et corrige les durées affichées."
+L.OPTION_PINS_STYLE = "Aspect des épingles"
+L.OPTIONS_PINS_CORNER = "Pastille en coin"
+L.OPTIONS_PINS_CENTER = "Icône centrée"
+L.OPTION_PINS_STYLE_TIP = "Pastille en coin : petite icône ronde à côté du donneur, le « ! » et le « ? » du jeu ou "
+    .. "de Questie restent visibles."

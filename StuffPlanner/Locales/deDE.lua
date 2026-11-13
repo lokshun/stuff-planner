@@ -527,3 +527,7 @@ L.OPTION_ROLL_HINT_TIP = "Beim Würfeln um Beute: Bedarf, wenn der Gegenstand Eu
 L.OPTION_ARROW_ARRIVAL_TIP = "Entfernung, ab der ein Wegpunkt als erreicht gilt und zum nächsten Schritt wechselt."
 L.OPTION_WAYPOINT_PREFERTOMTOM_TIP = "Wegpunkte laufen über TomTom, wenn es geladen ist, statt über den Pfeil des Addons."
 L.OPTION_PLANNER_CALIBRATE_TIP = "Vergleicht die echte Dauer Eurer Quests mit den Schätzungen und korrigiert die angezeigten Zeiten."
+L.OPTION_PINS_STYLE = "Aussehen der Kartennadeln"
+L.OPTIONS_PINS_CORNER = "Abzeichen in der Ecke"
+L.OPTIONS_PINS_CENTER = "Zentriertes Symbol"
+L.OPTION_PINS_STYLE_TIP = "Abzeichen in der Ecke: kleines rundes Symbol neben dem Questgeber, damit ! und ? des Spiels oder von Questie sichtbar bleiben."

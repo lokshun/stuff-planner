@@ -527,3 +527,7 @@ L.OPTION_ROLL_HINT_TIP = "拾取掷骰时：物品是提升则需求，否则贪
 L.OPTION_ARROW_ARRIVAL_TIP = "路径点视为到达并进入下一步的距离。"
 L.OPTION_WAYPOINT_PREFERTOMTOM_TIP = "加载 TomTom 时，路径点改用 TomTom，而非插件的箭头。"
 L.OPTION_PLANNER_CALIBRATE_TIP = "将任务的实际用时与估算比较，并修正显示的时长。"
+L.OPTION_PINS_STYLE = "地图标记样式"
+L.OPTIONS_PINS_CORNER = "角落徽章"
+L.OPTIONS_PINS_CENTER = "居中图标"
+L.OPTION_PINS_STYLE_TIP = "角落徽章：任务给予者旁的小圆形图标，游戏或 Questie 的 ! 和 ? 保持可见。"

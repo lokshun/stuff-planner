@@ -2,9 +2,13 @@
 -- Épingles des donneurs de quête qui apportent une amélioration (zone actuelle), carte du monde et
 -- minicarte, par HereBeDragons-Pins-2.0. Charger après Chat.lua, DetailPresenter.lua, QuestDetail.lua.
 -- Données : Chat.currentZone(MAX_PINS) -> DetailPresenter.pins ; une épingle par quête au donneur placé.
--- Aspect : icône du meilleur objet ; contour vert (4 traits, couleur de gain) sur l'épingle de la quête
---   qui a un repère (ns.Waypoint.has), seul marqueur du repère sur la carte et la minicarte.
--- Contours mis à jour sur SP_WAYPOINT_CHANGED et à chaque affichage de la carte.
+-- Aspect (ns.PinPresenter.layout, réglage pins.style) : pastille ronde de l'icône du meilleur objet
+--   (Compat.CircleTexture, liseré sombre) posée en haut à droite du donneur pour laisser lisible le « ! » /
+--   « ? » du jeu ou de Questie ; « center » = ancienne icône carrée centrée. Le cadre placé par
+--   HereBeDragons ne prend pas la souris : seule la pastille (bouton enfant) est survolable et cliquable.
+--   Anneau vert (couleur de gain) autour de la pastille de la quête qui a un repère (ns.Waypoint.has), seul
+--   marqueur du repère sur la carte et la minicarte ; mis à jour sur SP_WAYPOINT_CHANGED et à l'affichage
+--   de la carte.
 -- Cible du repère sans épingle (première quête d'une suite, Waypoint.current) : épingle de plus, icône de
 --   quête disponible ; toutes refaites sur SP_WAYPOINT_CHANGED.
 -- Survol : quête, meilleur objet et gain ; clic : fiche (QuestDetail.show) ; Maj+clic : lien de l'objet.
@@ -13,16 +17,16 @@
 --   retiré à la fermeture de la carte ; false sans HereBeDragons.
 -- /splan pins affiche ou masque (carte du monde et minicarte) ; réglages ns.Options pins.world et
 -- pins.minimap, appliqués sur SP_OPTION_CHANGED. Sans la bibliothèque : rien.
--- Taille : PIN_SIZE × pins.worldScale (carte), MINIMAP_SIZE × pins.minimapScale (minicarte), appliquée
---   aux épingles existantes sur SP_OPTION_CHANGED ; le ping de MapPins.focus garde sa taille.
+-- Taille et décalage : PinPresenter × pins.worldScale (carte) ou pins.minimapScale (minicarte), appliqués aux
+--   épingles existantes sur SP_OPTION_CHANGED (échelles, pins.style) ; le ping de MapPins.focus garde sa taille.
 
 local _, ns = ...
 
 local L = ns.L
 
 local MAX_PINS = 100
-local PIN_SIZE = 20
-local MINIMAP_SIZE = 14
+local PIN_SIZE = 20 -- icône du ping de MapPins.focus
+local RIM, RING = 2, 4 -- liseré sombre et anneau du repère : px de plus que l'icône
 local UNKNOWN_ICON = 134400
 local QUEST_ICON = "Interface\\GossipFrame\\AvailableQuestIcon"
 local FOCUS_RING = "Interface\\Cooldown\\star4"
@@ -68,58 +72,57 @@ local function onClick(pin)
     ns.QuestDetail.show(data and data.questID)
 end
 
--- Quatre traits sur les bords du cadre, au-dessus de l'icône ; jamais de fond plein.
-local function outline(pin, thickness, color)
-    local sides = {
-        { "TOPLEFT", "TOPRIGHT", "height" },
-        { "BOTTOMLEFT", "BOTTOMRIGHT", "height" },
-        { "TOPLEFT", "BOTTOMLEFT", "width" },
-        { "TOPRIGHT", "BOTTOMRIGHT", "width" },
-    }
-    local lines = {}
-    for i, side in ipairs(sides) do
-        local line = pin:CreateTexture(nil, "OVERLAY")
-        line:SetColorTexture(color.r, color.g, color.b, 1)
-        line:SetPoint(side[1])
-        line:SetPoint(side[2])
-        if side[3] == "height" then
-            line:SetHeight(thickness)
-        else
-            line:SetWidth(thickness)
-        end
-        lines[i] = line
-    end
-    return lines
+local function layoutOf(kind)
+    local scale = ns.Options.get(kind == "world" and "pins.worldScale" or "pins.minimapScale")
+    return ns.PinPresenter.layout(kind, ns.Options.get("pins.style"), scale)
 end
 
-local function sizeOf(kind)
-    if kind == "world" then
-        return math.floor(PIN_SIZE * ns.Options.get("pins.worldScale") + 0.5)
-    end
-    return math.floor(MINIMAP_SIZE * ns.Options.get("pins.minimapScale") + 0.5)
+-- Pastille, liseré (pastille ronde seulement) et anneau placés selon PinPresenter.
+local function apply(pin, kind)
+    local layout = layoutOf(kind)
+    local size = layout.size
+    pin:SetSize(size, size)
+    local badge = pin.badge
+    badge:ClearAllPoints()
+    badge:SetPoint("CENTER", pin, "CENTER", layout.x, layout.y)
+    badge:SetSize(size, size)
+    badge.rim:SetSize(size + RIM, size + RIM)
+    badge.rim:SetShown(layout.round)
+    badge.ring:SetSize(size + RING, size + RING)
 end
 
 local function resize(kind)
-    local size = sizeOf(kind)
     for _, pin in ipairs(pool[kind]) do
-        pin:SetSize(size, size)
+        apply(pin, kind)
     end
+end
+
+local function circle(badge, layer, sublevel)
+    local texture = ns.Compat.CircleTexture(badge, layer)
+    texture:SetDrawLayer(layer, sublevel)
+    texture:SetPoint("CENTER")
+    return texture
 end
 
 local function pinFrame(kind, index)
     local list = pool[kind]
     if not list[index] then
-        local size = sizeOf(kind)
-        local pin = CreateFrame("Button", nil, UIParent)
-        pin:SetSize(size, size)
-        local frameColor = ns.Theme.colors.gain
-        pin.icon = pin:CreateTexture(nil, "ARTWORK")
-        pin.icon:SetAllPoints()
-        pin.outline = outline(pin, kind == "world" and 2 or 1, frameColor)
-        pin.icon:SetTexCoord(ICON_CROP, 1 - ICON_CROP, ICON_CROP, 1 - ICON_CROP)
-        pin:SetScript("OnEnter", showTooltip)
-        pin:SetScript("OnLeave", hideTooltip)
-        pin:SetScript("OnClick", onClick)
+        local pin = CreateFrame("Frame", nil, UIParent)
+        pin:EnableMouse(false)
+        local badge = CreateFrame("Button", nil, pin)
+        badge.ring = circle(badge, "BACKGROUND", 0)
+        local gain = ns.Theme.colors.gain
+        badge.ring:SetColorTexture(gain.r, gain.g, gain.b, 1)
+        badge.rim = circle(badge, "BACKGROUND", 1)
+        badge.rim:SetColorTexture(0, 0, 0, 0.85)
+        badge.icon = circle(badge, "ARTWORK", 0)
+        badge.icon:SetAllPoints()
+        badge.icon:SetTexCoord(ICON_CROP, 1 - ICON_CROP, ICON_CROP, 1 - ICON_CROP)
+        badge:SetScript("OnEnter", showTooltip)
+        badge:SetScript("OnLeave", hideTooltip)
+        badge:SetScript("OnClick", onClick)
+        pin.badge = badge
+        apply(pin, kind)
         list[index] = pin
     end
     return list[index]
@@ -134,11 +137,8 @@ end
 function MapPins.updateMarkers()
     for _, list in pairs(pool) do
         for _, pin in ipairs(list) do
-            local questID = pin.data and pin.data.questID
-            local marked = questID ~= nil and ns.Waypoint.has(questID)
-            for _, line in ipairs(pin.outline) do
-                line:SetShown(marked)
-            end
+            local questID = pin.badge.data and pin.badge.data.questID
+            pin.badge.ring:SetShown(questID ~= nil and ns.Waypoint.has(questID))
         end
     end
 end
@@ -180,9 +180,9 @@ function MapPins.refresh()
         local world, minimap = pinFrame("world", index), pinFrame("minimap", index)
         local item = data.itemID and ns.Data.item(data.itemID)
         local icon = data.itemID and (ns.Names.itemIcon(data.itemID, item and item.icon) or UNKNOWN_ICON) or QUEST_ICON
-        world.data, minimap.data = data, data
-        world.icon:SetTexture(icon)
-        minimap.icon:SetTexture(icon)
+        world.badge.data, minimap.badge.data = data, data
+        world.badge.icon:SetTexture(icon)
+        minimap.badge.icon:SetTexture(icon)
         if onWorld then
             pins:AddWorldMapIconMap(MapPins, world, data.mapID, data.x, data.y, SHOW_PARENT)
         end
@@ -267,10 +267,10 @@ end
 ns:On("SP_OPTION_CHANGED", function(key)
     if key == "pins.world" or key == "pins.minimap" then
         MapPins.refresh()
-    elseif key == "pins.worldScale" or key == "pins.minimapScale" then
-        local kind = key == "pins.worldScale" and "world" or "minimap"
+    elseif key == "pins.worldScale" or key == "pins.minimapScale" or key == "pins.style" then
         ns:RunOutOfCombat(function()
-            resize(kind)
+            resize("world")
+            resize("minimap")
         end)
     end
 end)

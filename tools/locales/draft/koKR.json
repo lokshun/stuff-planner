@@ -449,5 +449,9 @@
   "OPTION_ROLL_HINT_TIP": "전리품 주사위: 향상이면 입찰, 아니면 차비.",
   "OPTION_ARROW_ARRIVAL_TIP": "웨이포인트에 도착한 것으로 보고 다음 단계로 넘어가는 거리입니다.",
   "OPTION_WAYPOINT_PREFERTOMTOM_TIP": "TomTom이 로드되어 있으면 애드온 화살표 대신 TomTom으로 웨이포인트를 표시합니다.",
-  "OPTION_PLANNER_CALIBRATE_TIP": "퀘스트의 실제 소요 시간을 예상치와 비교해 표시되는 시간을 보정합니다."
+  "OPTION_PLANNER_CALIBRATE_TIP": "퀘스트의 실제 소요 시간을 예상치와 비교해 표시되는 시간을 보정합니다.",
+  "OPTION_PINS_STYLE": "지도 핀 모양",
+  "OPTIONS_PINS_CORNER": "모서리 배지",
+  "OPTIONS_PINS_CENTER": "가운데 아이콘",
+  "OPTION_PINS_STYLE_TIP": "모서리 배지: 퀘스트 제공자 옆의 작은 둥근 아이콘이라 게임이나 Questie의 ! 와 ? 가 가려지지 않습니다."
 }

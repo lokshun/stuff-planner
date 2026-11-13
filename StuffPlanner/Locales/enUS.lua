@@ -536,3 +536,8 @@ L.OPTION_ARROW_ARRIVAL_TIP = "Distance at which a waypoint counts as reached and
 L.OPTION_WAYPOINT_PREFERTOMTOM_TIP = "Waypoints go through TomTom when it is loaded, instead of the addon's arrow."
 L.OPTION_PLANNER_CALIBRATE_TIP = "Compares the real time of your quests with the estimates and corrects the "
     .. "durations shown."
+L.OPTION_PINS_STYLE = "Map pin look"
+L.OPTIONS_PINS_CORNER = "Corner badge"
+L.OPTIONS_PINS_CENTER = "Centred icon"
+L.OPTION_PINS_STYLE_TIP = "Corner badge: a small round item icon beside the quest giver, so the game's or Questie's "
+    .. "! and ? stay visible."

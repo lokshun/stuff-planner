@@ -527,3 +527,7 @@ L.OPTION_ROLL_HINT_TIP = "Durante una tirada de botín: Necesidad si el objeto t
 L.OPTION_ARROW_ARRIVAL_TIP = "Distancia a la que un punto de ruta se considera alcanzado y pasa al paso siguiente."
 L.OPTION_WAYPOINT_PREFERTOMTOM_TIP = "Los puntos de ruta usan TomTom cuando está cargado, en lugar de la flecha del addon."
 L.OPTION_PLANNER_CALIBRATE_TIP = "Compara el tiempo real de tus misiones con las estimaciones y corrige las duraciones mostradas."
+L.OPTION_PINS_STYLE = "Aspecto de los marcadores"
+L.OPTIONS_PINS_CORNER = "Insignia en la esquina"
+L.OPTIONS_PINS_CENTER = "Ícono centrado"
+L.OPTION_PINS_STYLE_TIP = "Insignia en la esquina: pequeño ícono redondo junto al que da la misión, para que el ! y el ? del juego o de Questie sigan visibles."
