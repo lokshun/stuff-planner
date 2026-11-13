@@ -21,6 +21,7 @@ return {
     "C_SpellBook",
     "GetNumFactions",
     "GetFactionInfo",
+    "GetFactionInfoByID",
     "IsPlayerSpell",
     "IsSpellKnown",
     "C_Timer",

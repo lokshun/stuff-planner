@@ -2,8 +2,8 @@
 -- Info-bulle des quêtes listées dans la fiche (suite de quêtes, prérequis). Charger après Theme.lua,
 -- avant QuestDetail.lua. Cadres seulement (GameTooltip, vérifié en jeu).
 --   ns.QuestTooltip.show(owner, views) : views = {view...} (DetailPresenter.build), une section par
---     quête (alternatives séparées d'une ligne vide) : titre, niveau, état, zone, instance, badge,
---     donneur, « Commence par », récompenses puis choix (icône, nom, gain) ; rien si views est vide
+--     quête (alternatives séparées d'une ligne vide) : titre, niveau, état, condition, zone, instance,
+--     badge, donneur, « Commence par », récompenses puis choix (icône, nom, gain) ; rien si views est vide
 --   ns.QuestTooltip.hide()
 
 local _, ns = ...
@@ -39,6 +39,7 @@ local function addView(view)
     addLine(view.title, colors.title)
     addLine(view.levelText, colors.muted)
     addLine(view.stateText, view.stateColor)
+    addLine(view.conditionText, colors.warning)
     addLine(view.zoneText, colors.muted)
     addLine(view.instanceText, colors.instance)
     addLine(view.badge, colors.warning)

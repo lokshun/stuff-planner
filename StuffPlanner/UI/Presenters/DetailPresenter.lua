@@ -1,6 +1,6 @@
 -- CONTRAT
 -- Champs affichés de la fiche d'une quête et des épingles de carte. Charger après RowPresenter.lua.
--- Pur : noms par ns.Names, gains par ns.Scoring.delta, nombres par ns.Format.
+-- Pur : noms par ns.Names, gains par ns.Scoring.delta, nombres par ns.Format. Charger après ConditionPresenter.lua.
 --   ns.DetailPresenter.build(questID, player, profile, data [, opts]) -> view | nil (quête inconnue)
 --     opts.isDone(questID) -> bool (prérequis faits), opts.isInLog ; profile nil : aucun gain affiché ;
 --     opts.seconds (RouteResults.secondsOf) -> durationText (L.DETAIL_DURATION, Format.duration) | nil
@@ -18,7 +18,9 @@
 --             prereqs = {{questIDs, text, done, color}...} (une alternative : noms joints, faite
 --               si l'une l'est), badge, badgeColor (quête confidence 2),
 --             questState, stateText, stateColor (Chains.questState, RowPresenter.state ;
---               niveau ignoré sans player)}
+--               niveau ignoré sans player),
+--             conditionText : condition atteignable de la quête (Feasible.check, ConditionPresenter) | nil ;
+--               celle d'une étape de la suite ajoutée entre parenthèses à son texte ; rien sans player}
 --     mapID = carte du donneur (de la première quête de la suite s'il y en a), sinon celle de la quête.
 --   ns.DetailPresenter.waypointButton(view, followed, placed) -> {mode, label, enabled}
 --     suite de quêtes (view.chain) ou quête suivie : mode "follow", L.DETAIL_UNFOLLOW si
@@ -107,6 +109,15 @@ local function waypointOf(questID, quest, data)
         giver = name, npcID = giver.id or quest.starter }, giver
 end
 
+-- Condition atteignable d'une quête (métier, réputation, sort) en texte | nil.
+local function conditionText(questID, quest, data, player, opts)
+    if not (player and quest) then
+        return nil
+    end
+    local ok, reason = ns.Feasible.check(quest, player, opts.isDone, opts.isInLog)
+    return ok and reason and ns.ConditionPresenter.text({ reason = reason, questID = questID }, data) or nil
+end
+
 -- Étapes restantes avant questID, dans l'ordre ; nil sans étape ou sur un cycle.
 local function chainRows(questID, data, player, opts)
     local isAllowed = player and function(id)
@@ -126,6 +137,8 @@ local function chainRows(questID, data, player, opts)
         local text = L.DETAIL_CHAIN_STEP:format(i, ns.Names.quest(id))
         local tag = ns.RowPresenter.instanceTag(quest, data)
         text = tag and (text .. " [" .. tag .. "]") or text
+        local condition = conditionText(id, quest, data, player, opts)
+        text = condition and (text .. " (" .. condition .. ")") or text
         local row = { questID = id, start = false, color = state == "prereq" and colors.muted or colors.text,
             text = stateText ~= "" and (text .. " (" .. stateText .. ")") or text }
         if not start and state ~= "prereq" then
@@ -158,6 +171,7 @@ function DetailPresenter.build(questID, player, profile, data, opts)
         questState = ns.Chains.questState(quest, player and player.level, opts),
     }
     view.stateText, view.stateColor = ns.RowPresenter.state(view.questState, quest)
+    view.conditionText = conditionText(questID, quest, data, player, opts)
     local tag, tagColor = ns.RowPresenter.instanceTag(quest, data)
     if tag then
         view.instanceText = L.DETAIL_INSTANCE:format(tag, ns.Names.instance(quest.instance))

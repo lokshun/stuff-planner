@@ -10,7 +10,7 @@
 --     suite de quêtes reste à faire, vers celui de sa première quête disponible (clé = cette quête) ;
 --     false sans position
 -- Survol d'une quête de la suite ou des prérequis : ns.QuestTooltip (détails de cette quête).
--- Contenu : titre, niveau, état (journal, niveau requis, prérequis), zone, badge, donneur, bouton
+-- Contenu : titre, niveau, état (journal, niveau requis, prérequis), condition, zone, badge, donneur, bouton
 --   Repère ou Suivre pour une suite de quêtes (UI/WaypointButton.lua), bouton Carte
 --   (Compat.OpenWorldMap, puis fenêtre principale cachée), récompenses, choix (meilleur signalé),
 --   suite de quêtes restante (sinon prérequis faits) ; ligne « Commence par » sous le donneur.
@@ -99,6 +99,7 @@ local function create()
         title = text(theme.fonts.title, theme.colors.title),
         level = text(theme.fonts.small, theme.colors.muted),
         state = text(theme.fonts.small),
+        condition = text(theme.fonts.small, theme.colors.warning),
         zone = text(theme.fonts.small, theme.colors.muted),
         duration = text(theme.fonts.small, theme.colors.muted),
         instance = text(theme.fonts.small, theme.colors.instance),
@@ -181,6 +182,7 @@ local function render(view)
     placeOptional(place, texts.level, view.levelText, 2)
     W.setColor(texts.state, view.stateColor)
     placeOptional(place, texts.state, view.stateText, 2)
+    placeOptional(place, texts.condition, view.conditionText, 2)
     placeOptional(place, texts.zone, view.zoneText, 2)
     placeOptional(place, texts.duration, view.durationText, 2)
     placeOptional(place, texts.instance, view.instanceText, 2)

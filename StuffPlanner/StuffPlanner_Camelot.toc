@@ -108,6 +108,7 @@ UI\NameAsker.lua
 UI\Presenters\SecondaryGain.lua
 UI\Presenters\AltGain.lua
 UI\Presenters\AltListPresenter.lua
+UI\Presenters\ConditionPresenter.lua
 UI\Presenters\RowPresenter.lua
 UI\Presenters\WishlistPresenter.lua
 UI\Presenters\HistoryPresenter.lua
@@ -140,6 +141,7 @@ UI\Arrow.lua
 Integrations\TomTom.lua
 Integrations\Prices.lua
 Integrations\Share.lua
+Integrations\ShareStatus.lua
 Follow.lua
 FollowTravel.lua
 SessionPlan.lua

@@ -5,6 +5,8 @@
 --   ns.Names.itemIcon(id, icon?) -> icon de la base, sinon celle du client, si ce n'est pas le point
 --     d'interrogation (objet masqué pas encore reçu) | nil
 --   ns.Names.profession(skillLine) -> nom du métier (sort d'apprenti) ; repli « Profession #id »
+--   ns.Names.faction(factionID) -> nom de la faction (Compat.GetFactionName) ; repli « Faction #id »
+--   ns.Names.standing(index) -> rang de réputation du client (1 Haï ... 8 Exalté) | nil
 --   ns.Names.onReady(kind, id, fn) -> fn(name) dès que le nom est connu, tout de suite s'il l'est ;
 --     kind : "quest" | "item" | "npc" | "zone" | "spell" | "instance" ; chaque rappel est appelé une fois
 --   ns.Names.isKnown(kind, id) -> bool : nom connu du client ou appris (pas la base ni le repli) ;
@@ -29,7 +31,7 @@ ns.Names = Names
 
 local FALLBACKS = {
     quest = "NAME_QUEST", item = "NAME_ITEM", npc = "NAME_NPC", zone = "NAME_ZONE",
-    spell = "NAME_SPELL", instance = "NAME_INSTANCE",
+    spell = "NAME_SPELL", instance = "NAME_INSTANCE", faction = "NAME_FACTION",
 }
 local LOOKUPS = {
     quest = Compat.GetQuestTitle,
@@ -41,6 +43,9 @@ local LOOKUPS = {
     zone = Compat.GetZoneName,
     spell = Compat.GetSpellName,
     instance = Compat.GetInstanceName,
+    faction = function(id)
+        return Compat.GetFactionName and Compat.GetFactionName(id)
+    end,
 }
 
 -- SkillLine du métier -> sort d'apprenti qui porte son nom (Classic).
@@ -52,7 +57,7 @@ local REQUESTS = { quest = Compat.RequestQuestData, item = Compat.RequestItemDat
 local BASE_NAMES = { quest = true, item = true }
 local UNKNOWN_ICON = 134400
 
-local known = { quest = {}, item = {}, npc = {}, zone = {}, spell = {}, instance = {} }
+local known = { quest = {}, item = {}, npc = {}, zone = {}, spell = {}, instance = {}, faction = {} }
 local waiting = { quest = {}, item = {}, npc = {}, zone = {}, spell = {}, instance = {} }
 
 local function lookup(kind, id)
@@ -112,6 +117,14 @@ end
 function Names.profession(skillLine)
     local spellID = PROFESSION_SPELLS[skillLine]
     return spellID and lookup("spell", spellID) or L.NAME_PROFESSION:format(skillLine)
+end
+
+function Names.faction(factionID)
+    return nameOf("faction", factionID)
+end
+
+function Names.standing(index)
+    return Compat.GetStandingLabel and Compat.GetStandingLabel(index) or nil
 end
 
 local function wake(kind, id)

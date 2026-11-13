@@ -1,9 +1,9 @@
 -- CONTRAT
--- Champs affichés d'une ligne de liste (objet + gain + source). Charger après Theme.lua,
--- Format.lua et Names.lua. Aucun appel d'API direct : noms par ns.Names, nombres par ns.Format.
+-- Champs affichés d'une ligne de liste (objet + gain + source). Charger après Theme.lua, Format.lua, Names.lua
+-- et ConditionPresenter.lua. Aucun appel d'API direct : noms par ns.Names, nombres par ns.Format.
 --   ns.RowPresenter.present(entry, data) -> row
---     entry = {itemID, source = {type, id, chance}?, delta = {abs, pct}?, questState?} ; source comme
---       Data.sourcesOf ; data = façade DataProvider (item, quest)
+--     entry = {itemID, source = {type, id, chance}?, delta = {abs, pct}?, questState?, condition?} ; source comme
+--       Data.sourcesOf ; condition : ligne de Planner.rank ; data = façade DataProvider (item, quest)
 --     row = {itemID, name, icon, quality, nameColor,
 --            arrow ("▲" | "▼" | ""), gainText (points, signe, 2 déc. sous 1, "" sans delta), gainColor,
 --            sourceKind (type de source | nil), sourceText ("" sans source),
@@ -17,7 +17,8 @@
 --              de certaines polices ; "" sans delta ; non confirmé : rien de plus, le badge le dit),
 --            secondaryLabel (SecondaryGain.value du profil secondaire, lignes avec delta seulement) | nil,
 --            secondaryColor (instance s'il gagne, muted sinon) : affiché à côté de gainLabel,
---            detailText (états colorés — état de quête puis badge — séparés par « · »,
+--            conditionText (ConditionPresenter.text(entry.condition) | nil : couleur warning après l'état),
+--            detailText (états colorés — état de quête, condition, puis badge — séparés par « · »,
 --              puis sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
 --   isChain(quest) -> bool : quête à prérequis (suite de quêtes : quest.prereq non vide ; Questie et la base
 --     donnent {} pour une quête seule) ; quest = data.quest(id) | nil
@@ -26,8 +27,7 @@
 --   offProfile (delta.fallback : repli hors profil, Scoring.fallbackOf) : gainLabel entre parenthèses, couleur
 --     muted, sans flèche ; L.TAG_OFF_PROFILE en tête de detailText
 --   kindText, kindColor (quête : L.TAG_CHAIN si isChain, sinon L.TAG_QUEST, couleur title ; artisanat :
---     L.SOURCE_CRAFT, couleur craft, sourceText alors omis de detailText) : en couleur dans detailText, avant
---     le tag d'instance
+--     L.SOURCE_CRAFT, couleur craft, sourceText omis de detailText) : en couleur dans detailText, avant le tag
 --   lowDrop (isLowDrop(entry.source)) ; isLowDrop(source) -> bool : butin incertain (world, instance sans npcID)
 --   gain(delta) -> arrow, gainText, gainColor ; mêmes règles que les champs de present
 --   state(questState, quest?) -> stateText, stateColor ("" et muted sans état)
@@ -35,17 +35,14 @@
 --     questState} (source quête) + questID ; à utiliser par toutes les listes de quêtes
 --   resultRow(entry, data) -> questRow si entry.questID, sinon present + itemSource = entry.source (SourceDetail)
 --   sameRows(a, b) -> bool : mêmes lignes affichées (ordre, objet, quête, nom, icône, gainLabel, secondaryLabel,
---     detailText, dimmed, slot) ; nil d'un côté : faux
---   instanceTag(quest, data) -> text, color | nil : « Donjon » ou « Raid » si quest.instance (raid lu dans
---     data.instance) ; lignes de quête et de butin d'instance (source dungeon, raid) : row.tagText,
---     row.tagColor, placés après l'état dans detailText
+--     detailText, dimmed, slot) ; nil d'un côté : faux. instanceTag(quest, data) -> text, color | nil :
+--     « Donjon » ou « Raid » si quest.instance (raid lu dans data.instance) ; lignes de quête et de butin
+--     d'instance (source dungeon, raid) : row.tagText, row.tagColor, après l'état dans detailText
 --   effortText(entry) -> « 12 min · Proche · 3 quêtes » (Format.duration de entry.seconds, Distance.label
 --     de entry.hops, L.EFFORT_CHAIN si entry.steps > 1) | nil ; entry = ligne de Planner.rank
 --   alternative(entry, data, effortText?) -> present + questID (source quête), itemSource,
 --     effortText (donné, sinon effortText(entry)), lineText (effortText · detailText)
---   estimated(itemID, item) -> confidence 1 hors lecture (ItemProbe.pending) ; non confirmé : estimated
---     ou quête confidence 2
---   Donjon, raid : « Instance #id » tant que Names ne nomme pas les instances ; taux s'il est connu.
+--   estimated(itemID, item) -> confidence 1 hors lecture (ItemProbe.pending) ; non confirmé : estimated | quête conf. 2
 
 local _, ns = ...
 
@@ -159,6 +156,9 @@ local function detailText(row)
     if row.stateText ~= "" then
         parts[#parts + 1] = ns.Theme.colorize(row.stateText, row.stateColor)
     end
+    if row.conditionText then
+        parts[#parts + 1] = ns.Theme.colorize(row.conditionText, ns.Theme.colors.warning)
+    end
     if row.kindText then
         parts[#parts + 1] = ns.Theme.colorize(row.kindText, row.kindColor)
     end
@@ -205,6 +205,7 @@ function RowPresenter.present(entry, data)
         lowDrop = RowPresenter.isLowDrop(entry.source),
     }
     row.stateText, row.stateColor = RowPresenter.state(entry.questState, levelRecord(entry, data))
+    row.conditionText = entry.condition and ns.ConditionPresenter.text(entry.condition, data) or nil
     local kind = row.sourceKind
     if kind == "quest" then
         local quest = data.quest(entry.source.id)
@@ -274,8 +275,7 @@ function RowPresenter.alternative(entry, data, effortText)
     row.questID = entry.questID or (source and source.type == "quest" and source.id) or nil
     row.itemSource = source
     row.effortText = effortText or RowPresenter.effortText(entry)
-    local parts = {}
-    parts[#parts + 1] = row.effortText
+    local parts = { row.effortText }
     if row.detailText ~= "" then
         parts[#parts + 1] = row.detailText
     end

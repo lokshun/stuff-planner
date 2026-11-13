@@ -5,7 +5,7 @@
 --   ns.Effort.of(source, player, data, opts, tuning) -> seconds, xp, hops, steps, trip, place, condition | nil
 --     opts = {isDone, isInLog, includeRaids, travel, reference} ; tuning = constantes de Planner.TUNING.
 --     Quête : Feasible.check sur la quête et chaque étape restante ; une impossible écarte la source,
---     chaque atteignable ajoute CONDITION, condition = raison de la première (nil sinon) ;
+--     chaque atteignable ajoute CONDITION, condition = {reason, questID} de la première (nil sinon) ;
 --     opts.reference : classe et race seules (Masks.allows).
 --     xp : étapes non grises (quête), 0 sinon ; hops : zones vers la source | nil ; steps : étapes restantes
 --     (quête) ; trip : part du trajet (nil pour l'artisanat) ; place : donneur de la 1re étape (quête).
@@ -83,7 +83,8 @@ local function conditions(steps, player, data, opts, tuning, check)
             if not ok then
                 return nil
             elseif reason then
-                extra, condition = extra + tuning.CONDITION, condition or reason
+                extra = extra + tuning.CONDITION
+                condition = condition or { reason = reason, questID = id }
             end
         end
     end

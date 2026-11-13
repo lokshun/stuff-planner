@@ -7,6 +7,8 @@
 --     absentes (lecture des lignes visibles : inconnue = condition gardée par Feasible).
 --   IsSpellKnown(spellID) -> bool | nil (sans l'API) : IsPlayerSpell, sinon C_SpellBook.IsSpellKnown, sinon
 --     IsSpellKnown (première présente).
+--   GetFactionName(factionID) -> nom | nil : C_Reputation.GetFactionDataByID(id).name, sinon GetFactionInfoByID
+--   GetStandingLabel(index) -> FACTION_STANDING_LABEL<index> du client (1 Haï ... 8 Exalté) | nil
 
 local _, ns = ...
 
@@ -48,4 +50,19 @@ function Compat.IsSpellKnown(spellID)
         return nil
     end
     return fn(spellID) == true
+end
+
+function Compat.GetFactionName(factionID)
+    if C_Reputation and C_Reputation.GetFactionDataByID then
+        local row = C_Reputation.GetFactionDataByID(factionID)
+        return row and row.name or nil
+    elseif GetFactionInfoByID then
+        return (GetFactionInfoByID(factionID))
+    end
+    return nil
+end
+
+function Compat.GetStandingLabel(index)
+    local label = _G["FACTION_STANDING_LABEL" .. index]
+    return type(label) == "string" and label or nil
 end
