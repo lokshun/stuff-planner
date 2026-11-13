@@ -127,7 +127,11 @@ end
 local SEPARATOR = " · "
 
 function RowPresenter.isChain(quest)
-    return quest ~= nil and type(quest.prereq) == "table" and next(quest.prereq) ~= nil
+    local prereq = quest and quest.prereq
+    if type(prereq) == "table" then
+        return next(prereq) ~= nil
+    end
+    return prereq ~= nil
 end
 
 function RowPresenter.questOrigin(questID, data)
