@@ -1,10 +1,12 @@
 -- CONTRAT
 -- Mode « donjon » du cadre flottant (ns.Hud) : boss de l'instance courante dans l'ordre, objets utiles de
 -- chacun (gain, taux), espérance restante du passage (DungeonPresenter, boss tués de DungeonRun exclus).
--- Charger après Hud.lua, DungeonRun.lua, DungeonPresenter.lua, BadgePresenter.lua et NameAsker.lua.
+-- Charger après Hud.lua, DungeonRun.lua, DungeonPresenter.lua, InstanceListPresenter.lua, BadgePresenter.lua et
+-- NameAsker.lua.
 -- Disponible dans une instance connue de la base, avec un profil actif, si dungeon.panel est vrai (priorité
 -- 1) ; rafraîchi sur SP_DUNGEON_CHANGED, SP_RESULTS_UPDATED, SP_OPTION_CHANGED (dungeon.*) et à l'arrivée
--- des noms. Boss tué : coché, grisé, objets repliés. Bouton du cadre : DungeonRun.reset.
+-- des noms. En-têtes « · Boss » (doré) ou « · Rare » (argenté).
+-- Boss tué : coché, grisé, objets repliés. Bouton du cadre : DungeonRun.reset.
 -- Clic sur un boss : DungeonRun.toggle ; survol d'un objet : info-bulle de l'objet.
 -- Au plus MAX_ITEMS objets par boss et MAX_LINES lignes.
 
@@ -97,8 +99,7 @@ end)
 local function itemLine(item, npcID)
     askName("item", item.itemID)
     local gain = points(item.abs)
-    local chance = item.chance and ns.Format.percent(item.chance / 100, nil, item.chance < 1 and 1 or 0)
-        or L.DUNGEON_CHANCE_UNKNOWN
+    local chance = ns.InstanceListPresenter.chanceText(item.chance)
     return { itemID = item.itemID, npcID = npcID, indent = INDENT, icon = ns.Names.itemIcon(item.itemID),
         text = ns.Names.item(item.itemID), gain = gain .. " · " .. chance, color = ns.Theme.colors.text,
         gainColor = ns.Theme.colors.gain }
@@ -114,8 +115,10 @@ local function buildLines(view)
     local theme, lines = ns.Theme, {}
     for _, boss in ipairs(view.bosses) do
         askName("npc", boss.npcID)
+        local label = boss.rare and L.DUNGEON_HEADER_RARE or L.DUNGEON_HEADER_BOSS
+        local color = boss.killed and theme.colors.muted or boss.rare and theme.colors.neutral or theme.colors.title
         lines[#lines + 1] = { npcID = boss.npcID, indent = 0, icon = boss.killed and CHECK_ICON or nil,
-            text = ns.Names.npc(boss.npcID), color = boss.killed and theme.colors.muted or theme.colors.title,
+            text = label:format(ns.Names.npc(boss.npcID)), color = color,
             gain = #boss.items > 0 and points(boss.expected) or "", gainColor = theme.colors.muted }
         if not boss.killed then
             addItems(lines, boss)

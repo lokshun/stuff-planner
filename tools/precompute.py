@@ -22,6 +22,9 @@ Précalculs à partir des enregistrements importés.
   mark_instances(quests, areas, area_instances, instances=None) -> copies ; "instance" = instanceID de la zone
     areas[questID] si area_instances la connaît (et si instances, {instanceID: enregistrement} émis, la contient) ;
     "mapID" = zone de l'entrée (instances[id]["mapID"]) si connue : la carte du donjon n'existe pas sur Classic Era
+  mark_rares(instances, ranks, random_spawns) -> copies ; "rares" = boss de `bosses` de rang 4 (rare), ou de rang 2
+    (élite rare) à apparition aléatoire (random_spawns, cmangos.load_random_spawns : des boss toujours présents comme
+    VanCleef ont aussi le rang 2), dans l'ordre ; absent s'il n'y en a pas. ranks : Questie, sinon CMaNGOS
   mark_forever(records, classic_ids) -> copie ; "forever": 1 sur les enregistrements absents de classic_ids
   split_rewards(quests, split) -> copies ; split = cmangos.load_quest_rewards ; quête confidence 2 (répartition
     devinée) dont choices + rewards est exactement l'ensemble de split[id] : sa répartition, confidence 3 ;
@@ -132,6 +135,22 @@ def merge_instances(primary, secondary):
             merged["bosses"] = bosses
         records.append(merged)
     return records
+
+
+RARE_ELITE_RANK, RARE_RANK = 2, 4
+
+
+def _is_rare(npc, ranks, random_spawns):
+    rank = ranks.get(npc)
+    return rank == RARE_RANK or (rank == RARE_ELITE_RANK and npc in random_spawns)
+
+
+def mark_rares(instances, ranks, random_spawns):
+    marked = []
+    for record in instances:
+        rares = [npc for npc in record.get("bosses") or () if _is_rare(npc, ranks, random_spawns)]
+        marked.append({**record, "rares": rares} if rares else dict(record))
+    return marked
 
 
 def enrich_items(items, scan):

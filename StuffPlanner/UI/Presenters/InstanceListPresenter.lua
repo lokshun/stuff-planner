@@ -9,9 +9,12 @@
 --     row = {instanceID, name, detail (« Niv. a-b · Raid · n objets utiles »), gain (« +x »), gainColor,
 --            expected, current, raid, count, reachable, dimmed (= non faisable)}
 --   ns.InstanceListPresenter.detail(view, data) -> {row...} : view = DungeonPresenter.build ; par boss un
---     en-tête {header = true, text, gain (espérance), killed}, puis ses objets {itemID, icon, name, nameColor
+--     en-tête {header = true, text (L.DUNGEON_HEADER_BOSS ou L.DUNGEON_HEADER_RARE, nom du PNJ), rare,
+--     gain (espérance), killed}, puis ses objets {itemID, icon, name, nameColor
 --     (qualité), detail (taux | L.DUNGEON_CHANCE_UNKNOWN), gain (points, « +x »), gainColor} ; hors boss à la fin
 --     (L.DUNGEON_TRASH)
+--   ns.InstanceListPresenter.chanceText(chance) -> taux en % (0 décimale dès 1 %, 1 dès 0,1 %, 2 dès 0,01 %, sinon 3)
+--     | L.DUNGEON_CHANCE_UNKNOWN (nil) ; partagé avec DungeonPanel
 
 local _, ns = ...
 
@@ -80,10 +83,17 @@ function InstanceListPresenter.list(data, delta, currentID, level)
     return rows
 end
 
+function InstanceListPresenter.chanceText(chance)
+    if not chance then
+        return L.DUNGEON_CHANCE_UNKNOWN
+    end
+    local decimals = chance >= 1 and 0 or chance >= 0.1 and 1 or chance >= 0.01 and 2 or 3
+    return ns.Format.percent(chance / 100, nil, decimals)
+end
+
 local function itemRow(item, data)
     local record = data.item and data.item(item.itemID)
-    local chance = item.chance and ns.Format.percent(item.chance / 100, nil, item.chance < 1 and 1 or 0)
-        or L.DUNGEON_CHANCE_UNKNOWN
+    local chance = InstanceListPresenter.chanceText(item.chance)
     return {
         itemID = item.itemID, icon = ns.Names.itemIcon(item.itemID), name = ns.Names.item(item.itemID),
         nameColor = ns.Theme.quality(record and record.quality), detail = chance,
@@ -94,7 +104,7 @@ end
 
 local function addBoss(rows, text, boss, data)
     rows[#rows + 1] = { header = true, text = text, gain = #boss.items > 0 and points(boss.expected) or "",
-        killed = boss.killed == true }
+        killed = boss.killed == true, rare = boss.rare == true }
     for _, item in ipairs(boss.items) do
         rows[#rows + 1] = itemRow(item, data)
     end
@@ -103,7 +113,8 @@ end
 function InstanceListPresenter.detail(view, data)
     local rows = {}
     for _, boss in ipairs(view.bosses) do
-        addBoss(rows, ns.Names.npc(boss.npcID), boss, data)
+        local label = boss.rare and L.DUNGEON_HEADER_RARE or L.DUNGEON_HEADER_BOSS
+        addBoss(rows, label:format(ns.Names.npc(boss.npcID)), boss, data)
     end
     if #view.trash.items > 0 then
         addBoss(rows, L.DUNGEON_TRASH, view.trash, data)

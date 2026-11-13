@@ -1,8 +1,8 @@
 -- CONTRAT
 -- Façade de lecture de StuffPlanner_Data. Aucun appel d'API : Loader la remplit.
--- Schéma 11 : chaînes décodées par ns.Codec (charger Codec.lua avant) ; `forever` (1 | nil) : absent de Classic Era ;
+-- Schéma 13 : chaînes décodées par ns.Codec (charger Codec.lua avant) ; `forever` (1 | nil) : absent de Classic Era ;
 -- quest.starter, quest.ender = npcID | nil ; instance = instanceID | nil ; objMap, objX, objY = lieu d'objectif | nil ;
--- instance.bosses = {npcID...} dans l'ordre du donjon | nil.
+-- instance.bosses = {npcID...} dans l'ordre du donjon | nil ; instance.rares = {npcID...} (boss de rang rare) | nil.
 --   ns.Data.ready() -> bool
 --   quest(id), item(id), instance(id) -> table aux champs nommés de tools/schema.py, `id` compris | nil ;
 --     la base n'a que les objets ayant une origine : item(id) d'un objet porté peut valoir nil
@@ -41,7 +41,7 @@ local _, ns = ...
 local Data = {}
 ns.Data = Data
 
-local SCHEMA_VERSION = 12
+local SCHEMA_VERSION = 13
 local EMPTY = {}
 local WEAK = { __mode = "v" }
 local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "starter", "ender" }

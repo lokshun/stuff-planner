@@ -8,6 +8,8 @@
 --   ns.Data.instanceIDs() -> {instanceID...} trié : instances ayant au moins un objet en butin
 --   ns.Data.instanceBosses(instanceID) -> {npcID...} dans l'ordre du donjon (champ bosses) ; vide si
 --     inconnu
+--   ns.Data.instanceRares(instanceID) -> {npcID...} : boss de rang rare à apparition aléatoire (champ rares) ;
+--     vide si aucun ou inconnu
 -- Réservé à Loader : indexInstance(id) pour chaque db.Instances, indexOrigin(itemID) pour chaque
 --   db.Origins, avant Data.finish (qui trie). Data.attach efface l'index.
 -- Tables renvoyées partagées : ne pas les modifier. Aucun appel d'API.
@@ -95,4 +97,9 @@ end
 function Data.instanceBosses(instanceID)
     local instance = Data.instance(instanceID)
     return instance and instance.bosses or EMPTY
+end
+
+function Data.instanceRares(instanceID)
+    local instance = Data.instance(instanceID)
+    return instance and instance.rares or EMPTY
 end

@@ -1,12 +1,14 @@
 -- CONTRAT
 -- Objets utiles d'une instance, boss par boss, et espérance de gain d'un passage. Pur : aucun appel d'API.
 --   ns.DungeonPresenter.build(instanceID, data, delta, killed?) -> view
---     data : instanceBosses, instanceItems, sourcesOf (façade Data) ; delta(itemID) -> {abs, pct, slot} | nil
---       (Results.delta) ; objet utile : abs > 0, source dungeon ou raid de cette instance ;
+--     data : instanceBosses, instanceRares, instanceItems, sourcesOf, item (façade Data) ; delta(itemID) ->
+--       {abs, pct, slot} | nil (Results.delta) ; objet utile : abs > 0, source dungeon ou raid de cette instance ;
+--       hors boss (trash) : qualité RARE_QUALITY (3, bleu) ou mieux seulement ;
 --       killed = {[npcID] = true} : boss tués, leurs objets hors de view.expected (espérance restante).
 --     view = {instanceID, bosses = {boss...}, trash = boss (npcID nil, butin hors boss),
 --             expected = espérance du passage, unknownChance = nombre d'objets utiles sans taux}
---     boss = {npcID, killed (bool), items = {item...}, expected (même tué)} ; boss dans l'ordre de
+--     boss = {npcID, killed (bool), rare (bool : data.instanceRares), items = {item...},
+--       expected (même tué)} ; boss dans l'ordre de
 --       data.instanceBosses (gardés même sans objet utile, pour cocher les boss tués), puis boss à butin
 --       absents de l'ordre, par npcID.
 --     item = {itemID, chance (% | nil), abs, pct, slot, expected = abs × taux | nil sans taux} ;
@@ -21,6 +23,7 @@ local DungeonPresenter = {}
 ns.DungeonPresenter = DungeonPresenter
 
 local KINDS = { dungeon = true, raid = true }
+local RARE_QUALITY = 3
 
 local function probability(chance)
     return chance and math.min(chance / 100, 1) or nil
@@ -69,7 +72,12 @@ local function expectation(items)
 end
 
 local function newBoss(npcID)
-    return { npcID = npcID, items = {}, expected = 0, killed = false }
+    return { npcID = npcID, items = {}, expected = 0, killed = false, rare = false }
+end
+
+local function rareEnough(itemID, data)
+    local record = data.item(itemID)
+    return record ~= nil and (record.quality or 0) >= RARE_QUALITY
 end
 
 local function collect(instanceID, data, delta)
@@ -78,7 +86,8 @@ local function collect(instanceID, data, delta)
         local gain = delta(itemID)
         if gain and gain.abs > 0 then
             for _, source in ipairs(data.sourcesOf(itemID) or {}) do
-                if KINDS[source.type] and source.id == instanceID then
+                if KINDS[source.type] and source.id == instanceID
+                    and (source.npcID or rareEnough(itemID, data)) then
                     local p = probability(source.chance)
                     local item = { itemID = itemID, chance = source.chance, abs = gain.abs, pct = gain.pct,
                                    slot = gain.slot, expected = p and gain.abs * p or nil }
@@ -136,6 +145,13 @@ function DungeonPresenter.build(instanceID, data, delta, killed)
     table.sort(extra)
     for _, npcID in ipairs(extra) do
         bosses[#bosses + 1] = finish(byBoss[npcID])
+    end
+    local rares = {}
+    for _, npcID in ipairs(data.instanceRares(instanceID) or {}) do
+        rares[npcID] = true
+    end
+    for _, boss in ipairs(bosses) do
+        boss.rare = rares[boss.npcID] == true
     end
     return {
         instanceID = instanceID,

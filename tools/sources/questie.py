@@ -6,6 +6,7 @@ Importe les quêtes Forever de QuestieDB (github.com/Questie/QuestieDB), sans ex
   load_quests(source_dir) -> enregistrements `quests` triés par id, sans réseau
   OBJECT_DB, OBJECT_LAYERS -> base des objets du monde (lue par sources/quest_steps.py)
   npc_zones(source_dir) -> {npcID: zone}, sans réseau
+  npc_ranks(source_dir) -> {npcID: rang} (0 normal, 1 élite, 2 élite rare, 3 boss, 4 rare), PNJ sans rang absents
   load_npcs(source_dir, ids) -> enregistrements `npcs` {id, mapID, x, y} des PNJ demandés ayant une
     position, triés par id, sans réseau
   load_quest_areas(source_dir) -> {questID: zoneOrSort} des zones positives (donjons compris ; négatif =
@@ -365,6 +366,11 @@ def _record(quest_id, row, items, npcs, areas):
 def npc_zones(source_dir):
     npcs = _entities(source_dir, NPC_DB, NPC_LAYERS, ("zoneID",), _resolver(source_dir))
     return {npc: row["zoneID"] for npc, row in npcs.items() if _int(row.get("zoneID"))}
+
+
+def npc_ranks(source_dir):
+    npcs = _entities(source_dir, NPC_DB, NPC_LAYERS, ("rank",), _resolver(source_dir))
+    return {npc: rank for npc, row in npcs.items() if isinstance(rank := row.get("rank"), int)}
 
 
 def load_npcs(source_dir, ids):

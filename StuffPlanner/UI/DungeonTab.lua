@@ -5,8 +5,8 @@
 -- Instance courante (CompatInstance.current) en tête de liste et ouverte d'office à l'entrée.
 -- Charger après MainFrame.lua, ItemRow.lua, DungeonPresenter.lua, InstanceListPresenter.lua, DungeonRun.lua.
 -- S'inscrit par ns.MainFrame.addTab("dungeon", …) ; rafraîchi sur SP_RESULTS_UPDATED et SP_DUNGEON_CHANGED.
--- Lignes ns.ItemRow : instance (icône clé / dragon), en-tête de boss (doré, sans icône), objet (clic droit =
--- menu : épingler, essayer).
+-- Lignes ns.ItemRow : instance (icône clé / dragon), en-tête de boss (« · Boss » doré, « · Rare » argenté, sans
+-- icône), objet (clic droit = menu : épingler, essayer).
 
 local _, ns = ...
 
@@ -45,7 +45,7 @@ local function initRow(button, row)
     local theme = ns.Theme
     if row.header then
         ns.ItemRow.set(button, { row = row, name = row.text, gain = row.gain, gainColor = theme.colors.muted,
-            nameColor = row.killed and theme.colors.muted or theme.colors.title })
+            nameColor = row.killed and theme.colors.muted or row.rare and theme.colors.neutral or theme.colors.title })
     elseif row.instanceID then
         ns.ItemRow.set(button, { row = row, icon = row.raid and RAID_ICON or DUNGEON_ICON, name = row.name,
             nameColor = row.current and theme.colors.gain or theme.colors.text, detail = row.detail,

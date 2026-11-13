@@ -139,17 +139,30 @@ def build(
 def load_sources(world_items=()):
     questie_dir = questie.fetch(CACHE_DIR / "questie")
     quests = questie.load_quests(questie_dir)
-    quests = precompute.split_rewards(quests, cmangos.load_quest_rewards(cmangos.fetch(CACHE_DIR / "cmangos")))
+    cmangos_dir = cmangos.fetch(CACHE_DIR / "cmangos")
+    quests = precompute.split_rewards(quests, cmangos.load_quest_rewards(cmangos_dir))
     quests = quest_steps.add_steps(quests, questie_dir)
     npcs = questie.load_npcs(questie_dir, quest_steps.npc_ids(quests))
     wago_dir = wago.fetch(CACHE_DIR / "wago")
     era_dir = wago_era.fetch(CACHE_DIR / "wago_era")
     spy_dir = spyglass.fetch(CACHE_DIR / "spyglass")
     norgannon_dir = norgannon.fetch(CACHE_DIR / "norgannon")
-    norgannon_drops, norgannon_instances = norgannon.load(norgannon_dir, questie.npc_zones(questie_dir))
+    npc_zones = questie.npc_zones(questie_dir)
+    norgannon_drops, norgannon_instances = norgannon.load(norgannon_dir, npc_zones)
     spy_drops, spy_instances = spyglass.load_drops(spy_dir)
     drops = precompute.merge_drops(norgannon_drops, spy_drops)
-    instances = {record["id"]: record for record in precompute.merge_instances(norgannon_instances, spy_instances)}
+    ranks = {**cmangos.load_ranks(cmangos_dir), **questie.npc_ranks(questie_dir)}
+    merged = precompute.mark_rares(
+        precompute.merge_instances(norgannon_instances, spy_instances), ranks, cmangos.load_random_spawns(cmangos_dir)
+    )
+    instances = {record["id"]: record for record in merged}
+    bosses = {npc for record in merged for npc in record.get("bosses") or ()}
+    bosses |= {drop["npc"] for drop in drops if drop["npc"] is not None}
+    trash = cmangos.load_trash_drops(
+        cmangos_dir, npc_zones, norgannon.area_instances(norgannon_dir),
+        {record["id"]: bool(record.get("raid")) for record in merged}, bosses,
+    )
+    drops = precompute.merge_drops(drops, trash)
     scan = spyglass.load_scan(spy_dir)
     forever_items = wago.load_items(wago_dir)
     items = precompute.enrich_items(forever_items, scan)

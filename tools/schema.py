@@ -18,11 +18,13 @@ Version 10 : `ender` (npcID | nil), `objMap`, `objX`, `objY` (lieu d'objectif, f
 Version 11 : `bosses` ({npcID...} | nil) en fin d'instances : boss dans l'ordre du donjon (NorgannonDB,
   sinon Spyglass).
 Version 12 : type d'origine `world` (butin de monde voté par merge_exports.py) : {5, mapID, nil, npcID | nil, x, y}.
+Version 13 : `rares` ({npcID...} | nil) en fin d'instances : boss de `bosses` de rang élite rare ou rare
+  (Questie, sinon CMaNGOS) ; butin des trash rare et mieux de CMaNGOS (tables de référence comprises).
 quests.prereq : quêtes toutes requises ; un élément liste signifie « l'une de celles-ci ».
 Aucun nom de quête ou d'objet ici : ils viennent du client.
 """
 
-VERSION = 12
+VERSION = 13
 
 FIELDS = {
     "quests": (
@@ -59,7 +61,7 @@ FIELDS = {
         "forever",
     ),
     "origins": ("entries",),
-    "instances": ("minLevel", "maxLevel", "reqLevel", "mapID", "size", "raid", "bosses"),
+    "instances": ("minLevel", "maxLevel", "reqLevel", "mapID", "size", "raid", "bosses", "rares"),
     "npcs": ("mapID", "x", "y"),
     "eraItems": ("quality", "ilvl", "reqLevel", "stats"),
 }
@@ -68,7 +70,7 @@ OPTIONAL = {
     "quests": frozenset({"mapID", "classMask", "raceMask", "forever", "starter", "instance", "ender", "objMap", "objX", "objY"}),
     "items": frozenset({"slot", "classMask", "icon", "forever"}),
     "origins": frozenset(),
-    "instances": frozenset({"minLevel", "maxLevel", "reqLevel", "mapID", "size", "bosses"}),
+    "instances": frozenset({"minLevel", "maxLevel", "reqLevel", "mapID", "size", "bosses", "rares"}),
     "npcs": frozenset(),
     "eraItems": frozenset(),
 }
