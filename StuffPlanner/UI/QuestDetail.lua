@@ -5,6 +5,7 @@
 --   ns.QuestDetail.show(questID, itemID?) -> ouvre la fenêtre principale (onglet gardé) puis la fiche ;
 --     hors combat ; itemID (objet cliqué) : Épingler / Retirer et Essayer sous Repère et Carte
 --   ns.QuestDetail.hide(), isShown(), refresh()
+--   ns.QuestDetail.reopen() : réaffiche la dernière fiche (sortie du combat, MainFrame) ; rien sans fiche
 --   ns.QuestDetail.waypoint(questID) -> bool : repère vers le donneur (ns.Waypoint, clé questID) ou, si une
 --     suite de quêtes reste à faire, vers celui de sa première quête disponible (clé = cette quête) ;
 --     false sans position
@@ -252,6 +253,13 @@ function QuestDetail.show(questID, itemID)
     currentID, currentItem = questID, itemID
     panel:Show()
     QuestDetail.refresh()
+end
+
+function QuestDetail.reopen()
+    if panel and currentID and not InCombatLockdown() then
+        panel:Show()
+        QuestDetail.refresh()
+    end
 end
 
 function QuestDetail.hide()

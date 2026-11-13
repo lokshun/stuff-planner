@@ -73,6 +73,7 @@
   "STATE_LEVEL": "nivel %d",
   "STATE_PREREQ": "requiere misión previa",
   "WINDOW_TITLE": "Stuff Planner",
+  "WINDOW_AFTER_COMBAT": "Stuff Planner se abrirá después del combate.",
   "TAB_ROUTE": "Ruta 1-60",
   "TAB_GEAR": "Equipo",
   "TAB_PROFILE": "Perfil",

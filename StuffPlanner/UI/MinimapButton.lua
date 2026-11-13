@@ -27,7 +27,7 @@ local function onClick(_, button)
     if button == "RightButton" then
         ns.OptionsPanel.open()
     else
-        ns:RunOutOfCombat(ns.MainFrame.toggle)
+        ns.MainFrame.toggle()
     end
 end
 

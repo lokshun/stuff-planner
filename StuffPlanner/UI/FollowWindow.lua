@@ -40,7 +40,7 @@ local function onLineClick(button)
         return
     end
     if line.kind == "quest" then
-        ns:RunOutOfCombat(function()
+        ns.WindowCombat.after(function()
             ns.MainFrame.show("zone")
             ns.QuestDetail.show(line.questID)
         end)

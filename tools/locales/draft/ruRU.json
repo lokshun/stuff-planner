@@ -73,6 +73,7 @@
   "STATE_LEVEL": "уровень %d",
   "STATE_PREREQ": "нужно предыдущее задание",
   "WINDOW_TITLE": "Stuff Planner",
+  "WINDOW_AFTER_COMBAT": "Stuff Planner откроется после боя.",
   "TAB_ROUTE": "Маршрут 1-60",
   "TAB_GEAR": "Экипировка",
   "TAB_PROFILE": "Профиль",

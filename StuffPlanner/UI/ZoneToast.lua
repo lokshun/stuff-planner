@@ -34,7 +34,7 @@ end
 
 local function openZone()
     hide()
-    ns:RunOutOfCombat(function()
+    ns.WindowCombat.after(function()
         ns.MainFrame.show("zone")
     end)
 end

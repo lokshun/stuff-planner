@@ -64,7 +64,7 @@ local function onLineClick(button)
         end
         return
     end
-    ns:RunOutOfCombat(function()
+    ns.WindowCombat.after(function()
         ns.MainFrame.show("zone")
         ns.QuestDetail.show(row.questID, row.itemID)
         ns.RowActions.select(row.questID, row.itemID, true)

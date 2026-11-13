@@ -73,6 +73,7 @@
   "STATE_LEVEL": "Stufe %d",
   "STATE_PREREQ": "Vorquest nötig",
   "WINDOW_TITLE": "Stuff Planner",
+  "WINDOW_AFTER_COMBAT": "Stuff Planner öffnet sich nach dem Kampf.",
   "TAB_ROUTE": "Route 1-60",
   "TAB_GEAR": "Ausrüstung",
   "TAB_PROFILE": "Profil",

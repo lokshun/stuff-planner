@@ -73,6 +73,7 @@
   "STATE_LEVEL": "等级 %d",
   "STATE_PREREQ": "需要前置任务",
   "WINDOW_TITLE": "Stuff Planner",
+  "WINDOW_AFTER_COMBAT": "Stuff Planner 将在战斗结束后打开。",
   "TAB_ROUTE": "路线 1-60",
   "TAB_GEAR": "装备",
   "TAB_PROFILE": "方案",

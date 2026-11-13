@@ -73,6 +73,7 @@
   "STATE_LEVEL": "레벨 %d",
   "STATE_PREREQ": "선행 퀘스트 필요",
   "WINDOW_TITLE": "Stuff Planner",
+  "WINDOW_AFTER_COMBAT": "Stuff Planner는 전투가 끝나면 열립니다.",
   "TAB_ROUTE": "경로 1-60",
   "TAB_GEAR": "장비",
   "TAB_PROFILE": "프로필",

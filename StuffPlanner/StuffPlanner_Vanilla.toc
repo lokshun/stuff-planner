@@ -112,6 +112,7 @@ UI\Presenters\FollowPresenter.lua
 UI\Presenters\HudPresenter.lua
 UI\Presenters\HelpPresenter.lua
 UI\Presenters\PageTipPresenter.lua
+UI\Presenters\CombatReopen.lua
 UI\Presenters\ArrowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
 UI\Presenters\BadgePresenter.lua
@@ -177,6 +178,7 @@ UI\QuestTooltip.lua
 UI\WaypointButton.lua
 UI\QuestDetail.lua
 UI\SourceDetail.lua
+UI\WindowCombat.lua
 UI\MapPins.lua
 UI\FloatingFrame.lua
 UI\Hud.lua

@@ -6,11 +6,12 @@
 --   ns:Send(msg, ...), ns:On(msg, fn) -> bus interne ; fn reçoit (...) ;
 --     abonnés appelés dans l'ordre d'inscription, une erreur n'arrête pas les suivants
 --   ns:RunOutOfCombat(fn) -> exécute maintenant, ou à PLAYER_REGEN_ENABLED en combat
---   ns:RegisterCommand(name, fn, helpKey) -> sous-commande de /splan ; fn reçoit le reste
---     de la ligne ; helpKey est une clé de ns.L
+--   ns:RegisterCommand(name, fn, helpKey, opts?) -> sous-commande de /splan ; fn reçoit le reste
+--     de la ligne ; helpKey est une clé de ns.L ; opts.anytime : exécutée tout de suite, même en combat
+--     (la commande gère le combat elle-même), sinon à la fin du combat
 --   ns:Commands() -> {{name, help}...} triées par nom (help = texte de ns.L)
 -- /splan sans argument : commande show si elle existe (bascule la fenêtre), sinon l'aide ; inconnue : aide ;
--- /splan help : aide ; /splan attend la fin du combat. Menu des addons et raccourci clavier (Bindings.xml,
+-- /splan help : aide. Menu des addons et raccourci clavier (Bindings.xml,
 -- globaux BINDING_HEADER_STUFFPLANNER, BINDING_NAME_STUFFPLANNER_TOGGLE) = /splan sans argument.
 -- Messages du bus (émetteur, détail dans son CONTRAT) : SP_PLAYER_CHANGED, SP_QUEST_LOG_CHANGED (Player),
 --   SP_DATA_READY (Loader), SP_ITEMS_CONFIRMED (ItemProbe), SP_QUEST_OBSERVED (Collector, Share),
@@ -103,31 +104,35 @@ local function showHelp()
     end
 end
 
-function ns:RegisterCommand(name, fn, helpKey) -- luacheck: ignore 212/self
-    commands[name:lower()] = { fn = fn, helpKey = helpKey }
+function ns:RegisterCommand(name, fn, helpKey, opts) -- luacheck: ignore 212/self
+    commands[name:lower()] = { fn = fn, helpKey = helpKey, anytime = opts and opts.anytime == true }
 end
 
-local function dispatch(input)
-    local name, args = input:match("^%s*(%S*)%s*(.-)%s*$")
-    if name == "" and commands.show then
-        name = "show"
+local function unknown(name)
+    if name ~= "" then
+        print(L.UNKNOWN_COMMAND:format(name))
     end
-    local command = commands[name:lower()]
-    if command then
-        command.fn(args)
-    else
-        if name ~= "" then
-            print(L.UNKNOWN_COMMAND:format(name))
-        end
-        showHelp()
-    end
+    showHelp()
 end
 
 ns:RegisterCommand("help", showHelp, "HELP_COMMAND_HELP")
 
 local function handleSlash(input)
+    local name, args = (input or ""):match("^%s*(%S*)%s*(.-)%s*$")
+    if name == "" and commands.show then
+        name = "show"
+    end
+    local command = commands[name:lower()]
+    if command and command.anytime then
+        command.fn(args)
+        return
+    end
     ns:RunOutOfCombat(function()
-        dispatch(input or "")
+        if command then
+            command.fn(args)
+        else
+            unknown(name)
+        end
     end)
 end
 

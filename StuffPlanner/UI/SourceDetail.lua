@@ -4,6 +4,7 @@
 -- Charger après DetailWidgets.lua, QuestDetail.lua et SourcePresenter.lua.
 --   ns.SourceDetail.show(itemID, source) -> ouvre la fenêtre principale puis la fiche ; hors combat
 --   ns.SourceDetail.hide(), isShown(), refresh()
+--   ns.SourceDetail.reopen() : réaffiche la dernière fiche (sortie du combat, MainFrame) ; rien sans fiche
 -- Contenu : objet (survol : info-bulle de l'objet), titre (instance ou recette), sous-titre,
 --   lignes « libellé : valeur », recette (survol : info-bulle du sort), composants (icône
 --   Compat.GetItemIcon, « 2 × nom », survol : info-bulle de l'objet), autres sources,
@@ -154,6 +155,13 @@ end
 
 function SourceDetail.isShown()
     return panel ~= nil and panel:IsShown()
+end
+
+function SourceDetail.reopen()
+    if panel and currentItem and not InCombatLockdown() then
+        panel:Show()
+        SourceDetail.refresh()
+    end
 end
 
 function SourceDetail.hide()

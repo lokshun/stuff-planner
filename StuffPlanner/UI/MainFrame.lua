@@ -4,7 +4,9 @@
 --   ns.MainFrame.addTab(key, tab) -> tab = {create(parent) -> frame, refresh()?, icon, label, order} ;
 --     clés existantes : zone, route, gear, profile ; une page inscrite après la création est ajoutée à la barre
 --   ns.MainFrame.show([key]), hide(), toggle(), isShown() ; show sans clé : dernière page ouverte
---     (StuffPlannerDB.ui.tab, NavBar.pick : page inconnue -> première)
+--     (StuffPlannerDB.ui.tab, NavBar.pick : page inconnue -> première) ; en combat, show et toggle reportent
+--     l'ouverture à la sortie (ns.WindowCombat.request)
+--   ns.MainFrame.page() -> clé de la page affichée en dernier | nil
 --   ns.MainFrame.refresh() -> rafraîchit la page affichée si la fenêtre est visible
 --   ns.MainFrame.pages() -> pages inscrites (ns.NavBar.order), pour l'accueil
 --   ns.MainFrame.frame() -> cadre de la fenêtre | nil avant le premier affichage (panneaux accolés)
@@ -16,7 +18,7 @@
 -- (window.scale, window.alpha), appliquées sur SP_OPTION_CHANGED. Engrenage : ns.OptionsPanel.open() ;
 -- « ? » : ns.HelpPanel.toggle() (gestes et commandes). Astuce au premier passage sur une page (ns.PageTip).
 -- Échap (OnKeyDown, sans nom global) : ferme d'abord la fiche ouverte (QuestDetail, SourceDetail), puis la
--- fenêtre ; cachée en combat, ouverte hors combat seulement.
+-- fenêtre. Combat (cachée, rouverte) : UI/WindowCombat.lua.
 -- Créée au premier affichage : rien n'est construit tant que le joueur ne l'ouvre pas.
 
 local _, ns = ...
@@ -194,6 +196,7 @@ end
 
 function MainFrame.show(key)
     if InCombatLockdown() then
+        ns.WindowCombat.request(key)
         return
     end
     if not frame then
@@ -216,8 +219,14 @@ function MainFrame.hide()
     end
 end
 
+function MainFrame.page()
+    return current
+end
+
 function MainFrame.toggle()
-    if MainFrame.isShown() then
+    if InCombatLockdown() then
+        MainFrame.show()
+    elseif MainFrame.isShown() then
         MainFrame.hide()
     else
         MainFrame.show()
@@ -252,9 +261,5 @@ ns:On("SP_OPTION_CHANGED", function(key, value)
     end
 end)
 
-ns:RegisterCommand("show", MainFrame.toggle, "SHOW_COMMAND_HELP")
+ns:RegisterCommand("show", MainFrame.toggle, "SHOW_COMMAND_HELP", { anytime = true })
 ns:RegisterCommand("scale", setScale, "SCALE_COMMAND_HELP")
-
-local events = CreateFrame("Frame")
-events:RegisterEvent("PLAYER_REGEN_DISABLED")
-events:SetScript("OnEvent", MainFrame.hide)
