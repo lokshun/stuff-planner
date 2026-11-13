@@ -15,8 +15,8 @@ Importe les quêtes Forever de QuestieDB (github.com/Questie/QuestieDB), sans ex
   load_classic_quest_ids(source_dir) -> {questID} de Classic Era (base Classic + classicQuestFixes), sans réseau
   load_blacklist(source_dir) -> {questID} de la liste noire de l'addon Questie (ADDON_COMMIT, autre dépôt)
     vraies sur Forever (contenu Era, ni SoD ni Titan) ; HIDE_ON_MAP, false, condition inconnue : gardée
-  load_names(source_dir, kind) -> {"enUS": {id: nom}, langue: {...}}, kind "npc" | "quest" | "item" :
-    anglais de la base (couches comprises), traductions l10n/Forever/lookup<Npcs|Quests|Items> puis traces
+  load_names(source_dir, kind) -> {"enUS": {id: nom}, langue: {...}}, kind "npc" | "quest" | "item" | "object" :
+    anglais de la base (couches comprises), traductions l10n/Forever/lookup<Npcs|Quests|Items|Objects> puis traces
     (prioritaires) ; langue sans fichier absente. load_npc_names(source_dir) = load_names(source_dir, "npc")
 Couches, dans l'ordre amont (docs/forever.md) : brut, legacy, delta, traces, corrections d'auteur.
 Les corrections de faction et par personnage sont ignorées.
@@ -148,6 +148,7 @@ NAME_SOURCES = {
     "npc": ("lookupNpcs", NPC_DB, NPC_LAYERS),
     "quest": ("lookupQuests", QUEST_DB, QUEST_LAYERS),
     "item": ("lookupItems", ITEM_DB, ITEM_LAYERS),
+    "object": ("lookupObjects", OBJECT_DB, OBJECT_LAYERS),
 }
 L10N_FILES = {
     name: path

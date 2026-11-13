@@ -1,7 +1,7 @@
 -- CONTRAT
 -- Épingles des donneurs de quête qui apportent une amélioration (zone actuelle), carte du monde et
 -- minicarte, par HereBeDragons-Pins-2.0. Charger après Chat.lua, DetailPresenter.lua, QuestDetail.lua.
--- Données : Chat.currentZone(MAX_PINS) -> DetailPresenter.pins ; une épingle par quête au donneur placé.
+-- Données : Chat.currentZone(MAX_PINS) -> DetailPresenter.pins ; une épingle par quête à son départ (QuestStart).
 -- Aspect (ns.PinPresenter.layout, réglage pins.style) : pastille ronde de l'icône du meilleur objet
 --   (Compat.CircleTexture, liseré sombre) posée en haut à droite du donneur pour laisser lisible le « ! » /
 --   « ? » du jeu ou de Questie ; « center » = ancienne icône carrée centrée. Le cadre placé par

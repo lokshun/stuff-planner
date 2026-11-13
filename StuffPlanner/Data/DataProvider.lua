@@ -1,15 +1,15 @@
 -- CONTRAT
 -- Façade de lecture de StuffPlanner_Data. Aucun appel d'API : Loader la remplit.
--- Schéma 14 : chaînes décodées par ns.Codec (charger Codec.lua avant) ; `forever` (1 | nil) : absent de Classic Era ;
--- conditions skill, minRep, maxRep, flags, exclusive, maxLevel, spell, parent, next (tools/schema.py) ;
--- quest.starter, quest.ender = npcID | nil ; instance = instanceID | nil ; objMap, objX, objY = lieu d'objectif | nil ;
--- instance.bosses = {npcID...} dans l'ordre du donjon | nil ; instance.rares = {npcID...} (boss de rang rare) | nil.
+-- Schéma 15 : chaînes décodées par ns.Codec (charger Codec.lua avant) ; `forever` (1 | nil) : absent de Classic Era ;
+-- conditions skill, minRep, maxRep, flags, exclusive, maxLevel, spell, parent, next (tools/schema.py) ; starter,
+-- ender = npcID | nil ; départ startKind, startID, startMap, startX, startY (QuestStart) ; instance = instanceID ;
+-- objMap, objX, objY = lieu d'objectif | nil ; instance.bosses, instance.rares (rang rare) = {npcID...} ordonnés | nil.
 --   ns.Data.ready() -> bool
 --   quest(id), item(id), instance(id) -> table aux champs nommés de tools/schema.py, `id` compris | nil ;
 --     la base n'a que les objets ayant une origine : item(id) d'un objet porté peut valoir nil
 --   npc(id) -> {id, mapID, x, y} (x, y en 0–1) | nil ; base = donneurs et PNJ de rendu, position observée d'abord
 --   npcName(id) -> nom du PNJ dans la langue du client (ns.NpcNames de la base) | nil ;
---     baseName("npc"|"quest"|"item", id) -> nom de la base (NpcNames, QuestNames, ItemNames) | nil
+--     baseName("npc"|"quest"|"item"|"object", id) -> nom de la base (Npc/Quest/Item/ObjectNames) | nil
 --   sourcesOf(itemID) -> {{type="quest"|"dungeon"|"raid"|"craft"|"world", id, chance, npcID, skillLine}...} ;
 --     id = questID, instance, spellID ou carte (monde : mapID, x, y, npcID nil hors créature) ;
 --     vide si inconnu ; artisanat : yellow, grey (seuils de compétence | nil), reagents = {{itemID, count}...}
@@ -31,18 +31,19 @@
 --   opts.era : item(id) prend quality, ilvl, reqLevel, stats de db.EraItems[id] (Classic Era, couche juste
 --     au-dessus de la base) et confidence 1 (ItemSparse, sans effets « Équipé ») : ItemProbe les confirme.
 --   opts.external = QuestieAdapter (quest, npc, npcName) : champs EXTERNAL (et CONDITIONS si quest.conditions) des
---     quêtes de la base remplacés (entre base et Overlay ; mapID et récompenses restent les nôtres) ;
---     npc : observé < externe < base ; npcName : externe puis base.
+--     quêtes de la base remplacés (entre base et Overlay ; mapID et récompenses restent les nôtres) ; starter s'il en
+--     donne un (startKind devient npc) ; npc : observé < externe < base ; npcName : externe puis base.
 
 local _, ns = ...
 
 local Data = {}
 ns.Data = Data
 
-local SCHEMA_VERSION = 14
+local SCHEMA_VERSION = 15
 local EMPTY = {}
 local WEAK = { __mode = "v" }
-local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "starter", "ender" }
+local EXTERNAL = { "level", "reqLevel", "prereq", "classMask", "raceMask", "ender" }
+local NPC_START = 1
 local CONDITIONS = { "skill", "minRep", "maxRep", "flags", "exclusive", "maxLevel", "spell", "parent", "next" }
 local GUESSED, CONFIRMED, ESTIMATED = 2, 3, 1
 
@@ -137,6 +138,9 @@ local function decode(tableName, rowsName, id)
             decoded[field] = fromExternal[field]
         end
     end
+    if fromExternal and fromExternal.starter then
+        decoded.starter, decoded.startKind = fromExternal.starter, NPC_START
+    end
     local corrected = (overlay[tableName] or EMPTY)[id] or EMPTY
     for field, value in pairs(corrected) do
         decoded[field] = value
@@ -190,7 +194,7 @@ function Data.npcName(id)
     return (external and external.npcName(id)) or Data.baseName("npc", id)
 end
 
-local NAME_TABLES = { npc = "NpcNames", quest = "QuestNames", item = "ItemNames" }
+local NAME_TABLES = { npc = "NpcNames", quest = "QuestNames", item = "ItemNames", object = "ObjectNames" }
 function Data.baseName(kind, id)
     local names = db and NAME_TABLES[kind] and db[NAME_TABLES[kind]]
     return names and names[id] or nil
@@ -231,9 +235,7 @@ function Data.finish()
     isReady = true
 end
 
-function Data.ready()
-    return isReady
-end
+function Data.ready() return isReady end
 
 local function sourceOf(entry)
     local kind = kinds[entry[1]]
@@ -291,9 +293,7 @@ function Data.questIDs()
     return list
 end
 
-function Data.questsInMap(mapID)
-    return byMap[mapID] or EMPTY
-end
+function Data.questsInMap(mapID) return byMap[mapID] or EMPTY end
 
 function Data.neighbors(mapID)
     return db and db.Neighbors and db.Neighbors[mapID] or EMPTY

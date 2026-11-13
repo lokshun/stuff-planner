@@ -1,12 +1,14 @@
 -- CONTRAT
 -- Champs affichés de la fiche d'une quête et des épingles de carte. Charger après RowPresenter.lua.
--- Pur : noms par ns.Names, gains par ns.Scoring.delta, nombres par ns.Format. Charger après ConditionPresenter.lua.
+-- Pur : noms par ns.Names, gains par ns.Scoring.delta, nombres par ns.Format. Charger après ConditionPresenter.lua et
+-- StartPresenter.lua.
 --   ns.DetailPresenter.build(questID, player, profile, data [, opts]) -> view | nil (quête inconnue)
 --     opts.isDone(questID) -> bool (prérequis faits), opts.isInLog ; profile nil : aucun gain affiché ;
 --     opts.seconds (RouteResults.secondsOf) -> durationText (L.DETAIL_DURATION, Format.duration) | nil
 --     view = {questID, title, levelText, zoneText, durationText, giverText, mapID,
---             waypoint = {questID, mapID, x, y, title, giver, npcID} | nil (donneur placé par data.npc(quest.starter),
---               giver = son nom ; suite à faire : donneur de sa première quête disponible, questID = elle),
+--             waypoint = {questID, mapID, x, y, title, giver, npcID} | nil (départ QuestStart.of, centre de la carte
+--               sans position, giver = StartPresenter.label ; suite à faire : départ de sa première quête disponible),
+--             giverText = StartPresenter.text du départ,
 --             chain = {{questID, text, color, start}...} | nil : étapes restantes (Chains.remaining, quête
 --               exclue ; alternatives d'une autre race écartées si player), état de chacune ;
 --               start = première sans prérequis manquant ;
@@ -27,7 +29,7 @@
 --     followed == view.questID, sinon L.DETAIL_FOLLOW ; sinon mode "waypoint",
 --     L.DETAIL_WAYPOINT_CLEAR si placed, grisé sans view.waypoint.
 --   ns.DetailPresenter.pins(entries, data) -> {{questID, mapID, x, y, itemID, delta}...}
---     entries = Chat.bestInZone (triées) ; une épingle par quête, son premier objet ; donneur placé seul.
+--     entries = Chat.bestInZone (triées) ; une épingle par quête, son premier objet ; départ connu seul.
 
 local _, ns = ...
 
@@ -38,17 +40,9 @@ ns.DetailPresenter = DetailPresenter
 
 local GUESSED_QUEST = 2
 
-local function coord(value)
-    return ns.Format.number(value * 100, nil, 1)
-end
-
--- Position du donneur de la quête : npc avec x et y, ou nil.
+-- Départ de la quête (QuestStart.of) | nil.
 local function giverOf(quest, data)
-    local npc = quest.starter and data.npc(quest.starter)
-    if npc and npc.mapID and npc.x and npc.y then
-        return npc
-    end
-    return nil
+    return ns.QuestStart.of(quest, data)
 end
 
 local function levelText(quest)
@@ -104,9 +98,10 @@ local function waypointOf(questID, quest, data)
     if not giver then
         return nil
     end
-    local name = ns.Names.npc(giver.id or quest.starter)
-    return { questID = questID, mapID = giver.mapID, x = giver.x, y = giver.y, title = ns.Names.quest(questID),
-        giver = name, npcID = giver.id or quest.starter }, giver
+    local x, y = ns.QuestStart.point(giver)
+    local name = ns.StartPresenter.label(giver.kind, giver.id, giver.npcID, giver.mapID)
+    return { questID = questID, mapID = giver.mapID, x = x, y = y, title = ns.Names.quest(questID),
+        giver = name, npcID = giver.npcID }, giver
 end
 
 -- Condition atteignable d'une quête (métier, réputation, sort) en texte | nil.
@@ -178,8 +173,7 @@ function DetailPresenter.build(questID, player, profile, data, opts)
         view.instanceColor = tagColor
     end
     if giver then
-        local giverName = ns.Names.npc(giver.id or quest.starter)
-        view.giverText = L.DETAIL_GIVER:format(giverName, ns.Names.zone(giver.mapID), coord(giver.x), coord(giver.y))
+        view.giverText = ns.StartPresenter.text(giver)
         view.waypoint, view.mapID = waypoint, giver.mapID
     end
     local start
@@ -187,9 +181,7 @@ function DetailPresenter.build(questID, player, profile, data, opts)
     if start then
         local startWaypoint, startGiver = waypointOf(start.questID, data.quest(start.questID), data)
         view.waypoint, view.mapID = startWaypoint, startGiver and startGiver.mapID or view.mapID
-        view.startText = startGiver and L.DETAIL_CHAIN_START:format(startWaypoint.title, L.DETAIL_GIVER:format(
-            startWaypoint.giver, ns.Names.zone(startGiver.mapID), coord(startGiver.x), coord(startGiver.y)))
-            or L.DETAIL_CHAIN_START:format(ns.Names.quest(start.questID), L.DETAIL_NO_GIVER)
+        view.startText = L.DETAIL_CHAIN_START:format(ns.Names.quest(start.questID), ns.StartPresenter.text(startGiver))
     end
     if quest.confidence == GUESSED_QUEST then
         view.badge, view.badgeColor = L.BADGE_UNCONFIRMED, ns.Theme.colors.warning
@@ -205,11 +197,12 @@ function DetailPresenter.pins(entries, data)
             local quest = data.quest(entry.questID)
             local giver = quest and giverOf(quest, data)
             if giver then
+                local x, y = ns.QuestStart.point(giver)
                 pins[#pins + 1] = {
                     questID = entry.questID,
                     mapID = giver.mapID,
-                    x = giver.x,
-                    y = giver.y,
+                    x = x,
+                    y = y,
                     itemID = entry.itemID,
                     delta = entry.delta,
                 }

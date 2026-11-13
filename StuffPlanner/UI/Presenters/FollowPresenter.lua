@@ -52,7 +52,7 @@ local function baseText(step, ctx)
         local objective = ctx.objective and ctx.objective(step.questID)
         return objective and L.FOLLOW_OBJECTIVE:format(objective) or L.FOLLOW_OBJECTIVE_ANY
     end
-    local name = step.npcID and ns.Names.npc(step.npcID)
+    local name = ns.StartPresenter.stepName(step)
     if step.kind == "pickup" then
         return name and L.FOLLOW_PICKUP:format(name) or L.FOLLOW_PICKUP_ANY
     end

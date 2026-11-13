@@ -77,6 +77,7 @@ Data\LiveItem.lua
 Engine\Scoring.lua
 Engine\Totals.lua
 Engine\Chains.lua
+Engine\QuestStart.lua
 Engine\FollowSteps.lua
 Engine\Distance.lua
 Engine\Travel.lua
@@ -131,6 +132,7 @@ UI\Presenters\InstanceListPresenter.lua
 UI\Presenters\GearAlternatives.lua
 UI\Presenters\GearPresenter.lua
 UI\Presenters\ProfilePresenter.lua
+UI\Presenters\StartPresenter.lua
 UI\Presenters\DetailPresenter.lua
 UI\Presenters\RoutePresenter.lua
 UI\Presenters\SessionPresenter.lua

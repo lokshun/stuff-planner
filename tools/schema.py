@@ -4,6 +4,7 @@ Définition unique des enregistrements positionnels de StuffPlanner_Data.
   FIELDS[table] -> noms des champs, dans l'ordre du tuple ; l'identifiant est la clé de la table Lua
   OPTIONAL[table] -> champs pouvant valoir nil
   SOURCES[nom] -> code entier du champ `source` (aucun texte dans la base)
+  START_KINDS[nom] -> code entier du type de départ d'une quête (`startKind`)
   ORIGIN_KINDS[nom] -> code entier du type d'origine d'un objet, 1re position d'une entrée d'`origins`
 classMask, raceMask : nil = aucune restriction. raceMask dépasse 32 bits : pas de bibliothèque bit.
 Lua lit ces positions dans ns.Schema, généré dans StuffPlanner_Data/Schema.lua : indice base 1.
@@ -23,11 +24,14 @@ Version 13 : `rares` ({npcID...} | nil) en fin d'instances : boss de `bosses` de
 Version 14 : conditions de faisabilité en fin de quests (Questie, nil si absentes) : `skill` {skillID, rang},
   `minRep`, `maxRep` {factionID, valeur}, `flags` (specialFlags : 1 répétable), `exclusive` {questID...},
   `maxLevel`, `spell` (signé), `parent`, `next` (questID). Liste noire et quêtes d'événement retirées.
+Version 15 : départ (T17.6, sources/quest_starts.py) : `startKind` (START_KINDS), `startID` (objet du monde, objet de sac
+  ou instanceID selon le type), `startMap`, `startX`, `startY` (fraction 0–1 | nil : centre de la carte) ;
+  `starter` = donneur placé, ou porteur de l'objet de départ. Noms des objets du monde : ObjectNames.
 quests.prereq : quêtes toutes requises ; un élément liste signifie « l'une de celles-ci ».
 Aucun nom de quête ou d'objet ici : ils viennent du client.
 """
 
-VERSION = 14
+VERSION = 15
 
 FIELDS = {
     "quests": (
@@ -57,6 +61,11 @@ FIELDS = {
         "spell",
         "parent",
         "next",
+        "startKind",
+        "startID",
+        "startMap",
+        "startX",
+        "startY",
     ),
     "items": (
         "quality",
@@ -80,12 +89,21 @@ FIELDS = {
 
 OPTIONAL = {
     "quests": frozenset({"mapID", "classMask", "raceMask", "forever", "starter", "instance", "ender", "objMap", "objX", "objY",
-                          "skill", "minRep", "maxRep", "flags", "exclusive", "maxLevel", "spell", "parent", "next"}),
+                          "skill", "minRep", "maxRep", "flags", "exclusive", "maxLevel", "spell", "parent", "next",
+                          "startKind", "startID", "startMap", "startX", "startY"}),
     "items": frozenset({"slot", "classMask", "icon", "forever"}),
     "origins": frozenset(),
     "instances": frozenset({"minLevel", "maxLevel", "reqLevel", "mapID", "size", "bosses", "rares"}),
     "npcs": frozenset(),
     "eraItems": frozenset(),
+}
+
+START_KINDS = {
+    "npc": 1,
+    "object": 2,
+    "item": 3,
+    "instance": 4,
+    "zone": 5,
 }
 
 ORIGIN_KINDS = {

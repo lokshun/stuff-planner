@@ -1,14 +1,15 @@
 -- CONTRAT
 -- Étapes du suivi d'une suite de quêtes : prendre, faire l'objectif, rendre. Pur : aucun appel à l'API WoW.
--- Charger après Engine/Chains.lua.
+-- Charger après Engine/Chains.lua et Engine/QuestStart.lua.
 --   build(finalQuestID, data, state, level) -> view | nil (quête inconnue) | nil, "CYCLE", {questID...}
 --     quêtes = Chains.remaining(final, data, state.isDone, state.isAllowed) (faites retirées) ;
 --     state = {isDone, isInLog, isComplete, isAllowed?} : fonctions(questID) -> bool ;
 --     level : niveau du joueur (nil : ignoré)
 --     view = {final, steps = {step...}, current = indice | nil, finished = bool (plus rien à faire)}
 --     step = {questID, kind = "pickup" | "objective" | "turnin", state = "done" | "current" | "todo",
---             npcID?, mapID?, x?, y?, blocked = "prereq" | "level" | nil}
---       pickup : donneur (quest.starter, data.npc) ; objective : quest.objMap/objX/objY ;
+--             npcID?, mapID?, x?, y?, blocked = "prereq" | "level" | nil, startKind?, startID?}
+--       pickup : départ (QuestStart.of : npcID = quest.starter, startKind, startID ; sans x, y : centre de
+--         la carte) ; objective : quest.objMap/objX/objY ;
 --       turnin : PNJ de rendu (quest.ender, data.npc) ; sans position : mapID, x, y nil.
 --     Au journal : prise faite ; complète (isComplete) : objectif fait aussi. Hors journal : prise
 --       bloquée si un prérequis manque (« prereq ») ou si reqLevel > level (« level »).
@@ -31,6 +32,16 @@ local function npcStep(questID, kind, npcID, data)
     return step
 end
 
+local function pickupStep(quest, data)
+    local step = { questID = quest.id, kind = "pickup", npcID = quest.starter, state = "todo" }
+    local start = ns.QuestStart.of(quest, data)
+    if start then
+        step.mapID, step.startKind, step.startID = start.mapID, start.kind, start.id
+        step.x, step.y = ns.QuestStart.point(start)
+    end
+    return step
+end
+
 local function objectiveStep(quest)
     local step = { questID = quest.id, kind = "objective", state = "todo" }
     if quest.objMap and quest.objX and quest.objY then
@@ -41,7 +52,7 @@ end
 
 -- Étapes d'une quête, marquées ; renvoie aussi l'indice local de l'étape à faire (nil si bloquée).
 local function questSteps(quest, data, state, level)
-    local pickup = npcStep(quest.id, "pickup", quest.starter, data)
+    local pickup = pickupStep(quest, data)
     local objective = objectiveStep(quest)
     local turnin = npcStep(quest.id, "turnin", quest.ender, data)
     local steps = { pickup, objective, turnin }

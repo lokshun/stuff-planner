@@ -92,7 +92,7 @@ local function stepLabel(step)
     if step.kind == "objective" then
         return objectiveText(step.questID)
     end
-    local name = step.npcID and ns.Names.npc(step.npcID)
+    local name = ns.StartPresenter.stepName(step)
     local labels = LABELS[step.kind]
     local label = name and labels[1]:format(name) or labels[2]
     if step.blocked == "level" then

@@ -18,7 +18,7 @@
     client sans fichier de noms (triées) : seules à charger le fichier anglais de repli
   TOC : chaque fichier de noms suivi de [AllowLoadTextLocale <langue>] (anglais : fallback_locales), le client
     ne compile que ceux de sa langue ; la garde GetLocale() des fichiers reste (client qui ignorerait la directive)
-  emit_names(var, locale, names, fallback=False) -> <var>_<langue>.lua (var : NpcNames, QuestNames, ItemNames) :
+  emit_names(var, locale, names, fallback=False) -> <var>_<langue>.lua (var : Npc/Quest/Item/ObjectNames) :
     ns.<var> = {[id]="nom"} si GetLocale() vaut la langue ; fallback (anglais, chargé après les autres) : si
     aucune autre ne l'a rempli. emit_npc_names(locale, names, fallback) = emit_names("NpcNames", ...)
   emit_overlay(overlay) -> Overlay.lua : ns.Overlay = {quests={[id]={champ=valeur}}} en tables Lua (lues par
@@ -26,7 +26,7 @@
     ValueError si table ou champ absent de schema.FIELDS
   emit_neighbors(neighbors) -> Neighbors.lua : ns.Neighbors = {[uiMapID]={uiMapID...}} (Data.neighbors)
   write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None,
-    neighbors=None) -> écrit tous les fichiers, mentions de licence comprises ; EraItems.lua et Neighbors.lua
+    neighbors=None, object_names=None) -> écrit tous les fichiers, mentions de licence comprises ; EraItems.lua et Neighbors.lua
     toujours écrits (vides sans données) ; *_names = {langue: {id: nom}}, "enUS" en repli ; overlay vide par défaut
 """
 
@@ -274,9 +274,8 @@ def emit_toc(interface, name_files=(), flavor=None):
     return "\n".join(lines) + "\n"
 
 
-def write_addon(
-    out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None, neighbors=None
-):
+def write_addon(out_dir, tables, interfaces, npc_names=None, overlay=None, quest_names=None, item_names=None,
+                neighbors=None, object_names=None):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     files = {
@@ -289,7 +288,8 @@ def write_addon(
     for table, records in tables.items():
         files[f"{lua_name(table)}.lua"] = emit_table(table, records)
     name_files = []
-    for var, by_locale in (("NpcNames", npc_names), ("QuestNames", quest_names), ("ItemNames", item_names)):
+    named = (("NpcNames", npc_names), ("QuestNames", quest_names), ("ItemNames", item_names), ("ObjectNames", object_names))
+    for var, by_locale in named:
         for locale, names in (by_locale or {}).items():
             files[f"{var}_{locale}.lua"] = emit_names(var, locale, names, fallback=locale == "enUS")
         name_files += _name_files(var, by_locale)

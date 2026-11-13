@@ -1,6 +1,7 @@
 -- CONTRAT
 -- Noms affichables, lus dans le client : la base n'en stocke aucun. Charger après Compat.lua.
---   ns.Names.quest(id), item(id), npc(id), zone(mapID), spell(id), instance(id) -> string ;
+--   ns.Names.quest(id), item(id), npc(id), zone(mapID), spell(id), instance(id), object(id) -> string ;
+--     objet du monde (départ de quête) : base seule (Data.baseName), repli « Object #id »
 --     quête et objet : client > base (Data.baseName, langue du client) > repli « Quest #id » (ns.L)
 --   ns.Names.itemIcon(id, icon?) -> icon de la base, sinon celle du client, si ce n'est pas le point
 --     d'interrogation (objet masqué pas encore reçu) | nil
@@ -31,7 +32,7 @@ ns.Names = Names
 
 local FALLBACKS = {
     quest = "NAME_QUEST", item = "NAME_ITEM", npc = "NAME_NPC", zone = "NAME_ZONE",
-    spell = "NAME_SPELL", instance = "NAME_INSTANCE", faction = "NAME_FACTION",
+    spell = "NAME_SPELL", instance = "NAME_INSTANCE", faction = "NAME_FACTION", object = "NAME_OBJECT",
 }
 local LOOKUPS = {
     quest = Compat.GetQuestTitle,
@@ -54,10 +55,10 @@ local PROFESSION_SPELLS = {
     [186] = 2575, [197] = 3908, [202] = 4036, [333] = 7411, [356] = 7620, [393] = 8613,
 }
 local REQUESTS = { quest = Compat.RequestQuestData, item = Compat.RequestItemData }
-local BASE_NAMES = { quest = true, item = true }
+local BASE_NAMES = { quest = true, item = true, object = true }
 local UNKNOWN_ICON = 134400
 
-local known = { quest = {}, item = {}, npc = {}, zone = {}, spell = {}, instance = {}, faction = {} }
+local known = { quest = {}, item = {}, npc = {}, zone = {}, spell = {}, instance = {}, faction = {}, object = {} }
 local waiting = { quest = {}, item = {}, npc = {}, zone = {}, spell = {}, instance = {} }
 
 local function lookup(kind, id)
@@ -112,6 +113,10 @@ end
 
 function Names.instance(id)
     return nameOf("instance", id)
+end
+
+function Names.object(id)
+    return nameOf("object", id)
 end
 
 function Names.profession(skillLine)

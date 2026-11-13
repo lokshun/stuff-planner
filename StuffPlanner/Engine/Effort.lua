@@ -1,14 +1,15 @@
 -- CONTRAT
 -- Effort d'une source en secondes (règles décrites dans l'en-tête de Planner.lua : quête, donjon, raid, monde,
 -- artisanat, trajet). Pur : aucun appel à l'API WoW. Charger après Engine/Feasible.lua, Engine/Chains.lua et
--- Engine/Distance.lua, avant Engine/Planner.lua.
+-- Engine/Distance.lua et Engine/QuestStart.lua, avant Engine/Planner.lua.
 --   ns.Effort.of(source, player, data, opts, tuning) -> seconds, xp, hops, steps, trip, place, condition | nil
 --     opts = {isDone, isInLog, includeRaids, travel, reference} ; tuning = constantes de Planner.TUNING.
 --     Quête : Feasible.check sur la quête et chaque étape restante ; une impossible écarte la source,
 --     chaque atteignable ajoute CONDITION, condition = {reason, questID} de la première (nil sinon) ;
 --     opts.reference : classe et race seules (Masks.allows).
 --     xp : étapes non grises (quête), 0 sinon ; hops : zones vers la source | nil ; steps : étapes restantes
---     (quête) ; trip : part du trajet (nil pour l'artisanat) ; place : donneur de la 1re étape (quête).
+--     (quête) ; trip : part du trajet (nil pour l'artisanat) ; place : départ de la 1re étape (QuestStart.of,
+--     quête) ; départ connu sans position exacte (zone, donjon, objet non placé) : + UNPLACED.
 
 local _, ns = ...
 
@@ -62,10 +63,10 @@ local function travel(hops, tuning, opts, target)
     return (hops or 0) * tuning.TRAVEL * factor
 end
 
--- Donneur de la première étape restante, s'il est placé.
+-- Départ de la première étape restante (QuestStart) | nil.
 local function starterOf(steps, data)
     local first = data.quest(steps[1])
-    return first and first.starter and data.npc and data.npc(first.starter) or nil
+    return first and ns.QuestStart.of(first, data) or nil
 end
 
 -- Mode référence (paliers passés, « comme si on y était ») : classe et race seules.
@@ -112,6 +113,9 @@ local function questEffort(source, player, data, opts, tuning)
     local hops = hopsTo(quest.mapID, player, data, tuning)
     local starter = starterOf(steps, data)
     local trip = travel(hops, tuning, opts, starter)
+    if starter and not starter.exact then
+        extra = extra + tuning.UNPLACED
+    end
     return #steps * tuning.QUEST_STEP + extra + trip, questXP(steps, player, data), hops, #steps, trip, starter,
         condition
 end

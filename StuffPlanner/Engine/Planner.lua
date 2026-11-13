@@ -11,7 +11,7 @@
 --     remplace les constantes de Planner.TUNING (Calibration.tuning : mesures du joueur).
 --     opts.travel(mapID, x, y) -> secondes | nil : trajet du joueur jusqu'au donneur de la première étape
 --     restante (data.npc, x, y en 0–1) ; nil, absent ou sans donneur : hops × TRAVEL.
---     effort = seconds (s) ; trip = part du trajet dans seconds, place = donneur de la 1re étape (data.npc)
+--     effort = seconds (s) ; trip = part du trajet dans seconds, place = départ de la 1re étape (QuestStart.of)
 --     (Session ; nil hors secondes, artisanat, place nil hors quête). opts.step() appelé après chaque candidat
 --     (coroutine.yield pour étaler le calcul sur plusieurs images) ; opts.pause() appelé une fois avant
 --     le tri final (yield sans condition : le tri ne partage pas son image).
@@ -62,6 +62,7 @@ Planner.TUNING = {
     CRAFT = 120,
     CRAFT_UNKNOWN = 3600,
     CONDITION = 3600,
+    UNPLACED = 300, -- départ de quête sans position exacte (zone, donjon) : après une source placée
     TRAVEL_FACTOR = 1, -- trajet réel / prévu (Calibration)
 }
 

@@ -5,7 +5,8 @@ Valide les enregistrements de la base avant écriture ; aucune lecture de fichie
   report_lines(findings) -> une ligne par catégorie
 Bloquant : doublons, origine sans cible, prérequis négatif ou sur soi-même, niveau < 1, conditions de quête mal
 formées (paires d'entiers, quêtes liées > 0 et ≠ soi, maxLevel ≥ 1), quête d'événement restante, niveaux
-d'instance inversés, boss en double dans l'ordre, donneur ou PNJ de rendu absent de `npcs`, position ou lieu d'objectif hors de [0, 1]. Le reste signale des manques connus des sources, sans arrêter la construction.
+d'instance inversés, boss en double dans l'ordre, donneur ou PNJ de rendu absent de `npcs`, position ou lieu d'objectif hors de [0, 1],
+départ de quête mal formé (startKind hors schema.START_KINDS, startX et startY ensemble, dans [0, 1], avec startMap). Le reste signale des manques connus des sources, sans arrêter la construction.
 """
 
 from collections import Counter
@@ -177,6 +178,16 @@ def _npc_checks(tables):
         q["id"] for q in tables["quests"] if q.get("ender") is not None and q["ender"] not in npcs
     ]
     yield "lieux d'objectif invalides", True, [q["id"] for q in tables["quests"] if not _objective_ok(q)]
+    yield "départs de quête invalides", True, [q["id"] for q in tables["quests"] if not _start_ok(q)]
+
+
+def _start_ok(quest):
+    if quest.get("startKind") not in (None, *schema.START_KINDS.values()):
+        return False
+    x, y = quest.get("startX"), quest.get("startY")
+    if x is None and y is None:
+        return True
+    return None not in (x, y, quest.get("startMap")) and 0 <= x <= 1 and 0 <= y <= 1
 
 
 def _objective_ok(quest):

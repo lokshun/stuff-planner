@@ -2,13 +2,14 @@
 Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
   build(source_dir, out_dir, interfaces, quests=None, items=None, recipes=None, crafts=None, drops=(), instances=(),
         npcs=(), npc_names=None, report=None, overlay=None, era_items=(), quest_names=None, item_names=None,
-        neighbors=None, blacklist=())
+        neighbors=None, blacklist=(), object_names=None)
     -> {"quests": n, "items": n, "origins": n, "instances": n, "npcNames": n, "questNames": n, "itemNames": n, "eraItems": n,
         "instanceQuests": n, "worldDrops": n, "memory": octets,
-        "eraMemory": octets, "blacklisted": n, "events": n} ; blacklist ({questID}, questie.load_blacklist) et
+        "eraMemory": octets, "blacklisted": n, "events": n, "starts": {type: n} (quêtes à récompense par type de
+        départ, sources/quest_starts.py), "unknownStarts": [questID...] (à récompense, sans aucun lieu)} ; blacklist ({questID}, questie.load_blacklist) et
     quêtes d'événement (specialFlags 2) retirées avant tout ;
     npc_names ({langue: {npcID: nom}}) réduit aux donneurs, aux boss et aux créatures du butin de monde, un fichier par langue ; quest_names,
-    item_names (même forme) réduits aux quêtes et objets émis : repli des noms du client ; `quests` et `items`
+    item_names (même forme) réduits aux quêtes et objets émis, object_names aux objets du monde de départ : repli des noms du client ; `quests` et `items`
     remplacent les fichiers de source_dir ; overlay ({"quests": {id: champs}}, tools/overlay.json
     de merge_exports.py) devient Overlay.lua, sa table `world` des origines (precompute.world_drops sur neighbors) ; `origins` est précalculé ; seuls les objets ayant une
     origine sont émis ; era_items (precompute.era_differences) réduit aux objets émis sans `forever`, écrit
@@ -19,6 +20,8 @@ Sources (cache dans tools/cache) : QuestieDB, wago.tools (Forever et Classic Era
 CMaNGOS classic-db puis ForeverChanges (répartition fixes / choix des récompenses de quête).
 Quêtes en liste noire Questie ou d'événement (specialFlags 2) retirées (compteur affiché).
 Quêtes absentes de la base Classic de QuestieDB et objets absents d'ItemSparse Classic Era : forever = 1.
+Départs de quête : sources/quest_starts.py, corrections à la main dans tools/starter_fixes.json (prioritaires) ;
+quêtes à récompense sans aucun lieu listées dans build/unknown_starts.txt.
 Usage : python tools/build_db.py ; affiche les comptes en une ligne.
 """
 
@@ -33,7 +36,9 @@ import merge_exports
 import precompute
 import schema
 import validate_db
-from sources import cmangos, foreverchanges, norgannon, quest_steps, questie, spyglass, wago, wago_era, zones
+from sources import (
+    cmangos, foreverchanges, norgannon, quest_starts, quest_steps, questie, spyglass, wago, wago_era, zones,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCES = ROOT / "tools" / "tests" / "fixtures"
@@ -41,6 +46,8 @@ CACHE_DIR = ROOT / "tools" / "cache"
 ADDON_DIR = ROOT / "StuffPlanner"
 OUT_DIR = ROOT / "StuffPlanner_Data"
 OVERLAY = ROOT / "tools" / "overlay.json"
+STARTER_FIXES = ROOT / "tools" / "starter_fixes.json"
+UNKNOWN_STARTS = ROOT / "build" / "unknown_starts.txt"
 TABLES = ("quests", "items")
 
 
@@ -92,6 +99,7 @@ def build(
     item_names=None,
     neighbors=None,
     blacklist=(),
+    object_names=None,
 ):
     tables = {}
     for table in TABLES:
@@ -124,7 +132,10 @@ def build(
     names = _wanted_names(npc_names, starters | _bosses(tables["origins"]))
     quest_names = _wanted_names(quest_names, {quest["id"] for quest in tables["quests"]})
     item_names = _wanted_names(item_names, {item["id"] for item in tables["items"]})
-    emit_lua.write_addon(out_dir, {**tables, "eraItems": era}, interfaces, names, overlay, quest_names, item_names, neighbors)
+    object_names = _wanted_names(object_names, quest_starts.object_ids(tables["quests"]))
+    emit_lua.write_addon(
+        out_dir, {**tables, "eraItems": era}, interfaces, names, overlay, quest_names, item_names, neighbors, object_names
+    )
     counts = {table: len(records) for table, records in tables.items()}
     counts["eraItems"] = len(era)
     counts["blacklisted"], counts["events"] = blacklisted, events
@@ -138,6 +149,9 @@ def build(
     counts["questNames"] = len(quest_names.get("enUS", {}))
     counts["itemNames"] = len(item_names.get("enUS", {}))
     counts["memory"] = lua_memory.estimate(tables)
+    rewarded = [quest for quest in tables["quests"] if quest.get("rewards") or quest.get("choices")]
+    counts["starts"] = quest_starts.counts(rewarded)
+    counts["unknownStarts"] = quest_starts.unknown(rewarded)
     return counts
 
 
@@ -166,7 +180,6 @@ def load_sources(world_items=()):
         foreverchanges.fetch(CACHE_DIR / "foreverchanges")
     ))
     quests = quest_steps.add_steps(quests, questie_dir)
-    npcs = questie.load_npcs(questie_dir, quest_steps.npc_ids(quests))
     wago_dir = wago.fetch(CACHE_DIR / "wago")
     era_dir = wago_era.fetch(CACHE_DIR / "wago_era")
     spy_dir = spyglass.fetch(CACHE_DIR / "spyglass")
@@ -197,22 +210,26 @@ def load_sources(world_items=()):
     hidden = precompute.hidden_items(
         wanted - known, wago.load_bases(wago_dir), scan, era_items
     )
+    quests = precompute.mark_instances(
+        precompute.mark_forever(quests, questie.load_classic_quest_ids(questie_dir)),
+        questie.load_quest_areas(questie_dir),
+        norgannon.area_instances(norgannon_dir),
+        instances,
+    )
+    fixes = json.loads(STARTER_FIXES.read_text(encoding="utf-8")) if STARTER_FIXES.exists() else None
+    quests = quest_starts.add_starts(quests, questie_dir, norgannon.area_instances(norgannon_dir), instances, fixes)
     return {
-        "quests": precompute.mark_instances(
-            precompute.mark_forever(quests, questie.load_classic_quest_ids(questie_dir)),
-            questie.load_quest_areas(questie_dir),
-            norgannon.area_instances(norgannon_dir),
-            instances,
-        ),
+        "quests": quests,
         "items": precompute.mark_forever(items + hidden, set(era_items)),
         "recipes": wago.load_recipes(wago_dir),
         "crafts": wago.load_crafts(wago_dir),
         "drops": drops,
         "instances": list(instances.values()),
-        "npcs": npcs,
+        "npcs": questie.load_npcs(questie_dir, quest_steps.npc_ids(quests)),
         "npc_names": questie.load_npc_names(questie_dir),
         "quest_names": questie.load_names(questie_dir, "quest"),
         "item_names": questie.load_names(questie_dir, "item"),
+        "object_names": questie.load_names(questie_dir, "object"),
         "neighbors": zones.neighbors(questie.area_map(questie_dir)),
         "blacklist": questie.load_blacklist(questie_dir),
         "era_items": precompute.era_differences(forever_items, era_items, scan),
@@ -240,6 +257,11 @@ def main():
         f"{counts['worldDrops']} butins de monde, "
         f"noms de base : {counts['questNames']} quêtes, {counts['itemNames']} objets"
     )
+    starts = ", ".join(f"{count} {kind}" for kind, count in sorted(counts["starts"].items()))
+    unknown = counts["unknownStarts"]
+    UNKNOWN_STARTS.parent.mkdir(exist_ok=True)
+    UNKNOWN_STARTS.write_text("".join(f"{quest_id}\n" for quest_id in unknown), encoding="utf-8")
+    print(f"Départs des quêtes à récompense : {starts} ; {len(unknown)} sans lieu ({UNKNOWN_STARTS.name})")
     print(f"Mémoire estimée en jeu : {counts['memory'] // 1024} Ko (Lua 5.1, 64 bits), EraItems {counts['eraMemory'] // 1024} Ko")
     return 0
 
