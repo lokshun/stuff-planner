@@ -55,8 +55,8 @@ local function work(player, profile, travel)
     local list = candidates or ns.Planner.candidates(itemIDs, data, tick)
     candidates = list
     local tuning = tuningOf()
-    local opts = { isDone = ns.Compat.IsQuestCompleted, step = tick, pause = coroutine.yield, includeRaids = true,
-        travel = travel, tuning = tuning, fallback = true }
+    local opts = { isDone = ns.Compat.IsQuestCompleted, isInLog = ns.Compat.IsOnQuest, step = tick,
+        pause = coroutine.yield, includeRaids = true, travel = travel, tuning = tuning, fallback = true }
     local rows = ns.Planner.rank(list, player, profile, data, opts)
     local reference
     local first = ns.Tiers.indexOf(player.level)

@@ -111,7 +111,7 @@ end
 local function chainRows(questID, data, player, opts)
     local isAllowed = player and function(id)
         local step = data.quest(id)
-        return not step or ns.Scoring.allows(step, player)
+        return not step or ns.Feasible.allows(step, player, opts.isDone, opts.isInLog)
     end
     local steps = ns.Chains.remaining(questID, data, opts.isDone, isAllowed or nil)
     if not steps or #steps < 2 then

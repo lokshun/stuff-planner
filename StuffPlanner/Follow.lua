@@ -1,6 +1,6 @@
 -- CONTRAT
 -- Suivi d'une suite de quêtes : la flèche (ns.Waypoint) passe seule d'étape en étape (Engine/FollowSteps).
--- Charger après Core.lua, CompatQuest.lua, Engine/Masks.lua, Engine/FollowSteps.lua, Data/Names.lua et
+-- Charger après Core.lua, CompatQuest.lua, Engine/Feasible.lua, Engine/FollowSteps.lua, Data/Names.lua et
 -- Integrations/TomTom.lua.
 --   ns.Follow.start(questID) -> suit la suite qui mène à questID (quête finale) ; quête inconnue : rien
 --   ns.Follow.stop() -> fin du suivi, repère posé retiré ; SP_FOLLOW_CHANGED sans argument (suite terminée :
@@ -48,7 +48,7 @@ end
 local function playerInfo()
     local _, class = UnitClass("player")
     local _, _, raceID = UnitRace("player")
-    return { class = class, raceID = raceID, faction = UnitFactionGroup("player") }
+    return { class = class, raceID = raceID, faction = UnitFactionGroup("player"), level = UnitLevel("player") }
 end
 
 local function state()
@@ -60,7 +60,7 @@ local function state()
         isComplete = Compat.IsQuestComplete,
         isAllowed = function(questID)
             local quest = ns.Data.quest(questID)
-            return quest == nil or ns.Masks.allows(quest, player)
+            return quest == nil or ns.Feasible.allows(quest, player, Compat.IsQuestCompleted, Compat.IsOnQuest)
         end,
     }
 end

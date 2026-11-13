@@ -1,6 +1,6 @@
 -- CONTRAT
 -- Liste cible : objets épinglés par le joueur, quel que soit leur gain. Pur : aucun appel à l'API WoW.
--- Charger après Engine/Planner.lua et Engine/Chains.lua (ns.Scoring lu à l'appel).
+-- Charger après Engine/Planner.lua et Engine/Chains.lua (ns.Feasible lu à l'appel : étapes impossibles écartées).
 --   ns.Wishlist.status(itemIDs, player, data, opts?) -> view
 --     opts = {isDone(questID), owned(itemID) -> bool (sacs, banque), travel, tuning} (comme Planner.rank) ;
 --     view = {entries = {entry...} (ordre de itemIDs, doublons retirés), progress = {done, total},
@@ -27,7 +27,7 @@ end
 local function questSteps(source, player, data, opts)
     return ns.Chains.remaining(source.id, data, opts.isDone, function(id)
         local step = data.quest(id)
-        return not step or ns.Scoring.allows(step, player)
+        return not step or ns.Feasible.allows(step, player, opts.isDone)
     end)
 end
 

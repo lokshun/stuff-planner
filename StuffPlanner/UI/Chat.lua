@@ -1,9 +1,11 @@
 -- CONTRAT
--- Sorties texte dans la fenêtre de discussion. Charger après Scoring.lua, Chains.lua, Names.lua, Manager.lua.
+-- Sorties texte dans la fenêtre de discussion. Charger après Scoring.lua, Feasible.lua, Chains.lua, Names.lua,
+-- Manager.lua.
 --   ns.Chat.bestInZone(player, profile, data, opts) -> {{itemID, questID, delta, questState}...}
 --     récompenses et choix des quêtes de player.mapID (data.questsInMap), gain abs > 0, triées par
 --     gain décroissant puis itemID ; un objet n'apparaît qu'une fois (première quête par id) ;
---     quêtes exclues : opts.isDone(questID) vrai, reqLevel > player.level + 3 ;
+--     quêtes exclues : opts.isDone(questID) vrai, reqLevel > player.level + 3, impossibles (Feasible.allows,
+--     opts.isInLog pour les exclusives en cours) ;
 --     opts.limit (5 par défaut) ; opts.delta(itemID) remplace Scoring.delta (Results).
 --     opts.fallback : ensuite, par emplacement (anneaux, bijoux : un groupe) sans gain > 0, l'entrée de plus
 --     fort delta.fallback (profil personnalisé, Scoring) copiée avec delta = Scoring.fallbackOf, gain décroissant.
@@ -39,8 +41,8 @@ local LEVEL_WINDOW = 3
 local INSTANCE_WINDOW = 10
 local NAME_TIMEOUT = 2
 
-local function questAllowed(quest, player, isDone)
-    if not quest or (isDone and isDone(quest.id)) then
+local function questAllowed(quest, player, isDone, isInLog)
+    if not quest or (isDone and isDone(quest.id)) or not ns.Feasible.allows(quest, player, isDone, isInLog) then
         return false
     end
     return not (quest.reqLevel and player.level and quest.reqLevel > player.level + LEVEL_WINDOW)
@@ -122,7 +124,7 @@ function Chat.bestInZone(player, profile, data, opts)
     local candidates, seen = {}, {}
     for _, questID in ipairs(player.mapID and data.questsInMap(player.mapID) or {}) do
         local quest = data.quest(questID)
-        if questAllowed(quest, player, opts.isDone) then
+        if questAllowed(quest, player, opts.isDone, opts.isInLog) then
             local state = ns.Chains.questState(quest, player.level, opts)
             addCandidates(candidates, seen, quest, quest.rewards, state)
             addCandidates(candidates, seen, quest, quest.choices, state)

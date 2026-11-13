@@ -29,7 +29,7 @@
 --   dependsOn(itemID, data) -> {slot...} : emplacements portés dont dépend delta (anneaux,
 --     bijoux : les deux ; armes, boucliers, mains gauches : 16 et 17) ; {} si inconnu.
 --   PLAYER_TOTALS = {[clé]=champ de l'instantané} : totaux du joueur pris en base des plafonds (toucher)
---   hasClass, hasRace, allows : alias de ns.Masks (Engine/Masks.lua).
+--   hasClass, hasRace : alias de ns.Masks (Engine/Masks.lua) ; faisabilité d'une quête : ns.Feasible.
 
 local _, ns = ...
 
@@ -111,7 +111,6 @@ end
 
 Scoring.hasClass = ns.Masks.hasClass
 Scoring.hasRace = ns.Masks.hasRace
-Scoring.allows = ns.Masks.allows
 
 local function equippedStats(slot, player, data)
     local stats = player.equippedStats and player.equippedStats[slot]

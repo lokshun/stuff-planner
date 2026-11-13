@@ -42,6 +42,7 @@ CompatItem.lua
 CompatBags.lua
 CompatAuction.lua
 CompatQuest.lua
+CompatPlayer.lua
 CompatMap.lua
 CompatList.lua
 CompatTravel.lua
@@ -70,6 +71,7 @@ Data\ItemProbe.lua
 Data\QuestProbe.lua
 Engine\Proficiency.lua
 Engine\Masks.lua
+Engine\Feasible.lua
 Engine\ItemLink.lua
 Data\LiveItem.lua
 Engine\Scoring.lua

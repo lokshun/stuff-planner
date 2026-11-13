@@ -26,7 +26,9 @@
 --   quête, entrée de l'instance (donjon, raid), carte du butin (monde, opts.travel vers x, y s'ils sont connus) ;
 --   0 et hops nil si l'une est inconnue ou pour l'artisanat.
 -- Effort : quête = étapes restantes (Chains.steps) × QUEST_STEP + trajet ; écartée si faite, en cycle,
---   inconnue, d'une autre classe ou race (Scoring.allows) ;
+--   inconnue, impossible (Feasible.check sur la quête et ses étapes : classe, race, niveau max, exclusive,
+--   suivante faite...) ; + CONDITION par étape à condition atteignable (métier, réputation, sort), raison
+--   de la première dans la ligne (condition, parcours normal) ; opts.isInLog (exclusives en cours) ;
 --   alternative de prérequis d'une autre race écartée (Chains, isAllowed).
 --   Donjon, raid = DUNGEON_RUN, RAID_RUN × 100 / chance (DEFAULT_CHANCE sans taux, MIN_CHANCE au
 --   moins) + trajet ; monde = WORLD_KILL × 100 / chance + trajet ;
@@ -45,7 +47,7 @@ local MAX_LEVEL = 60
 
 -- Secondes, provisoires : quête (prise, objectif, rendu sur place) 7 min, zone traversée 3 min
 -- (Travel.TUNING.zoneSeconds), donjon 50 min, raid 3 h, créature du butin de monde 3 min, artisanat 2 min,
--- métier à monter 1 h.
+-- métier à monter 1 h, condition atteignable d'une étape (métier, réputation, sort) 1 h.
 Planner.TUNING = {
     LIFESPAN = 8,
     ALPHA = 0.1,
@@ -59,6 +61,7 @@ Planner.TUNING = {
     MIN_CHANCE = 1,
     CRAFT = 120,
     CRAFT_UNKNOWN = 3600,
+    CONDITION = 3600,
     TRAVEL_FACTOR = 1, -- trajet réel / prévu (Calibration)
 }
 
@@ -116,14 +119,16 @@ local function evaluate(candidate, delta, player, data, opts, tuning)
     if not delta or delta.abs <= 0 then
         return nil
     end
-    local effort, xp, hops, steps, trip, place = ns.Effort.of(candidate.source, player, data, opts, tuning)
+    local effort, xp, hops, steps, trip, place, condition = ns.Effort.of(candidate.source, player, data, opts,
+        tuning)
     if not effort or effort <= 0 then
         return nil
     end
     local level = obtainLevel(data.item(candidate.itemID), candidate.source, data)
     local gain = delta.abs * lifetime(level, player, tuning)
     return { effort = effort, seconds = effort, xp = xp, hops = hops, steps = steps, level = level,
-        priority = (gain + tuning.ALPHA * xp) / (effort / 60), trip = trip, place = place, delta = delta }
+        priority = (gain + tuning.ALPHA * xp) / (effort / 60), trip = trip, place = place, delta = delta,
+        condition = condition }
 end
 
 -- Ligne d'un candidat en mode référence ; nil si écarté.
@@ -160,7 +165,8 @@ function Planner.rank(candidates, player, profile, data, opts)
     opts = opts or {}
     local tuning = tuningOf(opts)
     if opts.reference then
-        opts.effortOpts = { isDone = neverDone, includeRaids = opts.includeRaids, travel = opts.travel }
+        opts.effortOpts = { isDone = neverDone, includeRaids = opts.includeRaids, travel = opts.travel,
+            reference = true }
     end
     local best, deltas = {}, {}
     for _, candidate in ipairs(candidates) do

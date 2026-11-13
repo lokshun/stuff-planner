@@ -1,7 +1,8 @@
 -- CONTRAT
--- Instantané du personnage et signal de changement. Charger après Core.lua, Compat.lua, CompatQuest.lua.
+-- Instantané du personnage et signal de changement. Charger après Core.lua, Compat*.lua.
 --   ns.Player.snapshot() -> {class, race, raceID, faction, level, mapID, equipped={[slot]=itemID},
---     spellHit, meleeHit, avoidCrit, professions={[id]=skill}} ; class et race en jetons anglais, raceID du client ;
+--     spellHit, meleeHit, avoidCrit, professions={[id]=skill}, reputations={[factionID]=valeur}, knowsSpell}
+--     (Compat.GetReputations, Compat.IsSpellKnown) ; class et race en jetons anglais, raceID du client ;
 --     avoidCrit = % de critiques subis en moins (StatValue.critAvoidance, Compat.GetDefense) ;
 --     mapID nil si carte inconnue ; toucher en points de pourcentage
 --   equippedStats={[slot]={[StatKey]=value}} : objets portés absents de la base ou à suffixe aléatoire
@@ -12,7 +13,7 @@
 --   vide) de chaque objet porté ; égale tant que rien de ce qui compte pour les gains ne change.
 -- Message SP_PLAYER_CHANGED, sans argument, regroupé sur niveau, zone et équipement, émis seulement si la
 -- signature a changé depuis le dernier message (sous-zone sans changement de carte : rien), jamais en
--- combat (signature lue à l'envoi). Les changements de métier n'émettent rien.
+-- combat (signature lue à l'envoi). Les changements de métier et de réputation n'émettent rien.
 -- Message SP_QUEST_LOG_CHANGED, sans argument : quêtes du journal changées (Compat.QuestLogIDs,
 -- relu sur QUEST_LOG_UPDATE regroupé sur 1 s : prise, abandon, quête rendue ; pas les objectifs),
 -- jamais émis en combat.
@@ -120,6 +121,8 @@ function Player.snapshot()
         meleeHit = meleeHit,
         avoidCrit = ns.StatValue.critAvoidance(Compat.GetDefense(), UnitLevel("player")),
         professions = readProfessions(),
+        reputations = Compat.GetReputations(),
+        knowsSpell = Compat.IsSpellKnown,
     }
 end
 

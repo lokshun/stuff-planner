@@ -1,9 +1,12 @@
 -- CONTRAT
 -- Effort d'une source en secondes (règles décrites dans l'en-tête de Planner.lua : quête, donjon, raid, monde,
--- artisanat, trajet). Pur : aucun appel à l'API WoW. Charger après Engine/Scoring.lua, Engine/Chains.lua et
+-- artisanat, trajet). Pur : aucun appel à l'API WoW. Charger après Engine/Feasible.lua, Engine/Chains.lua et
 -- Engine/Distance.lua, avant Engine/Planner.lua.
---   ns.Effort.of(source, player, data, opts, tuning) -> seconds, xp, hops, steps, trip, place | nil (écartée)
---     opts = {isDone, includeRaids, travel} ; tuning = constantes de Planner.TUNING (déjà fusionnées).
+--   ns.Effort.of(source, player, data, opts, tuning) -> seconds, xp, hops, steps, trip, place, condition | nil
+--     opts = {isDone, isInLog, includeRaids, travel, reference} ; tuning = constantes de Planner.TUNING.
+--     Quête : Feasible.check sur la quête et chaque étape restante ; une impossible écarte la source,
+--     chaque atteignable ajoute CONDITION, condition = raison de la première (nil sinon) ;
+--     opts.reference : classe et race seules (Masks.allows).
 --     xp : étapes non grises (quête), 0 sinon ; hops : zones vers la source | nil ; steps : étapes restantes
 --     (quête) ; trip : part du trajet (nil pour l'artisanat) ; place : donneur de la 1re étape (quête).
 
@@ -65,23 +68,51 @@ local function starterOf(steps, data)
     return first and first.starter and data.npc and data.npc(first.starter) or nil
 end
 
--- Renvoie effort, xp, hops ; nil si la source est écartée.
+-- Mode référence (paliers passés, « comme si on y était ») : classe et race seules.
+local function referenceCheck(quest, player)
+    return ns.Masks.allows(quest, player), nil
+end
+
+-- Surcoût des conditions atteignables des étapes et raison de la première ; nil si une étape est impossible.
+local function conditions(steps, player, data, opts, tuning, check)
+    local extra, condition = 0, nil
+    for _, id in ipairs(steps) do
+        local step = data.quest(id)
+        if step then
+            local ok, reason = check(step, player, opts.isDone, opts.isInLog)
+            if not ok then
+                return nil
+            elseif reason then
+                extra, condition = extra + tuning.CONDITION, condition or reason
+            end
+        end
+    end
+    return extra, condition
+end
+
+-- Renvoie effort, xp, hops, steps, trip, place, condition ; nil si la source est écartée.
 local function questEffort(source, player, data, opts, tuning)
+    local check = opts.reference and referenceCheck or ns.Feasible.check
     local quest = data.quest(source.id)
-    if not quest or not ns.Scoring.allows(quest, player) then
+    if not quest or not check(quest, player, opts.isDone, opts.isInLog) then
         return nil
     end
     local steps = ns.Chains.remaining(source.id, data, opts.isDone, function(id)
         local step = data.quest(id)
-        return not step or ns.Scoring.allows(step, player)
+        return not step or (check(step, player, opts.isDone, opts.isInLog))
     end)
     if not steps or #steps == 0 then
+        return nil
+    end
+    local extra, condition = conditions(steps, player, data, opts, tuning, check)
+    if not extra then
         return nil
     end
     local hops = hopsTo(quest.mapID, player, data, tuning)
     local starter = starterOf(steps, data)
     local trip = travel(hops, tuning, opts, starter)
-    return #steps * tuning.QUEST_STEP + trip, questXP(steps, player, data), hops, #steps, trip, starter
+    return #steps * tuning.QUEST_STEP + extra + trip, questXP(steps, player, data), hops, #steps, trip, starter,
+        condition
 end
 
 local function runs(source, tuning)
