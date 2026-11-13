@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.1.0 — 2026-11-13
+
+### Dungeons
+- Each header of the Dungeons page and of the dungeon frame now says whether the creature is a boss or a
+  rare ("· Boss", "· Rare").
+- Rare-quality (blue) and better items dropped by trash mobs are listed when they improve your character,
+  with their drop rate.
+
+### Fixes
+- Bag badges: an item not yet known by the game client could get a stale or missing badge; badges are now
+  refreshed when a bag opens and right after a change of profile, secondary profile or character.
+- Need / Greed: the roll hint is shown during combat too, and no longer falls back to "Greed" while the item
+  is still loading.
+
+### Interface
+- Welcome guide: window style choice (Notebook or Blizzard) on the first step, weight profiles laid out by
+  spec and phase with button texts that fit, and a one-line summary of every page.
+- First visit of each page: a short "how to use it" tip with a "Got it" button. `/splan welcome` shows the
+  tips again.
+- Journal, Progress: three tiles (current score, gain since the first record, upgrades) and a score curve
+  over levels 1 to 60, readable even with a single record.
+- Target list: the empty page explains what it is for and how to add items.
+- Item origins tell a single quest from a quest chain ("Quest: …" / "Quest chain: …") in the route, target
+  list, floating frame tooltips, other sources and `/splan best`.
+- Durations are shown without the "~" sign ("12 min").
+
 ## 2.0.0 — 2026-11-12
 
 ### New interface
