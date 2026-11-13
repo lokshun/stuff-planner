@@ -3,15 +3,20 @@
 -- Charger après BadgePresenter.lua, LiveItem.lua, Manager.lua et Results.lua.
 --   ns.ItemBadge.show(button, link) : pastille demandée ; calculée plus tard, MAX_PER_FRAME boutons
 --     par image, jamais en combat (reprise à la fin du combat) ; le dernier lien demandé l'emporte ;
---     même lien que la pastille posée : rien (pas de recalcul). link nil : comme hide.
+--     même lien déjà calculé (pastille posée ou absente pour de bon) : rien ; même lien resté sans
+--     réponse (données, profil ou objet pas encore lisibles) : recalculé. link nil : comme hide.
 --   ns.ItemBadge.hide(button) : pastille retirée tout de suite, demande en attente oubliée.
 --   ns.ItemBadge.refreshAll() : toutes les pastilles posées sont recalculées (file).
 --   ns.ItemBadge.pending() -> nombre de boutons en attente (tests, débogage)
 --   ns.ItemBadge.scheduler(fn) -> schedule() : fn appelé une fois à l'image suivante (rafales
 --     regroupées) ; en combat, reporté à la fin du combat (une seule reprise inscrite)
 -- Pastille absente avant SP_DATA_READY, sans profil actif, ou si l'objet n'est pas une amélioration.
--- Objet hors base pas encore en cache : pas de pastille, le prochain show relit (LiveItem).
--- SP_RESULTS_UPDATED (nouvel instantané, profil, stats confirmées) → refreshAll.
+-- Objet hors base pas encore en cache : pas de pastille, relu au prochain show du même lien et à
+-- GET_ITEM_INFO_RECEIVED (regroupé par scheduler, seuls les boutons sans réponse).
+-- SP_RESULTS_UPDATED (nouvel instantané, profil, stats confirmées) → refreshAll ; aussi tout de suite à
+-- SP_PROFILE_CHANGED, SP_SECONDARY_CHANGED et SP_PLAYER_CHANGED (sans attendre le calcul de la zone, qui
+-- peut durer plusieurs images ou attendre la fin du combat). Charger après Results.lua : ses abonnés
+-- passent avant (nouvel instantané pris, cache de Scoring vidé).
 
 local _, ns = ...
 
@@ -27,6 +32,7 @@ local INSET = 1
 local WEAK_KEYS = { __mode = "k" }
 local wanted = setmetatable({}, WEAK_KEYS) -- bouton -> lien demandé (posé ou en attente)
 local queued = setmetatable({}, WEAK_KEYS) -- bouton -> true si en attente
+local settled = setmetatable({}, WEAK_KEYS) -- bouton -> true si calculé pour le lien demandé
 local queue, head = {}, 1
 local runner
 
@@ -61,18 +67,22 @@ end
 
 local function view(link)
     if not ns.Data.ready() then
-        return nil
+        return nil, true
     end
     local profile, player = ns.Profiles.active(), ns.Results.player()
     if not (profile and player) then
-        return nil
+        return nil, true
     end
     return ns.BadgePresenter.build(link, player, profile, ns.Data, ns.LiveItem.fields)
 end
 
 local function apply(button)
     local link = wanted[button]
-    local shown = link and view(link)
+    local shown, retry
+    if link then
+        shown, retry = view(link)
+    end
+    settled[button] = not retry or nil
     if not shown then
         clear(button)
         return
@@ -123,16 +133,18 @@ function ItemBadge.show(button, link)
         ItemBadge.hide(button)
         return
     end
-    if wanted[button] == link then
-        return -- déjà posée pour ce lien (ou en attente) ; les recalculs passent par refreshAll
+    if wanted[button] == link and (queued[button] or settled[button]) then
+        return -- déjà calculée pour ce lien (ou en attente) ; les recalculs passent par refreshAll
     end
     wanted[button] = link
+    settled[button] = nil
     enqueue(button)
 end
 
 function ItemBadge.hide(button)
     wanted[button] = nil
     queued[button] = nil
+    settled[button] = nil
     clear(button)
 end
 
@@ -173,4 +185,21 @@ function ItemBadge.scheduler(fn)
     return schedule
 end
 
-ns:On("SP_RESULTS_UPDATED", ItemBadge.refreshAll)
+for _, message in ipairs({ "SP_RESULTS_UPDATED", "SP_PROFILE_CHANGED", "SP_SECONDARY_CHANGED",
+                           "SP_PLAYER_CHANGED" }) do
+    ns:On(message, ItemBadge.refreshAll)
+end
+
+local retryPending = ItemBadge.scheduler(function()
+    for button in pairs(wanted) do
+        if not settled[button] then
+            enqueue(button)
+        end
+    end
+end)
+
+local events = CreateFrame("Frame")
+events:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+events:SetScript("OnEvent", function()
+    retryPending()
+end)

@@ -4,13 +4,15 @@
 -- Manager.lua, Results.lua et CompatLoot.lua.
 --   ns.RollHint.text(link) -> L.ROLL_NEED (gain en points) | L.ROLL_GREED
 --     (suivi de « · » view.keep si l'objet ne sert qu'au profil secondaire) ;
---     nil sans lien, base pas prête ou sans profil actif
+--     nil sans lien, base pas prête ou sans profil actif ; nil, true : objet pas encore lisible (à relire)
 --   ns.RollHint.show(rollID) : lien Compat.LootRollLink ; texte posé au-dessus du cadre de jet affiché
 --     (Compat.LootRollFrame ; un texte par cadre, réutilisé, rangé ici dans une table à clés faibles : rien
 --     n'est écrit sur le cadre du client), sinon une ligne L.ROLL_CHAT dans la discussion ; sans conseil :
 --     texte du cadre masqué. Option roll.hint coupée : rien.
--- START_LOOT_ROLL(rollID) : show une image plus tard (le client ouvre d'abord son cadre), hors combat
--- (ns:RunOutOfCombat). CANCEL_LOOT_ROLL : texte du cadre de ce jet masqué, même si le cadre l'est déjà (un
+-- START_LOOT_ROLL(rollID) : show une image plus tard (le client ouvre d'abord son cadre), en combat aussi
+-- (exception à la règle, voir DECISIONS : un seul objet, cadre non protégé, jet souvent lancé en combat).
+-- Objet pas encore lisible : jet gardé en attente, show relancé à GET_ITEM_INFO_RECEIVED.
+-- CANCEL_LOOT_ROLL : attente oubliée, texte du cadre de ce jet masqué, même si le cadre l'est déjà (un
 -- cadre réutilisé pour un autre jet ne garde pas l'ancien conseil).
 
 local _, ns = ...
@@ -24,6 +26,7 @@ local OPTION = "roll.hint"
 local OFFSET_Y = 2
 
 local labels = setmetatable({}, { __mode = "k" })
+local waiting = {} -- rollID -> true : objet pas encore lisible
 
 function RollHint.text(link)
     if not link or not ns.Data.ready() then
@@ -33,7 +36,10 @@ function RollHint.text(link)
     if not (profile and player) then
         return nil
     end
-    local view = ns.BadgePresenter.build(link, player, profile, ns.Data, ns.LiveItem.fields)
+    local view, retry = ns.BadgePresenter.build(link, player, profile, ns.Data, ns.LiveItem.fields)
+    if retry then
+        return nil, true
+    end
     if not view then
         return L.ROLL_GREED
     end
@@ -64,7 +70,8 @@ function RollHint.show(rollID)
         return
     end
     local link = ns.Compat.LootRollLink(rollID)
-    local text = RollHint.text(link)
+    local text, retry = RollHint.text(link)
+    waiting[rollID] = retry or nil
     local frame = ns.Compat.LootRollFrame(rollID)
     if not text then
         hideLabel(frame)
@@ -82,20 +89,24 @@ function RollHint.show(rollID)
 end
 
 local function cancel(rollID)
+    waiting[rollID] = nil
     hideLabel(ns.Compat.LootRollFrame(rollID, true))
 end
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("START_LOOT_ROLL")
 events:RegisterEvent("CANCEL_LOOT_ROLL")
+events:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 events:SetScript("OnEvent", function(_, event, rollID)
     if event == "CANCEL_LOOT_ROLL" then
         cancel(rollID)
-        return
-    end
-    C_Timer.After(0, function()
-        ns:RunOutOfCombat(function()
+    elseif event == "GET_ITEM_INFO_RECEIVED" then
+        for pending in pairs(waiting) do
+            RollHint.show(pending)
+        end
+    else
+        C_Timer.After(0, function()
             RollHint.show(rollID)
         end)
-    end)
+    end
 end)

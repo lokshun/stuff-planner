@@ -11,7 +11,8 @@
 --     « <cadre>Item1..size », sac = cadre:GetID() ; emplacement = button:GetID()
 --   EachBagItem(fn) -> fn(link, bag, slot) pour chaque objet du sac à dos (0) et des sacs équipés
 --     (1..NUM_BAG_SLOTS, 4 par défaut) ; nombre d'emplacements par C_Container, sinon fonction globale
---   HookBagUpdates(fn) -> fn() à BAG_UPDATE_DELAYED et après chaque mise à jour d'un cadre de sac
+--   HookBagUpdates(fn) -> fn() à BAG_UPDATE_DELAYED, à l'ouverture d'un cadre de sac (OnShow : un cadre
+--     classique sert à plusieurs sacs) et après chaque mise à jour d'un cadre de sac
 --     (ContainerFrame_Update, sinon UpdateItems des cadres) ; peut arriver en rafale : à regrouper.
 
 local _, ns = ...
@@ -107,10 +108,18 @@ local function hookFrame(frame, fn)
     end
 end
 
-local function hookFrames(fn)
-    hookFrame(_G[COMBINED], fn)
+local function eachFrame(hook, fn)
+    hook(_G[COMBINED], fn)
     for index = 1, MAX_FRAMES do
-        hookFrame(frameAt(index), fn)
+        hook(frameAt(index), fn)
+    end
+end
+
+local function hookShow(frame, fn)
+    if frame and frame.HookScript then
+        frame:HookScript("OnShow", function()
+            fn()
+        end)
     end
 end
 
@@ -120,6 +129,7 @@ function Compat.HookBagUpdates(fn)
     events:SetScript("OnEvent", function()
         fn()
     end)
+    eachFrame(hookShow, fn)
     if not hooksecurefunc then
         return
     end
@@ -128,6 +138,6 @@ function Compat.HookBagUpdates(fn)
             fn()
         end)
     else
-        hookFrames(fn)
+        eachFrame(hookFrame, fn)
     end
 end
