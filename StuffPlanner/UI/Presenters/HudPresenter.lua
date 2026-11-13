@@ -1,14 +1,19 @@
 -- CONTRAT
--- Mode du cadre flottant unique (UI/Hud.lua). Pur : aucun appel d'API, aucune dépendance.
+-- Mode, pastilles et menu du cadre flottant unique (UI/Hud.lua). Pur : aucun appel d'API.
 --   available = {key...} : modes disponibles, par priorité (donjon, suivi, zone : ordre des fournisseurs)
 --   ns.HudPresenter.resolve(available, state) -> key | nil
 --     state = {forced = key choisi par le joueur | nil, signature} (modifié) : forced oublié dès que la liste
 --     des modes disponibles change (entrée en instance, suivi lancé…) ; forced s'il est disponible, sinon le
 --     premier mode disponible
---   ns.HudPresenter.nextMode(available, current) -> mode qui suit current, en boucle (premier si current absent)
---   ns.HudPresenter.position(available, current) -> « 2/3 » | "" (un seul mode)
+--   ns.HudPresenter.pills(available, current) -> {{key, active}...} : une par mode disponible, dans l'ordre ;
+--     {} s'il y a moins de deux modes
+--   ns.HudPresenter.menuEntries(opts) -> entrées ns.RowMenu ; opts = {collapsed, locked, canHide} :
+--     collapse (Replier | Déplier), lock (case, L.HUD_MENU_LOCK), hide (si canHide), filet, open (fenêtre),
+--     options (L.OPTIONS_OPEN)
 
 local _, ns = ...
+
+local L = ns.L
 
 local HudPresenter = {}
 ns.HudPresenter = HudPresenter
@@ -33,18 +38,27 @@ function HudPresenter.resolve(available, state)
     return available[1]
 end
 
-function HudPresenter.nextMode(available, current)
-    local index = indexOf(available, current)
-    if not index then
-        return available[1]
+function HudPresenter.pills(available, current)
+    local pills = {}
+    if #available < 2 then
+        return pills
     end
-    return available[index % #available + 1]
+    for index, key in ipairs(available) do
+        pills[index] = { key = key, active = key == current }
+    end
+    return pills
 end
 
-function HudPresenter.position(available, current)
-    local index = indexOf(available, current)
-    if #available < 2 or not index then
-        return ""
+function HudPresenter.menuEntries(opts)
+    local entries = {
+        { key = "collapse", label = opts.collapsed and L.HUD_MENU_EXPAND or L.HUD_MENU_COLLAPSE },
+        { key = "lock", label = L.HUD_MENU_LOCK, checked = opts.locked == true },
+    }
+    if opts.canHide then
+        entries[#entries + 1] = { key = "hide", label = L.HUD_MENU_HIDE }
     end
-    return index .. "/" .. #available
+    entries[#entries + 1] = { separator = true }
+    entries[#entries + 1] = { key = "open", label = L.HUD_MENU_OPEN }
+    entries[#entries + 1] = { key = "options", label = L.OPTIONS_OPEN }
+    return entries
 end

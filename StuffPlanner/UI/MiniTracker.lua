@@ -140,7 +140,7 @@ local function render()
 end
 
 ns.Hud.addMode("zone", {
-    order = 3,
+    order = 3, label = L.HUD_MODE_ZONE, icon = "Interface\\Icons\\INV_Misc_Map_01", option = "tracker.shown",
     available = function()
         return ns.Options.get("tracker.shown")
     end,

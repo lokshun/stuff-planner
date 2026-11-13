@@ -21,8 +21,9 @@ local GESTURES = {
         { "HELP_KEY_CTRL", "HELP_DO_DRESS" },
     } },
     { "HELP_SECTION_HUD", {
-        { "HELP_KEY_TITLE", "HELP_DO_NEXT_MODE" },
-        { "HELP_KEY_TITLE_RIGHT", "HELP_DO_COLLAPSE" },
+        { "HELP_KEY_PILL", "HELP_DO_PICK_MODE" },
+        { "HELP_KEY_ARROW", "HELP_DO_COLLAPSE" },
+        { "HELP_KEY_TITLE_RIGHT", "HELP_DO_HUD_MENU" },
         { "HELP_KEY_DRAG", "HELP_DO_MOVE" },
     } },
     { "HELP_SECTION_GAME", {

@@ -142,7 +142,7 @@ local function render()
 end
 
 ns.Hud.addMode("follow", {
-    order = 2,
+    order = 2, label = L.HUD_MODE_FOLLOW, icon = "Interface\\Icons\\INV_Scroll_03", option = "follow.window",
     available = function()
         return ns.Follow.view() ~= nil and ns.Options.get("follow.window")
     end,

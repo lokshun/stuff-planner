@@ -15,7 +15,7 @@ local _, ns = ...
 local L = ns.L
 local hint, hideTooltip = ns.FloatingFrame.hint, ns.FloatingFrame.hideHint
 
-local LINE_HEIGHT = 16
+local LINE_HEIGHT = 18
 local ICON_SIZE = 14
 local INDENT = 14
 local MAX_LINES = 18
@@ -180,7 +180,7 @@ local function render()
 end
 
 ns.Hud.addMode("dungeon", {
-    order = 1,
+    order = 1, label = L.HUD_MODE_DUNGEON, icon = "Interface\\Icons\\INV_Misc_Key_03", option = "dungeon.panel",
     available = function()
         return ns.DungeonRun.current() ~= nil and ns.Options.get("dungeon.panel") and ns.Results.player() ~= nil
     end,
