@@ -6,7 +6,8 @@
 -- Charger après MainFrame.lua, ItemRow.lua, DungeonPresenter.lua, InstanceListPresenter.lua, DungeonRun.lua.
 -- S'inscrit par ns.MainFrame.addTab("dungeon", …) ; rafraîchi sur SP_RESULTS_UPDATED et SP_DUNGEON_CHANGED.
 -- Lignes ns.ItemRow : instance (icône clé / dragon), en-tête de boss (« · Boss » doré, « · Rare » argenté, sans
--- icône), objet (clic droit = menu : épingler, essayer).
+-- icône ; clic = boss tué / pas tué, DungeonRun.toggle), objet (clic = fiche de la source, RowActions.click ;
+-- clic droit = menu : fiche, épingler, essayer).
 
 local _, ns = ...
 
@@ -31,8 +32,12 @@ local function onRowClick(button)
     if row and row.instanceID then
         openID = row.instanceID
         ns.MainFrame.refresh()
+    elseif row and row.header then
+        if row.npcID then
+            ns.DungeonRun.toggle(row.npcID)
+        end
     elseif row and row.itemID then
-        ns.RowActions.click(nil, row.itemID)
+        ns.RowActions.click(nil, row.itemID, row.itemSource)
     end
 end
 
@@ -51,7 +56,8 @@ local function initRow(button, row)
             nameColor = row.current and theme.colors.gain or theme.colors.text, detail = row.detail,
             gain = row.gain, gainColor = row.gainColor, dimmed = row.dimmed })
     else
-        ns.ItemRow.set(button, { row = row, itemID = row.itemID, icon = row.icon, name = row.name,
+        ns.ItemRow.set(button, { row = row, itemID = row.itemID, itemSource = row.itemSource, icon = row.icon,
+            name = row.name,
             nameColor = row.nameColor, detail = row.detail, gain = row.gain, gainColor = row.gainColor })
     end
     button.icon:SetShown(not row.header)

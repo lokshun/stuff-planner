@@ -1,8 +1,9 @@
 -- CONTRAT
 -- Page « Liste cible » (clé wishlist) : objets épinglés (WishlistStore), état de chacun (Wishlist.status,
--- WishlistPresenter), obtenu coché, liste défilante sans limite ; pied : champ, Importer / Exporter (SPL1,
--- WishlistIO), statut. Cadres seulement. Charger après Wishlist.lua, WishlistStore.lua, WishlistPresenter.lua,
--- ItemRow.lua et MainFrame.lua.
+-- WishlistPresenter), obtenu coché, liste défilante sans limite ; pied : champ, Importer (fusion :
+-- WishlistStore.merge, aussi par Entrée), Remplacer (deux clics : armé puis confirmé, WishlistStore.replace),
+-- Exporter (SPL1, WishlistIO), statut. Cadres seulement. Charger après Wishlist.lua, WishlistStore.lua,
+-- WishlistPresenter.lua, ItemRow.lua et MainFrame.lua.
 -- S'inscrit par ns.MainFrame.addTab("wishlist", …). Lignes ns.ItemRow : clic = RowActions.click (source),
 -- clic droit = menu (Désépingler) ; vide : titre et explication (rôle de la page, ajout, import).
 -- Obtenu : porté, ou Compat.GetItemCount > 0 (sacs et banque). Rafraîchi par ns.MainFrame.refresh sur
@@ -16,7 +17,8 @@ local ROW_HEIGHT = 24
 local BOX_HEIGHT = 20
 local FOOTER_HEIGHT = BOX_HEIGHT + 18
 
-local panel, header, scrollBox, emptyTitle, emptyBody, ioBox, status
+local panel, header, scrollBox, emptyTitle, emptyBody, ioBox, status, replaceButton
+local armed = false -- Remplacer attend la confirmation
 
 local askName = ns.NameAsker.new(function()
     ns.MainFrame.refresh()
@@ -43,10 +45,42 @@ local function setStatus(text, color)
     end
 end
 
-local function onImport()
+local function disarm()
+    armed = false
+    if replaceButton then
+        replaceButton:SetText(L.WISHLIST_REPLACE)
+    end
+end
+
+local function decoded()
     local ids, code = ns.WishlistIO.decode(ioBox:GetText())
     if not ids then
         setStatus(code == "TOO_MANY" and L.WISHLIST_FULL or L.WISHLIST_ERR, ns.Theme.colors.loss)
+    end
+    return ids
+end
+
+local function onImport()
+    disarm()
+    local ids = decoded()
+    if not ids then
+        return
+    end
+    local added, present, full = ns.WishlistStore.merge(ids)
+    ioBox:ClearFocus()
+    local text = L.WISHLIST_MERGED:format(added, present)
+    setStatus(full and text .. " " .. L.WISHLIST_FULL or text, full and ns.Theme.colors.loss or ns.Theme.colors.gain)
+end
+
+local function onReplace()
+    if not armed then
+        armed = true
+        replaceButton:SetText(L.WISHLIST_REPLACE_CONFIRM)
+        return
+    end
+    disarm()
+    local ids = decoded()
+    if not ids then
         return
     end
     ns.WishlistStore.replace(ids)
@@ -55,6 +89,7 @@ local function onImport()
 end
 
 local function onExport()
+    disarm()
     ioBox:SetText(ns.WishlistIO.encode(ns.WishlistStore.list()))
     ioBox:SetFocus()
     ioBox:HighlightText()
@@ -81,6 +116,7 @@ local function currentView()
 end
 
 local function refresh()
+    disarm()
     if not ns.Data.ready() then
         header:SetText(L.BEST_NOT_READY)
         scrollBox:SetDataProvider(CreateDataProvider({}))
@@ -107,8 +143,13 @@ local function createFooter()
     status:SetJustifyH("LEFT")
     local export = smallButton(L.WISHLIST_EXPORT, onExport)
     export:SetPoint("BOTTOMRIGHT", 0, 16)
+    replaceButton = smallButton(L.WISHLIST_REPLACE_CONFIRM, onReplace)
+    replaceButton:SetPoint("RIGHT", export, "LEFT", -gap, 0)
+    replaceButton:HookScript("OnLeave", disarm)
+    disarm()
+    replaceButton:SetWidth(math.max(replaceButton:GetWidth(), replaceButton:GetFontString():GetStringWidth() + 20))
     local import = smallButton(L.WISHLIST_IMPORT, onImport)
-    import:SetPoint("RIGHT", export, "LEFT", -gap, 0)
+    import:SetPoint("RIGHT", replaceButton, "LEFT", -gap, 0)
     ioBox = CreateFrame("EditBox", nil, panel, "InputBoxTemplate")
     ioBox:SetAutoFocus(false)
     ioBox:SetHeight(BOX_HEIGHT)
@@ -116,6 +157,7 @@ local function createFooter()
     ioBox:SetPoint("RIGHT", import, "LEFT", -gap, 0)
     ioBox:SetScript("OnEscapePressed", ioBox.ClearFocus)
     ioBox:SetScript("OnEnterPressed", onImport)
+    ioBox:SetScript("OnTextChanged", disarm)
 end
 
 local function create(parent)

@@ -11,11 +11,12 @@
 --   ns.MainFrame.resetPosition() -> fenêtre recentrée
 --   ns.MainFrame.setBehind(on) : fenêtre passée sous le panneau de réglages du client (strate MEDIUM, Échap
 --     laissé au client) tant que on est vrai
--- Commandes : /splan show (bascule, aussi par le menu des addons), /splan scale <0.6-1.5>.
+-- Commandes : /splan show (bascule ; aussi /splan seul, menu des addons, raccourci clavier), /splan scale <0.6-1.5>.
 -- Sauvegarde : StuffPlannerDB.ui = {point, relativePoint, x, y, tab} ; échelle et opacité par ns.Options
 -- (window.scale, window.alpha), appliquées sur SP_OPTION_CHANGED. Engrenage : ns.OptionsPanel.open() ;
 -- « ? » : ns.HelpPanel.toggle() (gestes et commandes). Astuce au premier passage sur une page (ns.PageTip).
--- Fermeture par Échap (OnKeyDown, sans nom global) ; cachée en combat, ouverte hors combat seulement.
+-- Échap (OnKeyDown, sans nom global) : ferme d'abord la fiche ouverte (QuestDetail, SourceDetail), puis la
+-- fenêtre ; cachée en combat, ouverte hors combat seulement.
 -- Créée au premier affichage : rien n'est construit tant que le joueur ne l'ouvre pas.
 
 local _, ns = ...
@@ -121,9 +122,16 @@ end
 local function onKeyDown(self, key)
     local escape = key == "ESCAPE" and not behind
     self:SetPropagateKeyboardInput(not escape)
-    if escape then
-        self:Hide()
+    if not escape then
+        return
     end
+    for _, detail in ipairs({ ns.QuestDetail, ns.SourceDetail }) do
+        if detail and detail.isShown() then
+            detail.hide()
+            return
+        end
+    end
+    self:Hide()
 end
 
 local function create()

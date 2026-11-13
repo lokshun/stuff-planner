@@ -6,6 +6,8 @@
 --   ns.WishlistStore.toggle(itemID) -> true (épinglé), false (retiré) | nil, "FULL" (WishlistIO.MAX atteint)
 --   ns.WishlistStore.remove(itemID) -> bool ; ns.WishlistStore.replace(itemIDs) : liste remplacée (import ;
 --     doublons retirés, coupée à WishlistIO.MAX)
+--   ns.WishlistStore.merge(itemIDs) -> added, present, full : absents ajoutés à la fin (import par défaut),
+--     doublons de l'entrée ignorés ; full = au moins un objet refusé (WishlistIO.MAX atteint)
 -- SP_WISHLIST_CHANGED (sans argument) après chaque changement réel.
 
 local _, ns = ...
@@ -59,6 +61,31 @@ function WishlistStore.toggle(itemID)
     list[#list + 1] = itemID
     ns:Send("SP_WISHLIST_CHANGED")
     return true
+end
+
+function WishlistStore.merge(itemIDs)
+    local list = items()
+    local had, seen = {}, {}
+    for _, id in ipairs(list) do
+        had[id] = true
+    end
+    local added, present, full = 0, 0, false
+    for _, id in ipairs(itemIDs) do
+        if seen[id] then -- luacheck: ignore 542
+        elseif had[id] then
+            present = present + 1
+        elseif #list >= ns.WishlistIO.MAX then
+            full = true
+        else
+            list[#list + 1] = id
+            added = added + 1
+        end
+        seen[id] = true
+    end
+    if added > 0 then
+        ns:Send("SP_WISHLIST_CHANGED")
+    end
+    return added, present, full
 end
 
 function WishlistStore.replace(itemIDs)

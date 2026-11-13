@@ -9,8 +9,9 @@
 --   ns:RegisterCommand(name, fn, helpKey) -> sous-commande de /splan ; fn reçoit le reste
 --     de la ligne ; helpKey est une clé de ns.L
 --   ns:Commands() -> {{name, help}...} triées par nom (help = texte de ns.L)
--- /splan sans argument ou inconnu affiche l'aide ; /splan attend la fin du combat.
--- Menu des addons : commande show si elle existe, sinon l'aide.
+-- /splan sans argument : commande show si elle existe (bascule la fenêtre), sinon l'aide ; inconnue : aide ;
+-- /splan help : aide ; /splan attend la fin du combat. Menu des addons et raccourci clavier (Bindings.xml,
+-- globaux BINDING_HEADER_STUFFPLANNER, BINDING_NAME_STUFFPLANNER_TOGGLE) = /splan sans argument.
 -- Messages du bus (émetteur, détail dans son CONTRAT) : SP_PLAYER_CHANGED, SP_QUEST_LOG_CHANGED (Player),
 --   SP_DATA_READY (Loader), SP_ITEMS_CONFIRMED (ItemProbe), SP_QUEST_OBSERVED (Collector, Share),
 --   SP_PROFILE_CHANGED, SP_SECONDARY_CHANGED (Manager), SP_RESULTS_UPDATED (Results), SP_ROUTE_UPDATED
@@ -26,6 +27,9 @@ local addon = LibStub("AceAddon-3.0"):NewAddon(ADDON, "AceEvent-3.0")
 ns.L = L
 ns.Addon = addon
 ns.ICON = [[Interface\AddOns\StuffPlanner\Media\Icon]]
+
+BINDING_HEADER_STUFFPLANNER = L.BINDING_HEADER
+BINDING_NAME_STUFFPLANNER_TOGGLE = L.BINDING_TOGGLE
 
 function ns:NewModule(name, ...) -- luacheck: ignore 212/self
     return addon:NewModule(name, ...)
@@ -105,6 +109,9 @@ end
 
 local function dispatch(input)
     local name, args = input:match("^%s*(%S*)%s*(.-)%s*$")
+    if name == "" and commands.show then
+        name = "show"
+    end
     local command = commands[name:lower()]
     if command then
         command.fn(args)
@@ -128,5 +135,5 @@ SLASH_STUFFPLANNER1 = "/splan"
 SlashCmdList.STUFFPLANNER = handleSlash
 
 function StuffPlanner_OnAddonCompartmentClick()
-    handleSlash(commands.show and "show" or "")
+    handleSlash("")
 end

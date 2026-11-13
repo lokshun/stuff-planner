@@ -1,0 +1,6 @@
+<Bindings>
+    <!-- Chargé d'office depuis la racine de l'addon (hors TOC). Libellés : Core.lua (BINDING_*). -->
+    <Binding name="STUFFPLANNER_TOGGLE" header="STUFFPLANNER">
+        SlashCmdList.STUFFPLANNER("")
+    </Binding>
+</Bindings>
