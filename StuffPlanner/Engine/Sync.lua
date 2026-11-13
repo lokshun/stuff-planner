@@ -1,12 +1,15 @@
 -- CONTRAT
 -- Protocole de partage des confirmations de quête entre joueurs (transport : Integrations/Share.lua).
--- Pur : aucun appel à l'API WoW, aucune bibliothèque. Confirmation = {questID, level?, mapID?, rewards, choices},
--- listes d'itemID triées, sans doublon, MAX_ITEMS au plus.
---   ns.Sync.VERSION -> 1 ; MAX_ENTRIES -> 20 par message ; MAX_ITEMS -> 8 par liste ; MAX_LENGTH -> 1000 octets
+-- Pur : aucun appel à l'API WoW, aucune bibliothèque. Confirmation = {questID, level?, mapID?, rewards, choices,
+-- npcID?, x?, y?}, listes d'itemID triées, sans doublon, MAX_ITEMS au plus ; npcID = donneur (dialogue), x, y en 0–1
+-- arrondis au millième (sur la carte mapID).
+--   ns.Sync.VERSION -> 2 ; MAX_ENTRIES -> 20 par message ; MAX_ITEMS -> 8 par liste ; MAX_LENGTH -> 1000 octets
 --   ns.Sync.entry(record) -> confirmation | nil : observation du collecteur kind "detail", "complete" ou "log"
---     (npcID, position et kind ne sortent pas) ; nil si un champ est invalide ou hors bornes
---   ns.Sync.encode(entries) -> {message...} : "<VERSION>|q:l:m:r.r:c.c;..." (champ vide = nil, liste vide),
---     MAX_ENTRIES et MAX_LENGTH par message ; {} sans confirmation
+--     (kind ne sort pas ; npcID et position seulement pour "detail", position seulement avec un npcID valide) ;
+--     nil si un champ de quête est invalide ou hors bornes
+--   ns.Sync.encode(entries) -> {message...} : "<VERSION>|q:l:m:r.r:c.c:n:x:y;..." (champ vide = nil, liste vide ;
+--     x, y en millièmes 0–1000), MAX_ENTRIES et MAX_LENGTH par message ; {} sans confirmation.
+--     Version 1 (lue seulement) : "1|q:l:m:r.r:c.c;..."
 --   ns.Sync.decode(message) -> entries | nil, err [, version] ; jamais d'erreur Lua. err : "type" (pas une
 --     chaîne), "length" (> MAX_LENGTH), "version" (plus récente que VERSION, renvoyée en 3e), "format" (en-tête,
 --     champ ou entrée invalide : le message entier est rejeté), "count" (> MAX_ENTRIES). Listes reçues triées.
@@ -20,7 +23,7 @@ local _, ns = ...
 local Sync = {}
 ns.Sync = Sync
 
-Sync.VERSION = 1
+Sync.VERSION = 2
 Sync.MAX_ENTRIES = 20
 Sync.MAX_ITEMS = 8
 Sync.MAX_LENGTH = 1000
@@ -29,9 +32,19 @@ Sync.MAX_SEEN = 500
 local MAX_ID = 2147483647
 local MAX_LEVEL = 100
 local QUEST_KINDS = { detail = true, complete = true, log = true }
+local SCALE = 1000
+local FIELD_COUNT = { 5, 8 }
 
 local function isID(value, max)
     return type(value) == "number" and value >= 1 and value <= (max or MAX_ID) and value == math.floor(value)
+end
+
+local function isCoord(value)
+    return type(value) == "number" and value >= 0 and value <= 1
+end
+
+local function rounded(value)
+    return math.floor(value * SCALE + 0.5) / SCALE
 end
 
 -- Copie triée d'une liste d'identifiants ; nil si invalide, trop longue ou avec doublon.
@@ -67,15 +80,26 @@ function Sync.entry(record)
     if not (rewards and choices) then
         return nil
     end
-    return { questID = record.questID, level = level, mapID = mapID, rewards = rewards, choices = choices }
+    local entry = { questID = record.questID, level = level, mapID = mapID, rewards = rewards, choices = choices }
+    if record.kind == "detail" and isID(record.npcID) then
+        entry.npcID = record.npcID
+        if isCoord(record.x) and isCoord(record.y) then
+            entry.x, entry.y = rounded(record.x), rounded(record.y)
+        end
+    end
+    return entry
+end
+
+local function optional(value)
+    return value and tostring(value) or ""
 end
 
 local function encodeEntry(entry)
     return table.concat({
-        tostring(entry.questID),
-        entry.level and tostring(entry.level) or "",
-        entry.mapID and tostring(entry.mapID) or "",
+        tostring(entry.questID), optional(entry.level), optional(entry.mapID),
         table.concat(entry.rewards, "."), table.concat(entry.choices, "."),
+        optional(entry.npcID), optional(entry.x and math.floor(entry.x * SCALE + 0.5)),
+        optional(entry.y and math.floor(entry.y * SCALE + 0.5)),
     }, ":")
 end
 
@@ -132,12 +156,38 @@ local function parseList(text)
     return cleanList(list)
 end
 
-local function decodeEntry(text)
+-- Coordonnées en millièmes : toutes deux vides, ou toutes deux 0 à SCALE (avec un donneur).
+local function parseCoords(xText, yText)
+    if xText == "" and yText == "" then
+        return true, nil, nil
+    end
+    local x = xText == "0" and 0 or parseNumber(xText, SCALE)
+    local y = yText == "0" and 0 or parseNumber(yText, SCALE)
+    if not (x and y) then
+        return false
+    end
+    return true, x / SCALE, y / SCALE
+end
+
+local function decodeGiver(fields, entry)
+    if #fields == FIELD_COUNT[1] then
+        return true
+    end
+    local okNpc, npcID = parseOptional(fields[6], MAX_ID)
+    local okCoords, x, y = parseCoords(fields[7], fields[8])
+    if not (okNpc and okCoords) or (x and not npcID) then
+        return false
+    end
+    entry.npcID, entry.x, entry.y = npcID, x, y
+    return true
+end
+
+local function decodeEntry(text, version)
     local fields = {}
     for part in (text .. ":"):gmatch("([^:]*):") do
         fields[#fields + 1] = part
     end
-    if #fields ~= 5 then
+    if #fields ~= FIELD_COUNT[version] then
         return nil
     end
     local questID = parseNumber(fields[1], MAX_ID)
@@ -147,7 +197,8 @@ local function decodeEntry(text)
     if not (questID and okLevel and okMap and rewards and choices) then
         return nil
     end
-    return { questID = questID, level = level, mapID = mapID, rewards = rewards, choices = choices }
+    local entry = { questID = questID, level = level, mapID = mapID, rewards = rewards, choices = choices }
+    return decodeGiver(fields, entry) and entry or nil
 end
 
 function Sync.decode(message)
@@ -174,7 +225,7 @@ function Sync.decode(message)
     end
     local entries = {}
     for i, text in ipairs(texts) do
-        entries[i] = decodeEntry(text)
+        entries[i] = decodeEntry(text, version)
         if not entries[i] then
             return nil, "format"
         end

@@ -17,7 +17,7 @@
 -- fois par Compat.QuestLogRewards ; objets pas en cache : nouvelle lecture LOG_RETRY_DELAY s plus tard.
 --   ns.Collector.addLog(questID, choices, rewards) : même observation "log", lue hors journal (QuestProbe).
 -- Base prête (ns.Data.ready()) : une observation qu'elle connaît déjà n'est pas gardée : PNJ connu
--- (Data.npc) ou absent, et quête aux level (si observé), mapID, choices, rewards identiques, ou
+-- (Data.npc) ou absent, et quête aux level (si observé), mapID, choices, rewards, starter (dialogue) identiques, ou
 -- butin dont chaque objet a une source chez ce PNJ ; une quête confidence 2 (récompenses devinées) est
 -- toujours gardée : l'observation la confirme, de même qu'une quête confirmée seulement par un autre
 -- joueur (Observations.kind "peer"). Base non prête : tout est gardé.
@@ -108,6 +108,7 @@ local function knownQuest(Data, record)
         and record.mapID == quest.mapID
         and sameItems(record.choices, quest.choices)
         and sameItems(record.rewards, quest.rewards)
+        and (record.kind ~= "detail" or record.npcID == nil or record.npcID == quest.starter)
 end
 
 local function knownLoot(Data, record)

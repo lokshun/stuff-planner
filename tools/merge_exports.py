@@ -4,7 +4,8 @@ Fusionne les exports des joueurs (/splan export, StuffPlanner/Data/Export.lua) e
   read_exports(paths) -> chaînes SP1, une par ligne non vide, sans doublon, dans l'ordre des fichiers
   merge(exports, min_loot=1) -> Merged(overlay, conflicts, rejected, loot, timings) ; exports = liste de listes
     d'enregistrements décodés. Par export, la dernière valeur non nulle de chaque champ (level, mapID,
-    rewards, choices) d'une quête l'emporte ; entre exports, vote à la majorité, égalité = champ omis.
+    rewards, choices, starter) d'une quête l'emporte ; entre exports, vote à la majorité, égalité = champ omis.
+    starter = npcID d'un dialogue (kind "detail") ; élu, il s'accompagne de startKind = 1 (départ npc).
     overlay = {"quests": {questID: {champ: valeur}}, "items": {itemID: {"stats": {clé: valeur}}}} ;
     "items" absent sans objet ; kind "log" (lu dans le journal) : choices et rewards seulement ; stats lues en jeu (kind "item", ItemProbe) : dernière par export, vote
     entre exports comme un champ. Médianes (kind "timing") comptées, pas fusionnées.
@@ -33,6 +34,8 @@ ROOT = Path(__file__).resolve().parents[1]
 QUEST_KINDS = frozenset({"detail", "complete", "log"})
 ITEM_KIND = "item"
 FIELDS = ("level", "mapID", "rewards", "choices")
+VOTED = FIELDS + ("starter",)
+NPC_START = 1
 LISTS = frozenset({"rewards", "choices"})
 LOOT_KIND = "loot"
 
@@ -116,6 +119,8 @@ def _clean(record):
         elif not _is_id(value):
             return None
         kept[name] = value
+    if record["kind"] == "detail" and _is_id(record.get("npcID")):
+        kept["starter"] = record["npcID"]
     return kept
 
 
@@ -217,7 +222,7 @@ def merge(exports, min_loot=1):
             item_votes.setdefault(item_id, Counter())[stats] += 1
     for quest_id in sorted(votes):
         fields = {}
-        for name in FIELDS:
+        for name in VOTED:
             counter = votes[quest_id].get(name)
             if not counter:
                 continue
@@ -227,6 +232,8 @@ def merge(exports, min_loot=1):
                 merged.conflicts.append(Conflict(quest_id, name, plain, _plain(chosen)))
             if chosen is not None:
                 fields[name] = _plain(chosen)
+        if "starter" in fields:
+            fields["startKind"] = NPC_START
         if fields:
             merged.overlay["quests"][quest_id] = fields
     _merge_items(merged, item_votes)

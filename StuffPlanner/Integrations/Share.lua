@@ -207,7 +207,7 @@ local function apply(message)
     local changed, lastID = 0, nil
     for _, entry in ipairs(Sync.dedup(entries, receivedSeen)) do
         if ns.Data.observe({ kind = "peer", questID = entry.questID, level = entry.level, mapID = entry.mapID,
-            rewards = entry.rewards, choices = entry.choices }) then
+            rewards = entry.rewards, choices = entry.choices, npcID = entry.npcID, x = entry.x, y = entry.y }) then
             changed, lastID = changed + 1, entry.questID
         end
     end

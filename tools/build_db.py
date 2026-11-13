@@ -16,6 +16,8 @@ Construit StuffPlanner_Data : lecture des sources, puis écriture par emit_lua.
     dans EraItems.lua ; neighbors ({uiMapID: [uiMapID...]}, sources/zones.py) devient Neighbors.lua ; `memory` : estimation en jeu (lua_memory) hors EraItems, `eraMemory` : EraItems seul ; report(ligne) reçoit le rapport
     de validation ; ValueError sans rien écrire si une erreur bloquante est trouvée
   read_interfaces(addon_dir) -> {"Camelot": 16001, ...}, lu dans les TOC de l'addon principal
+  overlay_starters(overlay) -> {npcID} : donneurs observés en jeu (overlay quests.starter), PNJ et noms émis
+    comme ceux de la base
 Sources (cache dans tools/cache) : QuestieDB, wago.tools (Forever et Classic Era), NorgannonDB, Spyglass,
 CMaNGOS classic-db puis ForeverChanges (répartition fixes / choix des récompenses de quête).
 Quêtes en liste noire Questie ou d'événement (specialFlags 2) retirées (compteur affiché).
@@ -117,7 +119,7 @@ def build(
     with_origin = {origin["id"] for origin in tables["origins"]}
     tables["items"] = [item for item in tables["items"] if item["id"] in with_origin]
     tables["instances"] = list(instances)
-    starters = quest_steps.npc_ids(tables["quests"])
+    starters = quest_steps.npc_ids(tables["quests"]) | overlay_starters(overlay)
     tables["npcs"] = [npc for npc in npcs if npc["id"] in starters]
     findings = validate_db.validate(tables)
     lines = validate_db.report_lines(findings)
@@ -172,7 +174,11 @@ def _split(quests, cmangos_split, forever_split):
     return quests
 
 
-def load_sources(world_items=()):
+def overlay_starters(overlay):
+    return {fields["starter"] for fields in (overlay or {}).get("quests", {}).values() if fields.get("starter")}
+
+
+def load_sources(world_items=(), extra_npcs=()):
     questie_dir = questie.fetch(CACHE_DIR / "questie")
     quests = questie.load_quests(questie_dir)
     cmangos_dir = cmangos.fetch(CACHE_DIR / "cmangos")
@@ -225,7 +231,7 @@ def load_sources(world_items=()):
         "crafts": wago.load_crafts(wago_dir),
         "drops": drops,
         "instances": list(instances.values()),
-        "npcs": questie.load_npcs(questie_dir, quest_steps.npc_ids(quests)),
+        "npcs": questie.load_npcs(questie_dir, quest_steps.npc_ids(quests) | set(extra_npcs)),
         "npc_names": questie.load_npc_names(questie_dir),
         "quest_names": questie.load_names(questie_dir, "quest"),
         "item_names": questie.load_names(questie_dir, "item"),
@@ -240,7 +246,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     try:
         overlay = merge_exports.load_overlay(OVERLAY) if OVERLAY.exists() else None
-        sources = load_sources((overlay or {}).get("world", {}))
+        sources = load_sources((overlay or {}).get("world", {}), overlay_starters(overlay))
         if overlay:
             sources["overlay"] = overlay
         counts = build(DEFAULT_SOURCES, OUT_DIR, read_interfaces(ADDON_DIR), report=print, **sources)
