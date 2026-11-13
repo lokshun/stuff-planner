@@ -7,8 +7,6 @@ Reliable data: no more "unconfirmed" guesses, and every listed quest is one you 
 ### Quest rewards
 - Quests whose fixed vs choice rewards were guessed are now read from the game itself shortly after login,
   outside of combat, without having to visit the quest giver; they turn confirmed within seconds.
-- Forever quests use the fixed vs choice split published by ForeverChanges (used with the publisher's
-  permission); only a handful of quests are still guessed before the in-game read.
 - Item stats still estimated are read first for your zone and its neighbours; the "estimated" mention stays
   hidden while the read is in progress.
 

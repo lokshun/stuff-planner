@@ -163,7 +163,6 @@ The database is built from:
 - [QuestieDB](https://github.com/Questie/QuestieDB) — quests, rewards, maps, quest conditions (GPLv3)
 - [Questie](https://github.com/Questie/Questie) — list of unavailable quests, used to leave them out (GPLv3)
 - [CMaNGOS classic-db](https://github.com/cmangos/classic-db) — fixed vs choice quest rewards (GPLv3)
-- [ForeverChanges](https://foreverchanges.pro) (Waypoint Digital SL) — fixed vs choice rewards of Forever quests, used with the publisher's permission
 - [NorgannonDB](https://github.com/zmarotrix/NorgannonDB) by Maro — Classic instance boss loot (GPLv3)
 - [pfQuest](https://github.com/shagu/pfQuest) by Shagu — drop rates, via NorgannonDB (MIT)
 - [WoW-Spyglass](https://github.com/Karl-HeinzSchneider/WoW-Spyglass) — encounter loot and Forever item stats (MIT)
