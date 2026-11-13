@@ -25,8 +25,10 @@
 --              s'il fait mieux que upgrade (raids jamais en upgrade) ; raidGain, raidGainLabel, raidGainColor,
 --              raidText (nom · detailText, « Raid » compris)}
 --            alternatives = GearAlternatives.of | nil (routeAlternatives = Tiers alternatives) ;
---              expandKey = slot, expanded = expanded[slot] == true ; quests = Tiers quests ({[slot] = ligne
---              de quête}) : upgrade d'artisanat, ou emplacement vide dont l'upgrade n'est pas une quête :
+--              expandKey = slot, expanded = expanded[slot] (true / false : choix du joueur), à défaut vrai si
+--              l'upgrade est un butin à faible taux (lowDrop) qui a des alternatives ; quests = Tiers quests
+--              ({[slot] = ligne de quête}) : upgrade d'artisanat ou à faible taux, ou emplacement vide dont
+--              l'upgrade n'est pas une quête :
 --              une quête toujours en tête des alternatives ; emplacement vide sans upgrade : quests[slot]
 --              devient l'upgrade (hors zone)
 --   ns.GearPresenter.summary(rows) -> {count, total, text} (L.GEAR_SUMMARY | L.GEAR_NONE)
@@ -200,10 +202,12 @@ function GearPresenter.build(player, profile, data, entries, worn, route, routeA
             local chosen = row.upgrade
             row.alternatives = ns.GearAlternatives.of(slot[1], chosen, {
                 entries = entries, route = route, routeAlternatives = routeAlternatives, data = data,
-                quest = quest, needQuest = chosen.sourceKind == "craft" or (not row.itemID and not chosen.questID),
+                quest = quest, needQuest = chosen.sourceKind == "craft" or chosen.lowDrop
+                    or (not row.itemID and not chosen.questID),
             })
             row.expandKey = slot[1]
-            row.expanded = expanded ~= nil and expanded[slot[1]] == true
+            local choice = expanded and expanded[slot[1]]
+            row.expanded = choice == true or (choice == nil and chosen.lowDrop and row.alternatives ~= nil)
         end
         describe(row)
         describeRaid(row, raids[slot[1]])

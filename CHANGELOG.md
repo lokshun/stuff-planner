@@ -17,6 +17,13 @@ Ergonomics pass: fewer pages, WoW-style gestures, clearer floating frame and set
 - Dungeons page: clicking a boss marks it killed, clicking an item opens its details.
 - Bigger gear and help buttons.
 
+### Gear and sources
+- When the best upgrade of a slot only drops from trash mobs or in the open world (low drop rates), a
+  reliable alternative is shown first (a quest when there is one) and the slot opens on its alternatives.
+- The source type is now coloured everywhere, like dungeons and raids: quests in gold, crafts in purple.
+- Bag, merchant and auction house badges: the green arrow alone in the top left corner, the score in the
+  bottom left corner.
+
 ### Floating frame
 - Mode icons in the header (one per available mode) replace the "2/3" counter; an arrow collapses it.
 - Right-click the header: Collapse, Lock, Hide this mode, Open the window, Settings.

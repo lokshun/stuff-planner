@@ -26,8 +26,11 @@
 --     pour les textes sans le tag coloré de detailText (info-bulles, parcours, liste cible, autres sources, chat)
 --   offProfile (delta.fallback : repli hors profil, Scoring.fallbackOf) : gainLabel entre parenthèses, couleur
 --     muted, sans flèche ; L.TAG_OFF_PROFILE en tête de detailText
---   kindText (quête : L.TAG_CHAIN si isChain, sinon L.TAG_QUEST ; en couleur de titre dans detailText,
---     avant le tag d'instance)
+--   kindText, kindColor (quête : L.TAG_CHAIN si isChain, sinon L.TAG_QUEST, couleur title ; artisanat :
+--     L.SOURCE_CRAFT, couleur craft, sourceText alors omis de detailText) : en couleur dans detailText, avant
+--     le tag d'instance
+--   lowDrop (isLowDrop(entry.source)) ; isLowDrop(source) -> bool : butin à faible taux, sans source sûre :
+--     source world, ou dungeon / raid sans npcID (trash)
 --   gain(delta) -> arrow, gainText, gainColor ; mêmes règles que les champs de present
 --   state(questState, quest?) -> stateText, stateColor ("" et muted sans état)
 --   questRow(entry, data) -> present d'un résultat de Chat.bestInZone {itemID, questID, delta,
@@ -131,6 +134,14 @@ function RowPresenter.questOrigin(questID, data)
     return L.SOURCE_ORIGIN:format(kind, ns.Names.quest(questID))
 end
 
+function RowPresenter.isLowDrop(source)
+    if not source then
+        return false
+    end
+    local kind = source.type
+    return kind == "world" or ((kind == "dungeon" or kind == "raid") and source.npcID == nil)
+end
+
 function RowPresenter.instanceTag(quest, data)
     if not (quest and quest.instance) then
         return nil
@@ -148,7 +159,7 @@ local function detailText(row)
         parts[#parts + 1] = ns.Theme.colorize(row.stateText, row.stateColor)
     end
     if row.kindText then
-        parts[#parts + 1] = ns.Theme.colorize(row.kindText, ns.Theme.colors.title)
+        parts[#parts + 1] = ns.Theme.colorize(row.kindText, row.kindColor)
     end
     if row.tagText then
         parts[#parts + 1] = ns.Theme.colorize(row.tagText, row.tagColor)
@@ -156,7 +167,7 @@ local function detailText(row)
     if row.badge then
         parts[#parts + 1] = ns.Theme.colorize(row.badge, row.badgeColor)
     end
-    if row.sourceText ~= "" then
+    if row.sourceText ~= "" and row.sourceKind ~= "craft" then
         parts[#parts + 1] = row.sourceText
     end
     return table.concat(parts, SEPARATOR)
@@ -190,14 +201,18 @@ function RowPresenter.present(entry, data)
         unavailable = UNAVAILABLE[entry.questState] == true,
         slot = entry.delta and entry.delta.slot,
         offProfile = entry.delta ~= nil and entry.delta.fallback == true or nil,
+        lowDrop = RowPresenter.isLowDrop(entry.source),
     }
     row.stateText, row.stateColor = RowPresenter.state(entry.questState, levelRecord(entry, data))
     local kind = row.sourceKind
     if kind == "quest" then
         local quest = data.quest(entry.source.id)
         row.kindText = RowPresenter.isChain(quest) and L.TAG_CHAIN or L.TAG_QUEST
+        row.kindColor = ns.Theme.colors.title
         row.originText = L.SOURCE_ORIGIN:format(row.kindText, row.sourceText)
         row.tagText, row.tagColor = RowPresenter.instanceTag(quest, data)
+    elseif kind == "craft" then
+        row.kindText, row.kindColor = L.SOURCE_CRAFT, ns.Theme.colors.craft
     elseif kind == "dungeon" or kind == "raid" then
         row.tagText, row.tagColor = kind == "raid" and L.TAG_RAID or L.TAG_DUNGEON, ns.Theme.colors.instance
     end

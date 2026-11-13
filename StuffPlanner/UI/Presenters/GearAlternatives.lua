@@ -7,7 +7,9 @@
 --     autres objets de l'emplacement (gain > 0, hors raid et objet proposé, repli hors profil seulement si
 --     chosen.offProfile), MAX au plus : zone d'abord
 --     (L.EFFORT_NEAR, par gain), puis palier courant et ses alternatives, par effort ;
---     needQuest : la quête de plus fort gain en tête, à défaut ctx.quest (gain > 0, autre objet)
+--     needQuest : la quête de plus fort gain en tête, à défaut ctx.quest (gain > 0, autre objet) ;
+--     chosen.lowDrop (butin à faible taux, RowPresenter.isLowDrop) : needQuest, puis à défaut de quête la
+--     première alternative sûre (pas lowDrop) passe en tête
 --   ns.GearAlternatives.MAX = 3
 
 local _, ns = ...
@@ -57,6 +59,19 @@ local function questFirst(found, seen, ctx)
     end
 end
 
+-- Première alternative sûre (pas à faible taux) en tête, si la tête n'est pas déjà sûre.
+local function surestFirst(found)
+    if found[1] and not found[1].lowDrop then
+        return
+    end
+    for i, row in ipairs(found) do
+        if not row.lowDrop then
+            table.insert(found, 1, table.remove(found, i))
+            return
+        end
+    end
+end
+
 function GearAlternatives.of(slot, chosen, ctx)
     local seen, found = { [chosen.itemID] = true }, {}
     local function add(entry, ease, effortText)
@@ -78,6 +93,9 @@ function GearAlternatives.of(slot, chosen, ctx)
         end
     end
     table.sort(found, byEase)
+    if chosen.lowDrop then
+        surestFirst(found)
+    end
     if ctx.needQuest then
         questFirst(found, seen, ctx)
     end

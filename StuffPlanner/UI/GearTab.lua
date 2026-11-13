@@ -18,7 +18,8 @@ local _, ns = ...
 local L = ns.L
 
 local MAX_ZONE_ENTRIES = 100
-local expanded = {}
+local expanded = {} -- choix du joueur : true déplié, false replié, nil = défaut de GearPresenter
+local shownExpanded = {} -- état affiché au dernier rafraîchissement
 
 local panel, profileText, summaryText, chipBar, sortMenu, scrollBox
 
@@ -95,6 +96,11 @@ local function refresh()
     local rows = ns.GearPresenter.build(player, profile, ns.Data, entries, readWorn(player), route, alternatives,
         expanded, quests)
     askNames(rows)
+    for _, row in ipairs(rows) do
+        if row.expandKey then
+            shownExpanded[row.expandKey] = row.expanded
+        end
+    end
     local summary = ns.GearPresenter.summary(rows)
     profileText:SetText(profile and profileLabel() or L.BEST_NO_PROFILE)
     summaryText:SetText(profile and summary.text or "")
@@ -150,7 +156,7 @@ local function create(parent)
         return ns.GearRows.baseHeight(row) + ns.AltLines.extra(row)
     end)
     ns.GearRows.onToggle(function(key)
-        expanded[key] = not expanded[key] or nil
+        expanded[key] = not shownExpanded[key]
         ns.MainFrame.refresh()
     end)
     view:SetElementInitializer("Button", ns.GearRows.init)

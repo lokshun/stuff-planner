@@ -35,6 +35,7 @@ Theme.colors = {
     neutral = rgb("bfbfbf"),
     warning = rgb("ff9a1f"),
     instance = rgb("5fb4ff"),
+    craft = rgb("c88cff"),
 }
 
 -- Valeurs d'ITEM_QUALITY_COLORS du client.

@@ -6,7 +6,8 @@
 --     alternatives, clic sur un en-tête de palier repliable
 --     rows.init(button, row) : initialiseur de ScrollBox ; rows.extent(row) -> hauteur (alternatives comprises)
 --     rows.mark(button) : cadres de sélection (ligne et sous-lignes), sur SP_SELECTION_CHANGED
---   ns.RouteRows.sourceLine(row) -> « emplacement · tag · source · badge · note · durée »
+--   ns.RouteRows.sourceLine(row) -> « emplacement · type · tag · source · badge · note · durée » ; type =
+--     row.kindText en row.kindColor (quête, artisanat), suivi du seul nom de quête (rien pour l'artisanat)
 --   ns.RouteRows.askNames(rows, askName) -> vrai si un nom d'objet ou de quête manque (NameAsker)
 -- Ligne : clic = RowActions.click (fiche, Maj : lien, Ctrl : essayage), clic droit = menu ;
 -- en-tête : titre doré (grisé s'il se replie), sans menu ; paliers passés : icône désaturée, textes grisés.
@@ -26,10 +27,16 @@ function RouteRows.sourceLine(row)
     local slot = row.slotName and ns.Compat.GlobalString(row.slotName)
         or (row.slot and L.SLOT_FALLBACK:format(row.slot)) or ""
     local parts = { slot ~= "" and slot or nil }
+    if row.kindText then
+        parts[#parts + 1] = ns.Theme.colorize(row.kindText, row.kindColor)
+    end
     if row.tagText then
         parts[#parts + 1] = ns.Theme.colorize(row.tagText, row.tagColor)
     end
     local origin = row.originText or row.sourceText
+    if row.kindText then -- type déjà écrit en couleur : le nom seul (rien pour l'artisanat)
+        origin = row.sourceKind == "quest" and row.sourceText or nil
+    end
     if origin and origin ~= "" then
         parts[#parts + 1] = origin
     end
