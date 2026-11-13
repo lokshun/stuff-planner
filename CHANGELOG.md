@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.3.0 — 2026-11-13
+
+Reliable data: no more "unconfirmed" guesses, and every listed quest is one you can actually do.
+
+### Quest rewards
+- Quests whose fixed vs choice rewards were guessed are now read from the game itself shortly after login,
+  outside of combat, without having to visit the quest giver; they turn confirmed within seconds.
+- Forever quests use the fixed vs choice split published by ForeverChanges (used with the publisher's
+  permission); only a handful of quests are still guessed before the in-game read.
+- Item stats still estimated are read first for your zone and its neighbours; the "estimated" mention stays
+  hidden while the read is in progress.
+
+### Feasible quests
+- Quests you can no longer do are removed: the other branch of an exclusive choice already taken, quests
+  above their maximum level, faction or reputation you cannot reach, Questie's list of unavailable quests
+  and world event quests.
+- Quests you can still unlock show their condition in orange on the row, in the quest detail and in the
+  tooltip: "requires Leatherworking (150)", "requires Timbermaw Hold: Friendly", "requires <spell>"; their
+  effort accounts for the time to meet it.
+
+### Where to start a quest
+- Quests without a placed quest giver now show where they start: a world object, an item from your bags
+  (and the creature that drops it), a quest giver inside a dungeon (with the entrance) or, failing that,
+  the zone. Map pins, the follow mode and the effort use this place.
+- The quest giver seen in the quest dialog is remembered and shared with your guild and group.
+
+### Commands
+- `/splan share`: sharing status (option, channels, messages sent, received, applied, rejected).
+
 ## 2.2.1 — 2026-11-13
 
 ### Fixes

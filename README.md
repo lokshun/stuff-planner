@@ -91,6 +91,7 @@ Optional companions: [QuestieDB](https://github.com/Questie/QuestieDB), [TomTom]
 | `/splan scale 0.9` | Set the window scale |
 | `/splan welcome` | Show the welcome guide again |
 | `/splan export` | Export collected observations as text to share |
+| `/splan share` | Show the sharing status (option, channels, messages) |
 | `/splan perf` | Show memory use and the last computation times |
 | `/splan help` | Show all commands |
 
@@ -116,7 +117,8 @@ Data comes in three layers, the most specific winning:
 ## Known limitations
 
 - No world drops or vendor sources yet.
-- Some item stats are estimated on Classic Era and flagged *unconfirmed* until seen in game.
+- Some item stats are estimated on Classic Era until the game sends them (read automatically after login).
+- A few quests without a known quest giver only show their zone.
 - Hidden Forever items are only known once the server reveals them.
 
 ## Contributing
@@ -158,7 +160,8 @@ Each Lua module starts with a short `CONTRAT` header describing its interface.
 
 The database is built from:
 
-- [QuestieDB](https://github.com/Questie/QuestieDB) — quests, rewards, maps (GPLv3)
+- [QuestieDB](https://github.com/Questie/QuestieDB) — quests, rewards, maps, quest conditions (GPLv3)
+- [Questie](https://github.com/Questie/Questie) — list of unavailable quests, used to leave them out (GPLv3)
 - [CMaNGOS classic-db](https://github.com/cmangos/classic-db) — fixed vs choice quest rewards (GPLv3)
 - [ForeverChanges](https://foreverchanges.pro) (Waypoint Digital SL) — fixed vs choice rewards of Forever quests, used with the publisher's permission
 - [NorgannonDB](https://github.com/zmarotrix/NorgannonDB) by Maro — Classic instance boss loot (GPLv3)
