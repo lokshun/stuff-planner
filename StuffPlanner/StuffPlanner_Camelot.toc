@@ -113,6 +113,7 @@ UI\Presenters\TrackerPresenter.lua
 UI\Presenters\FollowPresenter.lua
 UI\Presenters\HudPresenter.lua
 UI\Presenters\HelpPresenter.lua
+UI\Presenters\OptionsLayout.lua
 UI\Presenters\PageTipPresenter.lua
 UI\Presenters\CombatReopen.lua
 UI\Presenters\ArrowPresenter.lua

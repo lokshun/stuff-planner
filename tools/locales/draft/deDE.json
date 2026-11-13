@@ -438,5 +438,17 @@
   "HELP_KEY_PILL": "Klick auf ein Modussymbol",
   "HELP_KEY_ARROW": "Klick auf den Pfeil",
   "HELP_DO_PICK_MODE": "diesen Modus zeigen (Dungeon, Folgen, Zone)",
-  "HELP_DO_HUD_MENU": "Menü: einklappen, fixieren, Modus ausblenden, Optionen"
+  "HELP_DO_HUD_MENU": "Menü: einklappen, fixieren, Modus ausblenden, Optionen",
+  "OPTIONS_SECTION_ALERTS": "Hinweise",
+  "OPTIONS_DEFAULTS": "Standardwerte",
+  "OPTIONS_DEFAULTS_CONFIRM": "Bestätigen?",
+  "OPTION_WINDOW_SKIN_TIP": "Abenteurer-Notizbuch oder Blizzard-Rahmen; wird beim Neuladen der Oberfläche übernommen.",
+  "OPTION_TOOLTIP_ALTS_TIP": "Zeigt auch den Gewinn für Eure anderen Charaktere auf diesem Realm (zuletzt im Spiel gesehen).",
+  "OPTION_QUESTHINT_ENABLED_TIP": "Hebt im Questfenster die Belohnung hervor, die Euch am meisten verbessert.",
+  "OPTION_HUD_LINES_TIP": "Anzahl der Verbesserungen, die der Zonenmodus des schwebenden Fensters auflistet.",
+  "OPTION_TOAST_ZONE_TIP": "Kurzer Hinweis beim Betreten einer Zone mit Verbesserungen für Euch.",
+  "OPTION_ROLL_HINT_TIP": "Beim Würfeln um Beute: Bedarf, wenn der Gegenstand Euch verbessert, sonst Gier.",
+  "OPTION_ARROW_ARRIVAL_TIP": "Entfernung, ab der ein Wegpunkt als erreicht gilt und zum nächsten Schritt wechselt.",
+  "OPTION_WAYPOINT_PREFERTOMTOM_TIP": "Wegpunkte laufen über TomTom, wenn es geladen ist, statt über den Pfeil des Addons.",
+  "OPTION_PLANNER_CALIBRATE_TIP": "Vergleicht die echte Dauer Eurer Quests mit den Schätzungen und korrigiert die angezeigten Zeiten."
 }

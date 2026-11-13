@@ -2,9 +2,10 @@
 -- Contrôles du panneau de réglages, liés à une clé de ns.Options. Charger après Options.lua et Theme.lua.
 -- Chaque constructeur rend un cadre ancrable avec .height (pixels) et :refresh() (relit ns.Options).
 --   ns.OptionsWidgets.header(parent, text)
---   ns.OptionsWidgets.checkbox(parent, key, label)
---   ns.OptionsWidgets.slider(parent, key, label, format(value) -> string)
---   ns.OptionsWidgets.choice(parent, key, label, {{value, label}...}) : cases radio, une par valeur
+--   ns.OptionsWidgets.checkbox(parent, key, label, tip?)
+--   ns.OptionsWidgets.slider(parent, key, label, format(value) -> string, tip?)
+--   ns.OptionsWidgets.choice(parent, key, label, {{value, label}...}, tip?) : cases radio, une par valeur
+--     tip : explication en info-bulle (libellé en titre) au survol de la ligne et de son contrôle
 --   ns.OptionsWidgets.button(parent, label, onClick)
 --   ns.OptionsWidgets.note(parent, text) : texte explicatif sur plusieurs lignes, couleur atténuée
 -- Modèles du client présents sur Forever et Classic Era : UICheckButtonTemplate, UIRadioButtonTemplate,
@@ -20,6 +21,23 @@ local SLIDER_WIDTH = 220
 local THUMB = "Interface\\Buttons\\UI-SliderBar-Button-Horizontal"
 
 local function noRefresh() end
+
+local function attachTip(frame, text, tip, ...)
+    if not tip then
+        return
+    end
+    local function show(owner)
+        GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+        GameTooltip:SetText(text, 1, 1, 1)
+        GameTooltip:AddLine(tip, nil, nil, nil, true)
+        GameTooltip:Show()
+    end
+    frame:EnableMouse(true)
+    for _, region in ipairs({ frame, ... }) do
+        region:HookScript("OnEnter", show)
+        region:HookScript("OnLeave", GameTooltip_Hide)
+    end
+end
 
 local function label(parent, text, font)
     local fontString = parent:CreateFontString(nil, "OVERLAY", font or ns.Theme.fonts.body)
@@ -43,7 +61,7 @@ function Widgets.header(parent, text)
     return frame
 end
 
-function Widgets.checkbox(parent, key, text)
+function Widgets.checkbox(parent, key, text, tip)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(WIDTH, 26)
     local check = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
@@ -56,11 +74,12 @@ function Widgets.checkbox(parent, key, text)
     function frame.refresh()
         check:SetChecked(ns.Options.get(key))
     end
+    attachTip(frame, text, tip, check)
     frame.height = 28
     return frame
 end
 
-function Widgets.slider(parent, key, text, format)
+function Widgets.slider(parent, key, text, format, tip)
     local spec = ns.Options.spec(key)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(WIDTH, 40)
@@ -98,11 +117,12 @@ function Widgets.slider(parent, key, text, format)
         value:SetText(format(current))
         refreshing = false
     end
+    attachTip(frame, text, tip, slider)
     frame.height = 44
     return frame
 end
 
-function Widgets.choice(parent, key, text, values)
+function Widgets.choice(parent, key, text, values, tip)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(WIDTH, 24)
     local title = label(frame, text)
@@ -126,6 +146,7 @@ function Widgets.choice(parent, key, text, values)
             item.radio:SetChecked(item.value == current)
         end
     end
+    attachTip(frame, text, tip)
     frame.height = 28
     return frame
 end

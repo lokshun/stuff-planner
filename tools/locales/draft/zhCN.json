@@ -437,5 +437,17 @@
   "HELP_KEY_PILL": "点击模式图标",
   "HELP_KEY_ARROW": "点击箭头",
   "HELP_DO_PICK_MODE": "显示该模式（地下城、追踪、区域）",
-  "HELP_DO_HUD_MENU": "菜单：折叠、锁定、隐藏模式、设置"
+  "HELP_DO_HUD_MENU": "菜单：折叠、锁定、隐藏模式、设置",
+  "OPTIONS_SECTION_ALERTS": "提醒",
+  "OPTIONS_DEFAULTS": "默认值",
+  "OPTIONS_DEFAULTS_CONFIRM": "确认？",
+  "OPTION_WINDOW_SKIN_TIP": "冒险者笔记本或暴雪框体；重新加载界面后生效。",
+  "OPTION_TOOLTIP_ALTS_TIP": "同时显示本服务器其他角色的提升（以最后一次登录游戏时为准）。",
+  "OPTION_QUESTHINT_ENABLED_TIP": "在任务窗口中突出显示提升最大的奖励。",
+  "OPTION_HUD_LINES_TIP": "浮动框区域模式列出的提升数量。",
+  "OPTION_TOAST_ZONE_TIP": "进入有提升的区域时给出简短提示。",
+  "OPTION_ROLL_HINT_TIP": "拾取掷骰时：物品是提升则需求，否则贪婪。",
+  "OPTION_ARROW_ARRIVAL_TIP": "路径点视为到达并进入下一步的距离。",
+  "OPTION_WAYPOINT_PREFERTOMTOM_TIP": "加载 TomTom 时，路径点改用 TomTom，而非插件的箭头。",
+  "OPTION_PLANNER_CALIBRATE_TIP": "将任务的实际用时与估算比较，并修正显示的时长。"
 }

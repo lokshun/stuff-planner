@@ -438,5 +438,17 @@
   "HELP_KEY_PILL": "點擊模式圖示",
   "HELP_KEY_ARROW": "點擊箭頭",
   "HELP_DO_PICK_MODE": "顯示該模式（地城、追蹤、區域）",
-  "HELP_DO_HUD_MENU": "選單：收合、鎖定、隱藏模式、設定"
+  "HELP_DO_HUD_MENU": "選單：收合、鎖定、隱藏模式、設定",
+  "OPTIONS_SECTION_ALERTS": "提醒",
+  "OPTIONS_DEFAULTS": "預設值",
+  "OPTIONS_DEFAULTS_CONFIRM": "確認？",
+  "OPTION_WINDOW_SKIN_TIP": "冒險者筆記本或暴雪框架；重新載入介面後生效。",
+  "OPTION_TOOLTIP_ALTS_TIP": "同時顯示本伺服器其他角色的提升（以最後一次登入遊戲時為準）。",
+  "OPTION_QUESTHINT_ENABLED_TIP": "在任務視窗中突顯提升最大的獎勵。",
+  "OPTION_HUD_LINES_TIP": "浮動框區域模式列出的提升數量。",
+  "OPTION_TOAST_ZONE_TIP": "進入有提升的區域時給出簡短提示。",
+  "OPTION_ROLL_HINT_TIP": "拾取擲骰時：物品是提升則需求，否則貪婪。",
+  "OPTION_ARROW_ARRIVAL_TIP": "路徑點視為抵達並進入下一步的距離。",
+  "OPTION_WAYPOINT_PREFERTOMTOM_TIP": "載入 TomTom 時，路徑點改用 TomTom，而非插件的箭頭。",
+  "OPTION_PLANNER_CALIBRATE_TIP": "將任務的實際用時與估算比較，並修正顯示的時長。"
 }
