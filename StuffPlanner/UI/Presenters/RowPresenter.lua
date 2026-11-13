@@ -21,7 +21,8 @@
 --            secondaryColor (instance s'il gagne, muted sinon) : affiché à côté de gainLabel,
 --            detailText (états colorés — état de quête puis badge — séparés par « · »,
 --              puis sourceText sans couleur), dimmed (= unavailable : ligne grisée)}
---   isChain(quest) -> bool : quête à prérequis (suite de quêtes) ; quest = data.quest(id) | nil
+--   isChain(quest) -> bool : quête à prérequis (suite de quêtes : quest.prereq non vide ; Questie et la base
+--     donnent {} pour une quête seule) ; quest = data.quest(id) | nil
 --   questOrigin(questID, data) -> L.SOURCE_ORIGIN (L.TAG_CHAIN si isChain, sinon L.TAG_QUEST ; nom de quête) ;
 --     pour les textes sans le tag coloré de detailText (info-bulles, parcours, liste cible, autres sources, chat)
 --   offProfile (delta.fallback : repli hors profil, Scoring.fallbackOf) : gainLabel entre parenthèses, couleur
@@ -126,7 +127,7 @@ end
 local SEPARATOR = " · "
 
 function RowPresenter.isChain(quest)
-    return quest ~= nil and quest.prereq ~= nil
+    return quest ~= nil and type(quest.prereq) == "table" and next(quest.prereq) ~= nil
 end
 
 function RowPresenter.questOrigin(questID, data)

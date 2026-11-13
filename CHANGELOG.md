@@ -6,6 +6,8 @@
 - Lists no longer jump back to the top when you add an item to the target list, expand a row's
   alternatives or when the page refreshes; they only go back to the top when their content changes
   (another dungeon, back to the list).
+- A single quest was labelled "Quest chain" (always when Questie is installed): only quests with
+  prerequisites are now shown as a quest chain.
 
 ## 2.2.0 — 2026-11-13
 
