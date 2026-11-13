@@ -1,5 +1,6 @@
 -- CONTRAT
--- Pastille de gain (flèche verte + pourcentage, BadgePresenter) dans le coin d'un bouton d'objet.
+-- Pastille de gain (BadgePresenter) sur un bouton d'objet : flèche verte seule en haut à gauche, score en
+-- bas à gauche (le coin bas-droit reste au nombre d'exemplaires du jeu).
 -- Charger après BadgePresenter.lua, LiveItem.lua, Manager.lua et Results.lua.
 --   ns.ItemBadge.show(button, link) : pastille demandée ; calculée plus tard, MAX_PER_FRAME boutons
 --     par image, jamais en combat (reprise à la fin du combat) ; le dernier lien demandé l'emporte ;
@@ -51,7 +52,7 @@ local function overlay(button)
     arrow:SetTexCoord(unpack(ARROW_UP))
     arrow:SetDesaturated(true) -- flèche jaune du jeu : teinte verte nette par SetVertexColor
     local label = badge:CreateFontString(nil, "OVERLAY", ns.Theme.fonts.number)
-    label:SetPoint("LEFT", arrow, "RIGHT", 0, 0)
+    label:SetPoint("BOTTOMLEFT", INSET + 1, INSET + 1) -- bas-droit : exemplaires (jeu)
     badge.arrow, badge.label = arrow, label
     badge:Hide()
     button.stuffPlannerBadge = badge
