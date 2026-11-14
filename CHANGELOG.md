@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.3.1 — 2026-11-14
+
+### Fixes
+- Upgrade badges in the bags now follow the items: after sorting or moving items, the score no longer stays
+  on the old slot, and every item of a full bag gets its badge right after login.
+- Bag badges also refresh on every bag change (item moved, picked up, locked, bag swapped).
+- Group loot roll hint ("Need: +x" / "Greed") now also finds the roll frames of the modern interface and
+  waits for the frame to open before falling back to a chat line.
+- No more Lua error at login on clients with the modern auction house (unknown event
+  `AUCTION_ITEM_LIST_UPDATE`).
+
 ## 2.3.0 — 2026-11-13
 
 Reliable data: no more "unconfirmed" guesses, and every listed quest is one you can actually do.
