@@ -5,7 +5,8 @@
 --   HasClassicAuctionHouse() -> bool : liste classique chargée (BrowseScrollFrame, GetAuctionItemLink)
 --   EachAuctionButton(fn) -> fn(button, link | nil) pour les NUM_BROWSE_TO_DISPLAY lignes, onglet Parcourir
 --     ouvert seulement ; button = « BrowseButtonNItem » ; ligne cachée : link nil ; objet n° défilement + N
---   HookAuctionUpdates(fn) -> fn() à AUCTION_ITEM_LIST_UPDATE et après AuctionFrameBrowse_Update
+--   HookAuctionUpdates(fn) -> fn() à AUCTION_ITEM_LIST_UPDATE (inscrit seulement si le client le connaît :
+--     absent de l'hôtel des ventes moderne de Forever) et après AuctionFrameBrowse_Update
 --     (défilement, page) ; accroché dès que Blizzard_AuctionUI est chargé (ADDON_LOADED), une seule fois
 
 local _, ns = ...
@@ -51,7 +52,7 @@ function Compat.HookAuctionUpdates(fn)
         end)
     end
     local events = CreateFrame("Frame")
-    events:RegisterEvent("AUCTION_ITEM_LIST_UPDATE")
+    pcall(events.RegisterEvent, events, "AUCTION_ITEM_LIST_UPDATE") -- inconnu du client moderne
     events:RegisterEvent("ADDON_LOADED")
     events:SetScript("OnEvent", function(_, event, name)
         if event == "ADDON_LOADED" then

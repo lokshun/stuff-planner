@@ -9,6 +9,8 @@
 --     (Compat.LootRollFrame ; un texte par cadre, réutilisé, rangé ici dans une table à clés faibles : rien
 --     n'est écrit sur le cadre du client), sinon une ligne L.ROLL_CHAT dans la discussion ; sans conseil :
 --     texte du cadre masqué. Option roll.hint coupée : rien.
+-- Cadre pas encore ouvert (interface moderne : animation, file d'attente) : show relancé toutes les
+-- RETRY_DELAY s, au plus RETRY_MAX fois, avant le repli dans la discussion.
 -- START_LOOT_ROLL(rollID) : show une image plus tard (le client ouvre d'abord son cadre), en combat aussi
 -- (exception à la règle, voir DECISIONS : un seul objet, cadre non protégé, jet souvent lancé en combat).
 -- Objet pas encore lisible : jet gardé en attente, show relancé à GET_ITEM_INFO_RECEIVED.
@@ -24,9 +26,12 @@ ns.RollHint = RollHint
 
 local OPTION = "roll.hint"
 local OFFSET_Y = 2
+local RETRY_DELAY = 0.1
+local RETRY_MAX = 10
 
 local labels = setmetatable({}, { __mode = "k" })
 local waiting = {} -- rollID -> true : objet pas encore lisible
+local tries = {} -- rollID -> relances faites faute de cadre
 
 function RollHint.text(link)
     if not link or not ns.Data.ready() then
@@ -78,9 +83,21 @@ function RollHint.show(rollID)
         return
     end
     if not frame then
+        local done = tries[rollID] or 0
+        if done < RETRY_MAX then
+            tries[rollID] = done + 1
+            C_Timer.After(RETRY_DELAY, function()
+                if tries[rollID] then
+                    RollHint.show(rollID)
+                end
+            end)
+            return
+        end
+        tries[rollID] = nil
         print(L.ROLL_CHAT:format(link, text))
         return
     end
+    tries[rollID] = nil
     local region = label(frame)
     local color = text == L.ROLL_GREED and ns.Theme.colors.muted or ns.Theme.colors.gain
     region:SetText(text)
@@ -90,6 +107,7 @@ end
 
 local function cancel(rollID)
     waiting[rollID] = nil
+    tries[rollID] = nil
     hideLabel(ns.Compat.LootRollFrame(rollID, true))
 end
 

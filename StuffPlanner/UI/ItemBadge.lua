@@ -34,7 +34,7 @@ local WEAK_KEYS = { __mode = "k" }
 local wanted = setmetatable({}, WEAK_KEYS) -- bouton -> lien demandé (posé ou en attente)
 local queued = setmetatable({}, WEAK_KEYS) -- bouton -> true si en attente
 local settled = setmetatable({}, WEAK_KEYS) -- bouton -> true si calculé pour le lien demandé
-local queue, head = {}, 1
+local queue, head, tail = {}, 1, 0 -- file : queue[head..tail] (pas de #queue : trous en tête)
 local runner
 
 local function overlay(button)
@@ -101,7 +101,7 @@ local function step()
         return
     end
     local done = 0
-    while head <= #queue and done < MAX_PER_FRAME do
+    while head <= tail and done < MAX_PER_FRAME do
         local button = queue[head]
         queue[head] = nil
         head = head + 1
@@ -111,8 +111,8 @@ local function step()
             done = done + 1
         end
     end
-    if head > #queue then
-        queue, head = {}, 1
+    if head > tail then
+        queue, head, tail = {}, 1, 0
         runner:Hide()
     end
 end
@@ -124,7 +124,8 @@ runner:SetScript("OnUpdate", step)
 local function enqueue(button)
     if not queued[button] then
         queued[button] = true
-        queue[#queue + 1] = button
+        tail = tail + 1
+        queue[tail] = button
     end
     runner:Show()
 end

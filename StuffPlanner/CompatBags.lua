@@ -11,9 +11,11 @@
 --     « <cadre>Item1..size », sac = cadre:GetID() ; emplacement = button:GetID()
 --   EachBagItem(fn) -> fn(link, bag, slot) pour chaque objet du sac à dos (0) et des sacs équipés
 --     (1..NUM_BAG_SLOTS, 4 par défaut) ; nombre d'emplacements par C_Container, sinon fonction globale
---   HookBagUpdates(fn) -> fn() à BAG_UPDATE_DELAYED, à l'ouverture d'un cadre de sac (OnShow : un cadre
---     classique sert à plusieurs sacs) et après chaque mise à jour d'un cadre de sac
---     (ContainerFrame_Update, sinon UpdateItems des cadres) ; peut arriver en rafale : à regrouper.
+--   HookBagUpdates(fn) -> fn() à BAG_UPDATE_DELAYED, BAG_UPDATE, ITEM_LOCK_CHANGED et BAG_CONTAINER_UPDATE
+--     (chacun inscrit seulement si le client le connaît : tri et déplacement ne donnent pas tous les mêmes),
+--     à l'ouverture d'un cadre de sac (OnShow : un cadre classique sert à plusieurs sacs) et après chaque
+--     mise à jour d'un cadre de sac (ContainerFrame_Update et UpdateItems des cadres, les deux s'ils
+--     existent) ; arrive en rafale : à regrouper.
 
 local _, ns = ...
 
@@ -123,9 +125,13 @@ local function hookShow(frame, fn)
     end
 end
 
+local EVENTS = { "BAG_UPDATE_DELAYED", "BAG_UPDATE", "ITEM_LOCK_CHANGED", "BAG_CONTAINER_UPDATE" }
+
 function Compat.HookBagUpdates(fn)
     local events = CreateFrame("Frame")
-    events:RegisterEvent("BAG_UPDATE_DELAYED")
+    for _, event in ipairs(EVENTS) do
+        pcall(events.RegisterEvent, events, event) -- événement inconnu du client : erreur évitée
+    end
     events:SetScript("OnEvent", function()
         fn()
     end)
@@ -137,7 +143,6 @@ function Compat.HookBagUpdates(fn)
         hooksecurefunc("ContainerFrame_Update", function()
             fn()
         end)
-    else
-        eachFrame(hookFrame, fn)
     end
+    eachFrame(hookFrame, fn)
 end
