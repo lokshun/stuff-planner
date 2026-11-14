@@ -151,8 +151,7 @@ function Waypoint.reached(npcID)
 end
 
 function Waypoint.dialogNpc()
-    local unitType, id = (UnitGUID("npc") or ""):match("^(%a+)%-%d+%-%d+%-%d+%-%d+%-(%d+)%-")
-    return (unitType == "Creature" or unitType == "Vehicle") and tonumber(id) or nil
+    return ns.Compat.CreatureIDFromGUID(UnitGUID("npc")) -- GUID secret (Forever) : nil
 end
 
 local events = CreateFrame("Frame")

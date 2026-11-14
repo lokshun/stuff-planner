@@ -224,15 +224,11 @@ end
 ns:On("SP_DATA_READY", prune)
 
 -- Apprend le nom d'une créature désignée par une unité ("npc", "target").
+-- GUID ou nom secret (Forever, cible prise en combat) : rien (Compat.UnitCreature).
 local function learnUnit(unit)
-    local guid = UnitGUID(unit)
-    local kind, id = (guid or ""):match("^(%a+)%-%d+%-%d+%-%d+%-%d+%-(%d+)%-")
-    local name = UnitName(unit)
-    if (kind == "Creature" or kind == "Vehicle") and name and name ~= "" then
-        id = tonumber(id)
-        if known.npc[id] ~= name then
-            Names.learn("npc", id, name)
-        end
+    local id, name = ns.Compat.UnitCreature(unit)
+    if id and known.npc[id] ~= name then
+        Names.learn("npc", id, name)
     end
 end
 

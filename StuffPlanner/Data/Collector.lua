@@ -176,11 +176,7 @@ function Collector.addLog(questID, choices, rewards)
 end
 
 local function npcIDFromGUID(guid)
-    local unitType, id = (guid or ""):match("^(%a+)%-%d+%-%d+%-%d+%-%d+%-(%d+)%-")
-    if unitType == "Creature" or unitType == "Vehicle" then
-        return tonumber(id)
-    end
-    return nil
+    return Compat.CreatureIDFromGUID(guid) -- GUID secret (Forever) : nil
 end
 
 local function roundCoord(value)
