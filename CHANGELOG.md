@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.2 — 2026-11-14
+
+### Fixes
+- No more Lua error "attempt to index a secret string value" when targeting an enemy in combat on clients
+  that hide unit identifiers (name of a creature, quest giver in dialog and loot source are skipped
+  when the client keeps them secret).
+
 ## 2.3.1 — 2026-11-14
 
 ### Fixes
