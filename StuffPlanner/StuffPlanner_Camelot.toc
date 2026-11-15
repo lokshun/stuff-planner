@@ -75,6 +75,7 @@ Engine\Masks.lua
 Engine\Feasible.lua
 Engine\ItemLink.lua
 Data\LiveItem.lua
+Engine\SpellWeights.lua
 Engine\Scoring.lua
 Engine\Totals.lua
 Engine\Chains.lua
@@ -127,6 +128,7 @@ UI\Presenters\CombatReopen.lua
 UI\Presenters\ArrowPresenter.lua
 UI\Presenters\TooltipPresenter.lua
 UI\Presenters\BadgePresenter.lua
+UI\Presenters\WhyPresenter.lua
 UI\Presenters\ZoneToastPresenter.lua
 UI\Presenters\DungeonPresenter.lua
 UI\Presenters\InstanceListPresenter.lua
@@ -203,3 +205,4 @@ UI\DungeonPanel.lua
 UI\OptionsWidgets.lua
 UI\OptionsPanel.lua
 UI\MinimapButton.lua
+Debug\Why.lua

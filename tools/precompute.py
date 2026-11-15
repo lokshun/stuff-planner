@@ -13,6 +13,7 @@ Précalculs à partir des enregistrements importés.
   merge_instances(primary, secondary) -> enregistrements `instances` triés ; secondary prime pour
     `mapID`, les niveaux couvrent les deux ; `bosses` de primary s'il en a (liste complète), sinon de secondary
   enrich_items(items, scan) -> copie ; ajoute DPS et SPELL_POWER des scans, absents des tables client
+    (SPELL_POWER écarté si le client a une clé de sorts que le scan n'a pas : même bonus, autre codage)
   hidden_items(ids, bases, scan, era) -> enregistrements `items` des objets masqués du client :
     scan d'abord (source spyglass, confidence 2), sinon Classic Era (source classic_era, confidence 1)
   era_differences(items, era, scan=None) -> enregistrements `eraItems` (id, quality, ilvl, reqLevel, stats) des
@@ -154,6 +155,16 @@ def mark_rares(instances, ranks, random_spawns):
     return marked
 
 
+SPELL_KEYS = frozenset(
+    ("SPELL_DMG", "HEALING", "HOLY_DMG", "FIRE_DMG", "NATURE_DMG", "FROST_DMG", "SHADOW_DMG", "ARCANE_DMG")
+)
+
+
+def _same_spell_bonus_coded_otherwise(client, scanned):
+    # Le client code un bonus de sorts que le scan ne voit pas : le SPELL_POWER du scan est ce même bonus.
+    return any(key in client and key not in scanned for key in SPELL_KEYS)
+
+
 def enrich_items(items, scan):
     enriched = []
     for item in items:
@@ -161,6 +172,8 @@ def enrich_items(items, scan):
         additions = {
             key: stats[key] for key in SCAN_ONLY_STATS if key in stats and key not in item["stats"]
         }
+        if "SPELL_POWER" in additions and _same_spell_bonus_coded_otherwise(item["stats"], stats):
+            del additions["SPELL_POWER"]
         enriched.append({**item, "stats": {**item["stats"], **additions}} if additions else item)
     return enriched
 

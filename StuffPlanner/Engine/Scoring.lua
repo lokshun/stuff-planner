@@ -1,7 +1,8 @@
 -- CONTRAT
 -- Score d'objet et gain par rapport à l'équipement porté. Pur : aucun appel à l'API WoW.
 -- Charger après Engine/Proficiency.lua et Engine/Masks.lua.
---   score(stats, weights, ctx) -> number ; somme de stats[clé] * weights[clé] ;
+--   score(stats, weights, ctx) -> number ; somme de stats[clé] * poids[clé] ; poids effectifs de
+--     ns.SpellWeights s'il est chargé (« dégâts et soins » ≥ dégâts + soins, dégâts ≥ école) ;
 --     ctx.caps = {[clé]=plafond}, ctx.base = {[clé]=total sans l'objet} : seule la part
 --     sous le plafond compte (score marginal)
 --   delta(itemID, player, profile, data) -> {abs, pct, slot} | nil
@@ -70,7 +71,7 @@ function Scoring.score(stats, weights, ctx)
     local total = 0
     stats = ns.StatValue and ns.StatValue.withDerived(stats) or stats
     for key, value in pairs(stats or {}) do
-        local weight = weights[key]
+        local weight = ns.SpellWeights and ns.SpellWeights.weight(weights, key) or weights[key]
         if weight then
             local cap = caps[key]
             if cap then
