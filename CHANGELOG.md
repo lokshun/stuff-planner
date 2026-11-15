@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.3.3 — 2026-11-15
+
+### Fixes
+- Spell bonuses are now scored consistently, whatever the order of your stat priorities: "damage and
+  healing" is worth at least "spell damage" plus "healing", and "spell damage" (all schools) at least as much
+  as your best school ("Shadow damage"…). A healing item ("healing 150, damage 50") no longer scores above a
+  "damage and healing 50" item for a Warlock.
+- The "Spell power" stat is renamed "Spell damage and healing" (English and French), as on the items.
+- Two items no longer count the same spell bonus twice.
+
+### Commands
+- `/splan why <item link>`: breaks down an item's score, stat by stat, for the active profile.
+
 ## 2.3.2 — 2026-11-14
 
 ### Fixes

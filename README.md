@@ -92,6 +92,7 @@ Optional companions: [QuestieDB](https://github.com/Questie/QuestieDB), [TomTom]
 | `/splan welcome` | Show the welcome guide again |
 | `/splan export` | Export collected observations as text to share |
 | `/splan share` | Show the sharing status (option, channels, messages) |
+| `/splan why <item link>` | Break down an item's score, stat by stat, for the active profile |
 | `/splan perf` | Show memory use and the last computation times |
 | `/splan help` | Show all commands |
 
