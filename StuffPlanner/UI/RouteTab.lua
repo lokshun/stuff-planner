@@ -1,15 +1,16 @@
 -- CONTRAT
 -- Page « Parcours 1-60 » : meilleur objet par emplacement et par palier de niveau
 -- (RouteResults, RoutePresenter), ScrollBox avec en-têtes de palier (ns.RouteRows). Charger après
--- MainFrame.lua, RouteResults.lua, RoutePresenter.lua, FilterMenu.lua et RouteRows.lua.
+-- MainFrame.lua, RouteResults.lua, RoutePresenter.lua, FilterMenu.lua, PageOrigins.lua et RouteRows.lua.
 -- S'inscrit par ns.MainFrame.addTab("route", …). Classement partagé (RouteResults), recalculé
 -- à l'affichage de la page après SP_PLAYER_CHANGED, SP_DATA_READY ou SP_PROFILE_CHANGED :
 -- « calcul en cours » d'ici là ; rafraîchi sur SP_ROUTE_UPDATED ;
 -- noms reçus du client : nouvelle présentation regroupée (NameAsker), sans recalcul ; noms
 -- encore inconnus : nouvelle présentation toutes les RETRY_DELAY s, RETRY_MAX fois au plus.
 -- Paliers passés (référence, grisés) repliés par défaut : clic sur l'en-tête, état gardé dans
--- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}. Bouton « Tri » à droite
--- de l'en-tête (ns.FilterMenu : Par emplacement / Meilleur gain dans chaque palier, StuffPlannerDB.ui.routeByGain).
+-- StuffPlannerDB.ui.routePastOpen = {[min du palier] = true}. Bouton « Filtres » à droite de l'en-tête
+-- (ns.FilterMenu : origines de la page, ns.PageOrigins "route", classement à part par RouteResults.get(origins) ;
+-- tri Par emplacement / Meilleur gain dans chaque palier, StuffPlannerDB.ui.routeByGain).
 -- Raids exclus. Clics des lignes : ns.RouteRows (fiche, repère, essayage, menu clic droit).
 -- Alternatives plus faciles (AltLines) : bouton flèche à droite, état déplié local (non gardé), par clé
 -- RoutePresenter expandKey. Session de jeu : page « Maintenant » (ZoneTab, T14.6).
@@ -71,16 +72,22 @@ local routeRows = ns.RouteRows.new({
 })
 
 local function refresh()
-    local tiers, info = ns.RouteResults.get()
+    local origins = ns.PageOrigins.get("route")
+    local tiers, info = ns.RouteResults.get(origins)
     local rows = tiers and ns.RoutePresenter.build(tiers, ns.Data, pastOpen(), expanded,
         uiState().routeByGain == true) or {}
     scheduleRetry(ns.RouteRows.askNames(rows, askName))
     header:SetText(L.ROUTE_HEADER)
     local P = ns.FilterMenuPresenter
-    sortMenu:update(P.label(nil), function()
-        return P.entries(nil, P.sorts(uiState().routeByGain and "gain" or "slot", { "slot", "gain" }))
-    end, function(_, value)
-        uiState().routeByGain = value == "gain"
+    sortMenu:update(P.label(nil, origins), function()
+        return P.entries(nil, P.sorts(uiState().routeByGain and "gain" or "slot", { "slot", "gain" }),
+            ns.PageOrigins.get("route"))
+    end, function(kind, value)
+        if kind == "origin" then
+            ns.PageOrigins.toggle("route", value)
+        else
+            uiState().routeByGain = value == "gain"
+        end
         ns.MainFrame.refresh()
     end)
     footer:SetText(tiers and L.ROUTE_FOOTER:format(info) or "")

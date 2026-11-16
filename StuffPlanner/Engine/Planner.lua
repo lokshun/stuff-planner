@@ -1,6 +1,7 @@
 -- CONTRAT
 -- Priorité de parcours : (gain × durée de vie + ALPHA × XP) / minutes d'effort. Pur : aucun appel à l'API WoW.
--- Charger après Engine/Effort.lua (calcul de l'effort d'une source).
+-- Charger après Engine/Effort.lua (calcul de l'effort d'une source) et Engine/Origins.lua.
+-- opts.origins (Origins.new) : candidat dont source.type est masqué sauté avant tout calcul (les deux modes).
 --   candidates(itemIDs, data, step?) -> {{itemID, source}...}, une entrée par source de data.sourcesOf ;
 --     step() appelé après chaque objet (sourcesOf décode la base : à étaler)
 --   rank(candidates, player, profile, data, opts?) -> {{itemID, source, delta, effort, seconds, xp, level, hops,
@@ -172,12 +173,15 @@ function Planner.rank(candidates, player, profile, data, opts)
     local best, deltas = {}, {}
     for _, candidate in ipairs(candidates) do
         local itemID = candidate.itemID
-        if deltas[itemID] == nil then
+        local allowed = ns.Origins.allows(opts.origins, candidate.source.type)
+        if allowed and deltas[itemID] == nil then
             deltas[itemID] = ns.Scoring.delta(itemID, player, profile, data) or false
         end
         local delta = deltas[itemID]
         local row
-        if opts.reference then
+        if not allowed then
+            row = nil
+        elseif opts.reference then
             row = evaluateReference(candidate, delta, player, profile, data, opts, tuning)
         else
             row = evaluate(candidate, delta, player, data, opts, tuning)

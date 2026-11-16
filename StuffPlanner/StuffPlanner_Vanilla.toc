@@ -84,6 +84,7 @@ Engine\FollowSteps.lua
 Engine\Distance.lua
 Engine\Travel.lua
 Engine\Effort.lua
+Engine\Origins.lua
 Engine\Planner.lua
 Engine\Wishlist.lua
 Engine\Calibration.lua
@@ -161,6 +162,7 @@ UI\MainFrame.lua
 UI\Chips.lua
 UI\RowMenu.lua
 UI\FilterMenu.lua
+UI\PageOrigins.lua
 UI\RowActions.lua
 UI\RouteRows.lua
 UI\ZoneTab.lua

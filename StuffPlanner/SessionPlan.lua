@@ -6,7 +6,7 @@
 --     StuffPlannerDB.ui.routeSession
 --   ns.SessionPlan.rows(tiers, level) -> entrées et alternatives du palier courant (Tiers.current) de
 --     niveau d'obtention <= level, sans doublon ; {} sans palier
---   ns.SessionPlan.get(budget) -> plan (Session.plan) | nil, message (RouteResults.get) ; niveau :
+--   ns.SessionPlan.get(budget, origins?) -> plan (Session.plan) | nil, message (RouteResults.get(origins)) ; niveau :
 --     Results.player() ; trajets chaînés par FollowTravel.between (lieu row.place) ; plan gardé tant que
 --     le classement (table des paliers) et le budget sont les mêmes
 --   ns.SessionPlan.follow(plan) -> nombre de quêtes en file : objectifs de quête du plan, dans l'ordre ;
@@ -64,8 +64,8 @@ local function travel()
     end or nil
 end
 
-function SessionPlan.get(budget)
-    local tiers, info = ns.RouteResults.get()
+function SessionPlan.get(budget, origins)
+    local tiers, info = ns.RouteResults.get(origins)
     if not tiers then
         return nil, info
     end

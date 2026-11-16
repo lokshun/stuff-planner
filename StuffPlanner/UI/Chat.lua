@@ -16,12 +16,16 @@
 --     source = celle de data.sourcesOf pour cette instance au meilleur taux, sinon {type, id} ;
 --     instances exclues : minLevel > player.level + INSTANCE_WINDOW (10) ; questState "level" si
 --     minLevel > player.level. Pur : aucun appel d'API.
---   ns.Chat.currentZone(limit, instances, fallback?) -> résultats de bestInZone pour la zone et le profil actuels,
+--     opts.origins (Origins.new) : quêtes ignorées si « quest » masqué (l'objet peut venir de son instance),
+--     instances ignorées si leur type (dungeon / raid) est masqué.
+--   ns.Chat.currentZone(limit, instances, fallback?, origins?) -> résultats de bestInZone pour la zone et le profil
+--     actuels (opts.origins = origins),
 --     mapID ; entrées de repli (delta.fallback) seulement si fallback ;
 --     isDone = Compat.IsQuestCompleted, isInLog = Compat.IsOnQuest, opts.instances = instances ;
 --     instantané et gains partagés de ns.Results ;
 --     nil, message (L.BEST_NOT_READY | BEST_NO_PROFILE | BEST_NO_ZONE) si impossible.
---     Un seul classement (sans limite, instances comprises) gardé pour l'instantané et le profil, oublié sur
+--     Un classement par clé d'origines (sans limite, instances comprises ; toutes + une autre au plus) gardé
+--     pour l'instantané et le profil, oublié sur
 --     SP_RESULTS_UPDATED et SP_QUEST_LOG_CHANGED ; chaque appel en reçoit une liste neuve, sans les entrées
 --     d'instance si instances est faux, tronquée à limit (DEFAULT_LIMIT) ; entrées partagées, à ne pas modifier.
 -- Commande /splan best : top 5 de la zone actuelle pour le profil actif ; gain en points de score
@@ -69,12 +73,13 @@ local function instanceSource(itemID, instance, data)
     return best or { type = instance.raid and "raid" or "dungeon", id = instance.id }
 end
 
-local function addInstances(list, seen, player, data)
+local function addInstances(list, seen, player, data, origins)
     local level = player.level or 1
     for _, instanceID in ipairs(data.instancesInMap(player.mapID)) do
         local instance = data.instance(instanceID)
         local minLevel = instance and instance.minLevel or 1
-        if instance and minLevel <= level + INSTANCE_WINDOW then
+        if instance and minLevel <= level + INSTANCE_WINDOW
+            and ns.Origins.allows(origins, instance.raid and "raid" or "dungeon") then
             local state = minLevel > level and "level" or nil
             for _, itemID in ipairs(data.instanceItems(instanceID)) do
                 if not seen[itemID] then
@@ -122,7 +127,8 @@ end
 function Chat.bestInZone(player, profile, data, opts)
     opts = opts or {}
     local candidates, seen = {}, {}
-    for _, questID in ipairs(player.mapID and data.questsInMap(player.mapID) or {}) do
+    local quests = ns.Origins.allows(opts.origins, "quest") and player.mapID and data.questsInMap(player.mapID)
+    for _, questID in ipairs(quests or {}) do
         local quest = data.quest(questID)
         if questAllowed(quest, player, opts.isDone, opts.isInLog) then
             local state = ns.Chains.questState(quest, player.level, opts)
@@ -131,7 +137,7 @@ function Chat.bestInZone(player, profile, data, opts)
         end
     end
     if opts.instances and player.mapID then
-        addInstances(candidates, seen, player, data)
+        addInstances(candidates, seen, player, data, opts.origins)
     end
     local results, considered = {}, {}
     for _, entry in ipairs(candidates) do
@@ -197,22 +203,32 @@ local function whenNamed(results, done)
     end
 end
 
-local shared -- {player, profile, results}
+local shared = {} -- [Origins.key] = {player, profile, results} ; « toutes » ("") + une autre au plus
 
-local function sharedRanking(player, profile, data)
-    if not (shared and shared.player == player and shared.profile == profile) then
+local function sharedRanking(player, profile, data, origins)
+    local key = ns.Origins.key(origins)
+    local entry = shared[key]
+    if not (entry and entry.player == player and entry.profile == profile) then
+        if not entry and next(shared) and key ~= "" then
+            for other in pairs(shared) do
+                if other ~= "" then
+                    shared[other] = nil
+                end
+            end
+        end
         local opts = { isDone = ns.Compat.IsQuestCompleted, isInLog = ns.Compat.IsOnQuest, limit = math.huge,
-            delta = ns.Results.delta, instances = true, fallback = true }
-        shared = { player = player, profile = profile, results = Chat.bestInZone(player, profile, data, opts) }
+            delta = ns.Results.delta, instances = true, fallback = true, origins = origins }
+        entry = { player = player, profile = profile, results = Chat.bestInZone(player, profile, data, opts) }
+        shared[key] = entry
     end
-    return shared.results
+    return entry.results
 end
 
 local function forget()
-    shared = nil
+    shared = {}
 end
 
-function Chat.currentZone(limit, instances, fallback)
+function Chat.currentZone(limit, instances, fallback, origins)
     local data = ns.Data
     if not data.ready() then
         return nil, L.BEST_NOT_READY
@@ -226,7 +242,7 @@ function Chat.currentZone(limit, instances, fallback)
         return nil, L.BEST_NO_ZONE
     end
     local results, max = {}, limit or DEFAULT_LIMIT
-    for _, entry in ipairs(sharedRanking(player, profile, data)) do
+    for _, entry in ipairs(sharedRanking(player, profile, data, origins)) do
         if #results >= max then
             break
         end

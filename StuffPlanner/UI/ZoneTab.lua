@@ -2,11 +2,13 @@
 -- Page « Maintenant » (clé zone) : améliorations de la zone (Chat.bestInZone, quêtes et butin des
 -- instances dont l'entrée est sur la carte), ScrollBox. Une barre : segment Zone / 30 min / 1 h / 2 h
 -- (SessionPresenter.chips, SessionPlan.toggle) à gauche ; à droite bouton « Filtres (n) » (ns.FilterMenu :
--- filtres Filters.chips à cocher, tri) en mode zone, et bouton Suivre / Arrêter la session
+-- origines de la page, ns.PageOrigins "zone", appliquées avant le classement de la zone (Chat.currentZone) et de
+-- la session (RouteResults, SessionPlan.get) ; en mode zone aussi filtres Filters.chips à cocher et tri), et
+-- bouton Suivre / Arrêter la session
 -- (SessionPresenter.follow) ; budget choisi : liste de la session (SessionPlan.get, SessionPresenter.build,
 -- ns.RouteRows) à la place de la zone ; rafraîchi aussi sur SP_ROUTE_UPDATED et SP_FOLLOW_CHANGED.
 -- Charger après MainFrame.lua, Chat.lua, RowPresenter.lua, Filters.lua, ItemRow.lua, RouteRows.lua,
--- SessionPlan.lua, SessionPresenter.lua et FilterMenu.lua.
+-- SessionPlan.lua, SessionPresenter.lua, FilterMenu.lua et PageOrigins.lua.
 -- S'inscrit par ns.MainFrame.addTab("zone", …). Rafraîchi à l'ouverture et sur SP_RESULTS_UPDATED
 -- (Results, après joueur, base ou profil changés) si la fenêtre est visible ; noms reçus du client : un
 -- rafraîchissement regroupé (NameAsker). Filtres sauvegardés dans StuffPlannerDB.ui.zoneFilters.
@@ -77,7 +79,7 @@ end
 
 -- Renvoie les lignes présentées, ou nil et le message d'état.
 local function computeRows()
-    local results, mapID = ns.Chat.currentZone(MAX_ROWS, true, true)
+    local results, mapID = ns.Chat.currentZone(MAX_ROWS, true, true, ns.PageOrigins.get("zone"))
     if not results then
         return nil, mapID
     end
@@ -96,8 +98,9 @@ end
 local sessionRows = ns.RouteRows.new({})
 
 local function renderSession(budget)
-    local tiers, info = ns.RouteResults.get()
-    local plan = tiers and ns.SessionPlan.get(budget)
+    local origins = ns.PageOrigins.get("zone")
+    local tiers, info = ns.RouteResults.get(origins)
+    local plan = tiers and ns.SessionPlan.get(budget, origins)
     local rows = plan and ns.SessionPresenter.build(plan, ns.Data, budget) or {}
     ns.RouteRows.askNames(rows, askName)
     ns.Compat.SetRows(sessionScroll, rows, true)
@@ -105,8 +108,32 @@ local function renderSession(budget)
     return plan
 end
 
+-- Menu « Filtres » : origines de la page (zone et session), puis, en mode zone, filtres d'affichage et tri.
+local function updateMenu(rows)
+    local P = ns.FilterMenuPresenter
+    local session = ns.SessionPlan.budget() ~= nil
+    local chips = not session and rows and ns.Filters.chips(filterState(), rows) or nil
+    filterMenu:update(P.label(chips, ns.PageOrigins.get("zone")), function()
+        local origins = ns.PageOrigins.get("zone")
+        if session then
+            return P.entries(nil, nil, origins)
+        end
+        local current = rows and ns.Filters.chips(filterState(), rows) or {}
+        return P.entries(current, P.sorts(ns.DB.account("ui").zoneBySlot and "slot" or "gain", { "gain", "slot" }),
+            origins)
+    end, function(kind, value)
+        if kind == "origin" then
+            ns.PageOrigins.toggle("zone", value)
+        elseif kind == "filter" then
+            ns.Filters.toggle(filterState(), value)
+        else
+            ns.DB.account("ui").zoneBySlot = value == "slot" or nil
+        end
+        ns.MainFrame.refresh()
+    end)
+end
+
 local function setMode(session)
-    filterMenu:SetShown(not session)
     scrollBox:SetShown(not session)
     scrollBox.bar:SetShown(not session)
     sessionScroll:SetShown(session)
@@ -121,19 +148,7 @@ local function refreshZone()
     if ui.zoneBySlot then
         shown = ns.GearPresenter.sortBySlot(shown)
     end
-    local chips = rows and ns.Filters.chips(state, rows) or {}
-    local P = ns.FilterMenuPresenter
-    filterMenu:update(P.label(chips), function()
-        local current = rows and ns.Filters.chips(filterState(), rows) or {}
-        return P.entries(current, P.sorts(ns.DB.account("ui").zoneBySlot and "slot" or "gain", { "gain", "slot" }))
-    end, function(kind, value)
-        if kind == "filter" then
-            ns.Filters.toggle(filterState(), value)
-        else
-            ns.DB.account("ui").zoneBySlot = value == "slot" or nil
-        end
-        ns.MainFrame.refresh()
-    end)
+    updateMenu(rows)
     -- Liste inchangée : rien à reconstruire (la ligne survolée et son info-bulle restent).
     if not ns.RowPresenter.sameRows(lastShown, shown) then
         lastShown = shown
@@ -149,6 +164,7 @@ local function refresh()
     local plan
     if budget then
         plan = renderSession(budget)
+        updateMenu(nil)
     else
         refreshZone()
     end
@@ -162,8 +178,7 @@ local function refresh()
         followButton:SetText(follow.label)
         followButton:SetWidth(followButton:GetFontString():GetStringWidth() + 24)
         followButton:ClearAllPoints()
-        followButton:SetPoint("RIGHT", budget and barRow or filterMenu.button, budget and "RIGHT" or "LEFT",
-            budget and 0 or -ns.Theme.spacing.gap, 0)
+        followButton:SetPoint("RIGHT", filterMenu.button, "LEFT", -ns.Theme.spacing.gap, 0)
         followButton.plan = plan
     end
 end

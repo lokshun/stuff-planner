@@ -2,12 +2,13 @@
 -- Onglet « Équipement » : objets portés et meilleure amélioration de chaque emplacement (zone, à défaut
 -- palier courant du Parcours : RouteResults, calcul lancé à l'affichage) ; GearPresenter.
 -- Charger après MainFrame.lua, Chat.lua, RouteResults.lua, GearPresenter.lua, Chips.lua, FilterMenu.lua,
--- GearRows.lua, WishlistSection.lua.
+-- GearRows.lua, WishlistSection.lua, PageOrigins.lua.
 -- S'inscrit par ns.MainFrame.addTab("gear", …). Rafraîchi à l'ouverture ; les messages
 -- SP_PLAYER_CHANGED, SP_DATA_READY, SP_PROFILE_CHANGED, SP_ROUTE_UPDATED passent par ns.MainFrame.refresh.
 -- Tout en haut : section repliable « Liste cible » (ns.WishlistSection) ; le reste se place dessous.
 -- En-tête : profil actif, résumé (GearPresenter.summary) ; une barre : segment Tous / Améliorations
---   (StuffPlannerDB.ui.gearOnlyUpgrades), bouton « Tri » à droite (ns.FilterMenu : Par emplacement / Meilleur
+--   (StuffPlannerDB.ui.gearOnlyUpgrades), bouton « Filtres » à droite (ns.FilterMenu : origines de la page,
+--   ns.PageOrigins "gear", passées à Chat.currentZone et RouteResults.get/current ; tri Par emplacement / Meilleur
 --   gain, StuffPlannerDB.ui.gearByGain, GearPresenter.sortByGain).
 -- Lignes : UI/GearRows.lua (40 px, 56 avec une ligne raid, + alternatives dépliées : AltLines) ; état
 -- déplié local (non gardé), par emplacement.
@@ -90,9 +91,10 @@ local function refresh()
     profileText:SetPoint("RIGHT", panel, "RIGHT")
     local player = ns.Player.snapshot()
     local profile = ns.Profiles.active()
-    local entries = ns.Chat.currentZone(MAX_ZONE_ENTRIES, false, true)
-    ns.RouteResults.get()
-    local route, alternatives, quests = ns.RouteResults.current(player.level)
+    local origins = ns.PageOrigins.get("gear")
+    local entries = ns.Chat.currentZone(MAX_ZONE_ENTRIES, false, true, origins)
+    ns.RouteResults.get(origins)
+    local route, alternatives, quests = ns.RouteResults.current(player.level, origins)
     local rows = ns.GearPresenter.build(player, profile, ns.Data, entries, readWorn(player), route, alternatives,
         expanded, quests)
     askNames(rows)
@@ -115,10 +117,15 @@ local function refresh()
     end)
     local byGain = ui.gearByGain == true
     local P = ns.FilterMenuPresenter
-    sortMenu:update(P.label(nil), function()
-        return P.entries(nil, P.sorts(uiState().gearByGain and "gain" or "slot", { "slot", "gain" }))
-    end, function(_, value)
-        uiState().gearByGain = value == "gain"
+    sortMenu:update(P.label(nil, origins), function()
+        return P.entries(nil, P.sorts(uiState().gearByGain and "gain" or "slot", { "slot", "gain" }),
+            ns.PageOrigins.get("gear"))
+    end, function(kind, value)
+        if kind == "origin" then
+            ns.PageOrigins.toggle("gear", value)
+        else
+            uiState().gearByGain = value == "gain"
+        end
         ns.MainFrame.refresh()
     end)
     local shown = ns.GearPresenter.filter(rows, only)
