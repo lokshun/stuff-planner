@@ -232,8 +232,9 @@ end
 
 local function revealSelection()
     if scrollBox and scrollBox.ScrollToElementDataByPredicate then
-        scrollBox:ScrollToElementDataByPredicate(isSelectedRow, ScrollBoxConstants.AlignCenter,
-            ScrollBoxConstants.NoScrollInterpolation)
+        -- Prédicat et alignement seulement : le 3e paramètre est `offset` sur Forever, `noInterpolation`
+        -- sur d'anciens clients (API_NOTES).
+        scrollBox:ScrollToElementDataByPredicate(isSelectedRow, ScrollBoxConstants.AlignCenter)
     end
 end
 
