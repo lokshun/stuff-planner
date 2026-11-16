@@ -37,6 +37,7 @@ effort it costs.
 | **Profile page** | Your stat weights, a stat priority editor, import/export of custom weights (`SPW1` strings), comparison with a secondary profile; your gear score over time and the bag items worth sending to your other characters. |
 | **Floating frame** | One frame that follows what you do: dungeon bosses, then the followed quest chain, then the best upgrades of the zone. Its mode icons switch mode; right-click its header for its menu. |
 | **Tooltips** | Gain line on item tooltips (also for your other characters); badges on bags, merchants and the auction house; best quest reward highlighted; Need/Greed advice on rolls. |
+| **Item sources** | Each of the Now, Route and Gear pages has its own choice of item sources (quests, dungeons, raids, crafts, world drops) in its Filters menu: only the chosen sources are suggested. |
 | **Navigation** | Built-in 3D waypoint arrow; world map and minimap pins shown as small round badges beside the quest giver, so the `!` and `?` stay visible. Uses TomTom when installed. |
 | **Stat weights** | 27 specializations, each with a leveling and a level 60 profile (several imported from WoWSims). |
 

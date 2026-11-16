@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.4.0 — 2026-11-16
+
+### New
+- Choose where your items come from, page by page: the Filters menu of the Now, Route and Gear pages has an
+  "Item sources" section (quests, dungeons, raids, crafts, world drops). Only the checked sources are
+  suggested: with "Quests" alone, the Route shows quests only, with no crafts or dungeons. An item that can
+  be obtained several ways keeps its best allowed source, and each slot falls back to the next best item.
+- Each page keeps its own choice (the Gear page does not change the Route). On the Now page it also applies
+  to the 30 min / 1 h / 2 h play sessions. The last checked source cannot be unchecked.
+- The source-type filters of the Now page are replaced by this choice; your current selection is kept.
+  "Unconfirmed" and "Not yet available" stay as display filters.
+
+### Fixes
+- Clicking a line of the floating frame no longer raises a Lua error on Forever (`ScrollBox.lua:850`)
+  when the Now page scrolls to the selected item.
+
 ## 2.3.3 — 2026-11-15
 
 ### Fixes
