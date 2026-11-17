@@ -179,7 +179,7 @@ function OptionsPanel.open()
 end
 
 ns:On("SP_OPTION_CHANGED", function()
-    if panel:IsShown() then
+    if content and panel:IsVisible() then
         refreshAll()
     end
 end)

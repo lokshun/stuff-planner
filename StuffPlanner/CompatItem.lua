@@ -6,7 +6,7 @@
 --   GetBindType(item) -> bindType de GetItemInfo (0 aucun, 1 ramassé, 2 équipé, 3 utilisé, 4 quête) | nil
 --     (objet pas en cache, API absente)
 --   GetItemCount(itemID) -> nombre (sacs, banque et objets portés), 0 sans l'API
---   GetTooltipLines(link) -> {string...}, texte de gauche, vide si objet pas encore en cache
+--   GetTooltipLines(link) -> {string...}, texte de gauche, vide si objet pas encore en cache ou ligne secrète
 --   HookItemTooltip(fn) -> fn(tooltip, itemID, link) à chaque info-bulle d'objet ; link : data.hyperlink,
 --     sinon tooltip:GetItem(), nil possible
 -- Classic Era : C_TooltipInfo y est vide et TooltipDataProcessor absent, d'où les replis.
@@ -81,7 +81,9 @@ function Compat.GetTooltipLines(link)
     local lines = {}
     local data = C_TooltipInfo.GetHyperlink(link)
     for _, line in ipairs(data and data.lines or {}) do
-        if line.leftText then
+        if Compat.IsSecret(line.leftText) then
+            return {}
+        elseif line.leftText then
             lines[#lines + 1] = line.leftText
         end
     end

@@ -2,6 +2,7 @@
 -- Seul fichier autorisé à appeler les API qui diffèrent entre Forever et Classic Era.
 -- Détection par fonctionnalité, à chaque appel. Sans l'API : réponse vide, jamais d'erreur.
 --   ns.Compat.client() -> "forever" | "vanilla"
+--   IsSecret(value) -> bool : issecretvalue(value) si le client l'a (Forever : valeur illisible), sinon false
 --   Objets et info-bulles d'objet : CompatItem.lua.
 --   GetQuestTitle(id), GetItemName(id), GetZoneName(mapID) -> string | nil
 --   GetSpellName(id), GetInstanceName(instanceID), GetCreatureName(npcID) -> string | nil
@@ -27,6 +28,19 @@ local _, ns = ...
 
 local Compat = {}
 ns.Compat = Compat
+
+function Compat.IsSecret(value)
+    local test = _G.issecretvalue
+    return type(test) == "function" and test(value) == true
+end
+
+-- Valeur lisible ou nil (secrète).
+local function readable(value)
+    if Compat.IsSecret(value) then
+        return nil
+    end
+    return value
+end
 
 function Compat.client()
     if C_Item and C_Item.GetItemStats then
@@ -101,7 +115,7 @@ end
 function Compat.GetCreatureName(npcID)
     local ok, lines = pcall(Compat.GetTooltipLines, ("unit:Creature-0-0-0-0-%d-0000000000"):format(npcID))
     local name = ok and lines[1]
-    return name ~= "" and name or nil
+    return type(name) == "string" and name ~= "" and name or nil
 end
 
 function Compat.IsQuestCompleted(id)
@@ -189,7 +203,7 @@ end
 function Compat.GetHitModifiers()
     local melee = GetHitModifier and GetHitModifier()
     local spell = GetSpellHitModifier and GetSpellHitModifier()
-    return melee or 0, spell or 0
+    return readable(melee) or 0, readable(spell) or 0
 end
 
 -- Défense totale (base + bonus), nil sans UnitDefense (à vérifier sur Forever).
