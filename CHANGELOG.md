@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.4.2 — 2026-11-17
+
+### Changes
+- The "Map" button of a quest or source sheet no longer closes the Stuff Planner window: the world map opens
+  above it, and the window comes back to the front when the map closes. Escape closes the map first, then the
+  window.
+
 ## 2.4.1 — 2026-11-17
 
 ### Fixes
