@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.4.1 — 2026-11-17
+
+### Fixes
+- Killing a dungeon boss on Forever no longer throws dozens of Lua errors: the game hides the boss name during
+  the encounter, so Stuff Planner now uses its own name for the boss and still marks it as killed.
+- No more Lua error when leaving combat (hidden hit chance value on Forever).
+- Changing an option from a row's right-click menu before ever opening the options panel no longer throws an
+  error.
+
 ## 2.4.0 — 2026-11-16
 
 ### New
