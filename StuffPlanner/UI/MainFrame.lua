@@ -12,8 +12,8 @@
 --   ns.MainFrame.pages() -> pages inscrites (ns.NavBar.order), pour l'accueil
 --   ns.MainFrame.frame() -> cadre de la fenêtre | nil avant le premier affichage (panneaux accolés)
 --   ns.MainFrame.resetPosition() -> fenêtre recentrée
---   ns.MainFrame.setBehind(on) : fenêtre passée sous le panneau de réglages du client (strate MEDIUM, Échap
---     laissé au client) tant que on est vrai
+--   ns.MainFrame.setBehind(on, reason?) : fenêtre passée sous un cadre du client (strate MEDIUM, Échap laissé au
+--     client) tant qu'une raison est active ; reason : "options" (défaut, panneau de réglages), "map" (carte)
 -- Commandes : /splan show (bascule ; aussi /splan seul, menu des addons, raccourci clavier), /splan scale <0.6-1.5>.
 -- Sauvegarde : StuffPlannerDB.ui = {point, relativePoint, x, y, tab} ; échelle et opacité par ns.Options
 -- (window.scale, window.alpha), appliquées sur SP_OPTION_CHANGED. Engrenage : ns.OptionsPanel.open() ;
@@ -41,6 +41,7 @@ local frame, navBar, pageTitle, pageTip
 local tabs, panels, reveals = {}, {}, {}
 local current
 local behind = false
+local behindReasons = {}
 
 local function settings()
     return ns.DB.account("ui")
@@ -216,8 +217,9 @@ function MainFrame.show(key)
     end
 end
 
-function MainFrame.setBehind(on)
-    behind = on and true or false
+function MainFrame.setBehind(on, reason)
+    behindReasons[reason or "options"] = on and true or nil
+    behind = next(behindReasons) ~= nil
     if frame then
         frame:SetFrameStrata(behind and "MEDIUM" or "HIGH")
     end

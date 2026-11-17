@@ -15,7 +15,8 @@
 --   stacker(content) -> place(region, height?, gapBefore?), finish() : empile de haut en bas,
 --     finish fixe la hauteur du contenu et remonte en haut si le contenu a changé de taille
 --   nameAsker(refresh) -> ns.NameAsker.new(refresh) (UI/NameAsker.lua)
---   openMap(mapID, target?) -> Compat.OpenWorldMap puis fenêtre principale cachée, message en cas d'échec ;
+--   openMap(mapID, target?) -> Compat.OpenWorldMap, fenêtre principale passée sous la carte (MainFrame.setBehind
+--     "map", jusqu'à la fermeture de la carte), message en cas d'échec ;
 --     target ({mapID, x, y, title, giver}, view.waypoint) : ping au donneur (MapPins.focus)
 --   setColor(region, color)
 
@@ -150,12 +151,25 @@ function DetailWidgets.nameAsker(refresh)
     return ns.NameAsker.new(refresh)
 end
 
+local mapHooked = false
+
+-- Fenêtre sous la carte tant qu'elle est ouverte (Échap ferme la carte, puis la fenêtre).
+local function keepUnderMap()
+    ns.MainFrame.setBehind(true, "map")
+    if not mapHooked and WorldMapFrame then
+        mapHooked = true
+        WorldMapFrame:HookScript("OnHide", function()
+            ns.MainFrame.setBehind(false, "map")
+        end)
+    end
+end
+
 function DetailWidgets.openMap(mapID, target)
     if not mapID then
         return
     end
     if ns.Compat.OpenWorldMap(mapID) then
-        ns.MainFrame.hide()
+        keepUnderMap()
         if target and target.mapID == mapID and ns.MapPins then
             ns.MapPins.focus(target)
         end

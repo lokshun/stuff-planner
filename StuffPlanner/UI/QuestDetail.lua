@@ -12,7 +12,7 @@
 -- Survol d'une quête de la suite ou des prérequis : ns.QuestTooltip (détails de cette quête).
 -- Contenu : titre, niveau, état (journal, niveau requis, prérequis), condition, zone, badge, donneur, bouton
 --   Repère ou Suivre pour une suite de quêtes (UI/WaypointButton.lua), bouton Carte
---   (Compat.OpenWorldMap, puis fenêtre principale cachée), récompenses, choix (meilleur signalé),
+--   (DetailWidgets.openMap : carte au-dessus de la fenêtre principale), récompenses, choix (meilleur signalé),
 --   suite de quêtes restante (sinon prérequis faits) ; ligne « Commence par » sous le donneur.
 --   Survol d'un objet : info-bulle du client.
 -- Enfant de la fenêtre principale : cachée, déplacée et mise à l'échelle avec elle (Échap compris).
