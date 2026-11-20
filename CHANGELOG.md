@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.4.3 — 2026-11-20
+
+### Fixes
+- Clicking a line of the mini-tracker no longer raises a Lua error (`ScrollBoxListView.lua:215`) when the
+  "Now" list is hidden (session mode) or not laid out yet: the list now scrolls to the selected item one frame
+  later, and only once it is visible.
+
 ## 2.4.2 — 2026-11-17
 
 ### Changes
