@@ -245,8 +245,15 @@ local function isSelectedRow(row)
     return ns.RowActions.isSelected(row.questID, row.itemID)
 end
 
+-- Liste cachée (mode séance), vide ou pas encore mise en page : défiler indexe une vue sans étendues
+-- (ScrollBoxListView.lua:215, attempt to index a nil value).
+local function canReveal()
+    return scrollBox ~= nil and scrollBox.ScrollToElementDataByPredicate ~= nil and scrollBox:IsVisible()
+        and scrollBox:GetHeight() > 0 and (not scrollBox.HasDataProvider or scrollBox:HasDataProvider())
+end
+
 local function revealSelection()
-    if scrollBox and scrollBox.ScrollToElementDataByPredicate then
+    if canReveal() then
         -- Prédicat et alignement seulement : le 3e paramètre est `offset` sur Forever, `noInterpolation`
         -- sur d'anciens clients (API_NOTES).
         scrollBox:ScrollToElementDataByPredicate(isSelectedRow, ScrollBoxConstants.AlignCenter)
@@ -262,8 +269,7 @@ ns:On("SP_SELECTION_CHANGED", function(reveal)
     end)
     sessionScroll:ForEachFrame(sessionRows.mark)
     if reveal then
-        revealSelection()
-        -- Fenêtre tout juste ouverte : la liste n'a peut-être pas encore sa taille.
+        -- Image suivante seulement : fenêtre tout juste ouverte, la liste n'a pas encore sa mise en page.
         C_Timer.After(0, revealSelection)
     end
 end)
