@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.5.0 — unreleased
+## 2.5.0 — 2026-11-22
 
 ### New
 - Loot alert: a sound (raid warning) and a banner when an item of your target list or an upgrade drops — boss,
