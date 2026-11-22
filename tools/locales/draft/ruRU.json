@@ -488,5 +488,7 @@
   "OPTION_PINS_STYLE": "Вид меток на карте",
   "OPTIONS_PINS_CORNER": "Значок в углу",
   "OPTIONS_PINS_CENTER": "Значок по центру",
-  "OPTION_PINS_STYLE_TIP": "Значок в углу: маленький круглый значок рядом с выдающим задание, «!» и «?» игры или Questie остаются видны."
+  "OPTION_PINS_STYLE_TIP": "Значок в углу: маленький круглый значок рядом с выдающим задание, «!» и «?» игры или Questie остаются видны.",
+  "LOOT_ALERT_WISHLIST": "Список целей: %s",
+  "LOOT_ALERT_UPGRADE": "Улучшение: %s"
 }

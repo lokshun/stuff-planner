@@ -135,6 +135,7 @@ UI\Presenters\DungeonPresenter.lua
 UI\Presenters\InstanceListPresenter.lua
 UI\Presenters\GearAlternatives.lua
 UI\Presenters\GearPresenter.lua
+UI\Presenters\LootAlertPresenter.lua
 UI\Presenters\ProfilePresenter.lua
 UI\Presenters\StartPresenter.lua
 UI\Presenters\DetailPresenter.lua

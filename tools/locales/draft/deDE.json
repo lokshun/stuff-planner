@@ -485,5 +485,7 @@
   "OPTION_PINS_STYLE": "Aussehen der Kartennadeln",
   "OPTIONS_PINS_CORNER": "Abzeichen in der Ecke",
   "OPTIONS_PINS_CENTER": "Zentriertes Symbol",
-  "OPTION_PINS_STYLE_TIP": "Abzeichen in der Ecke: kleines rundes Symbol neben dem Questgeber, damit ! und ? des Spiels oder von Questie sichtbar bleiben."
+  "OPTION_PINS_STYLE_TIP": "Abzeichen in der Ecke: kleines rundes Symbol neben dem Questgeber, damit ! und ? des Spiels oder von Questie sichtbar bleiben.",
+  "LOOT_ALERT_WISHLIST": "Zielliste: %s",
+  "LOOT_ALERT_UPGRADE": "Verbesserung: %s"
 }

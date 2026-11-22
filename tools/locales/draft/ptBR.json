@@ -485,5 +485,7 @@
   "OPTION_PINS_STYLE": "Aparência dos marcadores",
   "OPTIONS_PINS_CORNER": "Selo no canto",
   "OPTIONS_PINS_CENTER": "Ícone centralizado",
-  "OPTION_PINS_STYLE_TIP": "Selo no canto: pequeno ícone redondo ao lado de quem dá a missão, para que o ! e o ? do jogo ou do Questie continuem visíveis."
+  "OPTION_PINS_STYLE_TIP": "Selo no canto: pequeno ícone redondo ao lado de quem dá a missão, para que o ! e o ? do jogo ou do Questie continuem visíveis.",
+  "LOOT_ALERT_WISHLIST": "Lista alvo: %s",
+  "LOOT_ALERT_UPGRADE": "Melhoria: %s"
 }
