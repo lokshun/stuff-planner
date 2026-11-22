@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.5.0 — unreleased
+
+### New
+- Loot alert: a sound (raid warning) and a banner when an item of your target list or an upgrade drops — boss,
+  trash or world loot window, group roll — or is offered by a quest you turn in. Shown in combat too; hover the
+  banner for the item tooltip, Shift-click to link it. Settings › Alerts: banner, sound, and a minimum gain in
+  score points (0 = any upgrade; target list items are always announced).
+
+### Changes
+- Gear page: each slot now starts with a header showing the worn item and its score; the upgrade sits on its own
+  line below, with its icon, its score and the gain in points, so the worn item and its replacement are no longer
+  mixed on the same line.
+- Side tabs are back to the outlined spellbook tabs: icon only, page name on hover.
+- Item database refreshed from the latest sources (QuestieDB, Questie blacklist, NorgannonDB, Spyglass, Forever
+  client 1.60.1.71037, ForeverChanges): 5510 quests instead of 4707 (new Forever quests), 5790 items, 38 instances,
+  far fewer items with estimated stats (568 instead of 1367). Quest relations inferred by QuestieDB from player
+  traces (prerequisites, exclusive branches, follow-ups) are now used.
+
 ## 2.4.3 — 2026-11-20
 
 ### Fixes
