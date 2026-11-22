@@ -15,7 +15,7 @@ from pathlib import Path
 
 from sources import cache
 
-SNAPSHOT = "2026-11-13"
+SNAPSHOT = "2026-11-22"
 LIST_URL = "https://foreverchanges.pro/quests/list.json"
 LIST_FILE = "list.json"
 

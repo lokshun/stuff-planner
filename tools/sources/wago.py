@@ -30,7 +30,7 @@ from pathlib import Path
 
 from sources import cache
 
-BUILD = "1.60.1.70790"
+BUILD = "1.60.1.71037"
 URL = "https://wago.tools/db2/{table}/csv?build={build}"
 TABLES = (
     "Item",

@@ -18,7 +18,8 @@ Importe les quêtes Forever de QuestieDB (github.com/Questie/QuestieDB), sans ex
   load_names(source_dir, kind) -> {"enUS": {id: nom}, langue: {...}}, kind "npc" | "quest" | "item" | "object" :
     anglais de la base (couches comprises), traductions l10n/Forever/lookup<Npcs|Quests|Items|Objects> puis traces
     (prioritaires) ; langue sans fichier absente. load_npc_names(source_dir) = load_names(source_dir, "npc")
-Couches, dans l'ordre amont (docs/forever.md) : brut, legacy, delta, traces, corrections d'auteur.
+Couches, dans l'ordre amont (docs/forever.md) : brut, legacy, delta, traces (quêtes : puis relations
+  déduites des traces, foreverQuestRelationTraces), corrections d'auteur.
 Les corrections de faction et par personnage sont ignorées.
 Écarts avec la source :
   rewards/choices : QuestieDB ne sait que « cette quête donne cet objet ». Un seul objet -> rewards,
@@ -46,9 +47,9 @@ from pathlib import Path
 
 from sources import cache, lua_table, questie_blacklist
 
-COMMIT = "21be34023b72cf2ec3027cb9a61a8b72a1910857"
+COMMIT = "9921e9bfe86a600e83b157fc3f25e578f7725216"
 RAW_URL = "https://raw.githubusercontent.com/Questie/QuestieDB/{commit}/{path}"
-ADDON_COMMIT = "043e7268b36aa7b0a605290c109cdab46771500b"
+ADDON_COMMIT = "7df91a1a793c37d2378fa0e722f709f830832e7a"
 ADDON_URL = "https://raw.githubusercontent.com/Questie/Questie/{commit}/{path}"
 ADDON_FILES = {"QuestieQuestBlacklist.lua": "Database/Corrections/QuestieQuestBlacklist.lua"}
 
@@ -62,6 +63,7 @@ QUEST_LAYERS = (
     f"{CORRECTIONS}/legacy/classicQuestFixes.lua",
     f"{CORRECTIONS}/generated/foreverBaseQuest.lua",
     f"{CORRECTIONS}/traces/foreverQuestTraces.lua",
+    f"{CORRECTIONS}/traces/foreverQuestRelationTraces.lua",
     f"{CORRECTIONS}/foreverQuestFixes.lua",
 )
 ITEM_LAYERS = (

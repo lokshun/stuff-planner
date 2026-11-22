@@ -19,7 +19,7 @@ from pathlib import Path
 
 from sources import cache, lua_table
 
-COMMIT = "73f59a53f1423149d548725e1786a18168d670e9"
+COMMIT = "cae6d644952b9b12fbd1e3a500211893336cc219"
 RAW_URL = "https://raw.githubusercontent.com/zmarotrix/NorgannonDB/{commit}/data/{name}"
 FILES = ("items.lua", "world.lua")
 FOREVER_ITEM_IDS = 200000

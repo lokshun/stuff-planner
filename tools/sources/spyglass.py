@@ -17,7 +17,7 @@ from pathlib import Path
 from sources import cache
 from sources.wago import RATING_PER_PERCENT, percent
 
-COMMIT = "20292cfa88cac1fac3e56a1b1131deaa0d2024d8"
+COMMIT = "63b12b67e0f7bb8d30a9f3cfd22b516e1336ce03"
 TREE_URL = "https://api.github.com/repos/Karl-HeinzSchneider/WoW-Spyglass/git/trees/{commit}?recursive=1"
 RAW_URL = "https://raw.githubusercontent.com/Karl-HeinzSchneider/WoW-Spyglass/{commit}/{path}"
 DATA_ROOT = ".contribute/data/"
