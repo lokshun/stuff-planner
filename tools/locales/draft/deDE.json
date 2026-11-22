@@ -160,6 +160,8 @@
   "SORT_MENU": "Sortierung",
   "FILTER_SORT_BY": "Sortieren nach",
   "GEAR_TOOLTIP_SCORE": "Wertung: %s",
+  "GEAR_WORN": "getragen: %s",
+  "GEAR_SCORE": "Wertung %s",
   "GEAR_TOOLTIP_REPLACE": "Ersetzen durch:",
   "GEAR_ESTIMATED": "geschätzte Werte",
   "GEAR_UNKNOWN_HINT": "? : Werte unbekannt, bis der Gegenstand im Spiel gesehen wurde.",

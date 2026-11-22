@@ -18,9 +18,12 @@
 --              delta.fallback, seulement sans vrai gain en zone ni au palier ; upgradeGain nil) ; hors zone :
 --              RowPresenter.present de la ligne du palier + questID (source quête), itemSource, outside = true,
 --            upgradeGain (delta.abs) | nil, gainLabel, gainColor (de upgrade, "" sans),
---            detailText, detailColor (nom de upgrade · son detailText, préfixé L.GEAR_ROUTE · durée
+--            detailText, detailColor (detailText de upgrade, sans son nom, préfixé L.GEAR_ROUTE · durée
 --              (Format.duration de row.seconds, upgrade.durationText) hors zone ;
---              sinon L.GEAR_ESTIMATED ou L.GEAR_NO_UPGRADE)}
+--              sinon L.GEAR_ESTIMATED ou L.GEAR_NO_UPGRADE),
+--            wornText (en-tête : L.GEAR_WORN nom coloré (L.GEAR_SCORE score) ; vide : L.GEAR_EMPTY gris),
+--            upgradeIcon, upgradeScoreText / raidScoreText (L.GEAR_SCORE de l'objet proposé, nil sans profil
+--              ni stats en base) ; gains toujours en points}
 --            raid = RowPresenter.present + itemSource, gain | nil : meilleur objet de raid (zone ou palier)
 --              s'il fait mieux que upgrade (raids jamais en upgrade) ; raidGain, raidGainLabel, raidGainColor,
 --              raidText (nom · detailText, « Raid » compris)}
@@ -130,6 +133,26 @@ local function scoreText(stats, profile)
     return ns.Format.number(score, nil, math.abs(score) < 1 and 2 or 1)
 end
 
+-- « score 4.0 » de l'objet proposé ; nil sans profil ou stats inconnues.
+local function itemScoreText(itemID, profile, data)
+    local item = profile and itemID and data.item(itemID)
+    if not (item and item.stats) then
+        return nil
+    end
+    return L.GEAR_SCORE:format(scoreText(item.stats, profile))
+end
+
+local function wornText(row)
+    if not row.itemID then
+        return ns.Theme.colorize(L.GEAR_EMPTY, ns.Theme.colors.muted)
+    end
+    local text = L.GEAR_WORN:format(ns.Theme.colorize(row.name, row.nameColor))
+    if row.scoreText ~= "" then
+        text = text .. " (" .. L.GEAR_SCORE:format(row.scoreText) .. ")"
+    end
+    return text
+end
+
 local function present(slot, slotName, player, profile, data, read)
     local itemID = player.equipped and player.equipped[slot]
     local row = { slot = slot, slotName = slotName, itemID = itemID, estimated = false }
@@ -160,14 +183,11 @@ local function describe(row)
     end
     row.gainLabel, row.gainColor = upgrade.gainLabel, upgrade.gainColor
     row.upgradeGain = not upgrade.offProfile and upgrade.gain or nil
-    local parts = { ns.Theme.colorize(upgrade.name, upgrade.nameColor) }
-    if upgrade.detailText ~= "" then
-        parts[#parts + 1] = upgrade.detailText
-    end
-    local text = table.concat(parts, SEPARATOR)
+    row.upgradeIcon = upgrade.icon
+    local text = upgrade.detailText
     if upgrade.outside then
         local prefix = upgrade.durationText and (L.GEAR_ROUTE .. SEPARATOR .. upgrade.durationText) or L.GEAR_ROUTE
-        text = prefix .. SEPARATOR .. text
+        text = text ~= "" and (prefix .. SEPARATOR .. text) or prefix
     end
     row.detailText = text
     row.detailColor = colors.text
@@ -210,6 +230,9 @@ function GearPresenter.build(player, profile, data, entries, worn, route, routeA
         end
         describe(row)
         describeRaid(row, raids[slot[1]])
+        row.wornText = wornText(row)
+        row.upgradeScoreText = row.upgrade and itemScoreText(row.upgrade.itemID, profile, data)
+        row.raidScoreText = row.raid and itemScoreText(row.raid.itemID, profile, data)
         rows[i] = row
     end
     return rows

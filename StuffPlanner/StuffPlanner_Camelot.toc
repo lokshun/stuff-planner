@@ -168,6 +168,7 @@ UI\RouteRows.lua
 UI\ZoneTab.lua
 UI\AltLines.lua
 UI\RouteTab.lua
+UI\GearHeader.lua
 UI\GearRows.lua
 UI\DungeonTab.lua
 UI\HistoryChart.lua

@@ -157,6 +157,8 @@
   "SORT_MENU": "Ordem",
   "FILTER_SORT_BY": "Ordenar por",
   "GEAR_TOOLTIP_SCORE": "Pontuação: %s",
+  "GEAR_WORN": "equipado: %s",
+  "GEAR_SCORE": "pontuação %s",
   "GEAR_TOOLTIP_REPLACE": "Substituir por:",
   "GEAR_ESTIMATED": "atributos estimados",
   "GEAR_UNKNOWN_HINT": "? : atributos desconhecidos até o item ser visto no jogo.",

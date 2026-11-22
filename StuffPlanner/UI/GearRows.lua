@@ -1,17 +1,19 @@
 -- CONTRAT
 -- Lignes de l'onglet Équipement (GearPresenter.build). Charger après Theme.lua, Chips.lua, RowActions.lua,
--- AltLines.lua.
+-- AltLines.lua, GearHeader.lua.
 --   ns.GearRows.init(button, row) -> initialiseur de ScrollBox (construit la ligne au premier appel)
---   ns.GearRows.onToggle(fn) : fn(expandKey) au clic sur « [+N] » (alternatives, AltLines)
---   ns.GearRows.baseHeight(row) -> hauteur sans les alternatives (BASE_HEIGHT, RAID_HEIGHT avec raid)
--- Ligne : liseré vert si amélioration ; icône portée (sinon icône d'emplacement vide du jeu, grisée) ;
---   emplacement, nom ; gain à droite, gain du profil comparé dessous (upgrade.secondaryLabel) ;
---   2e ligne detailText ; 3e ligne si un raid fait mieux : raidText et
---   son gain, cliquable à part (mêmes gestes) ; la hauteur est fixée par GearTab.
+--   ns.GearRows.onToggle(fn) : fn(expandKey) au clic sur la flèche des alternatives (AltLines)
+--   ns.GearRows.baseHeight(row) -> hauteur sans les alternatives : en-tête (HEADER_HEIGHT) + bloc
+--     amélioration (UPGRADE_HEIGHT, NONE_HEIGHT sans) + RAID_LINE si un raid fait mieux
+-- Ligne, deux étages nettement séparés :
+--   en-tête (ns.GearHeader) « Tête · porté : nom (score 42) » ;
+--   amélioration en ligne pleine : liseré vert, icône et nom de l'objet proposé, score de l'objet et gain
+--     (points) à droite, 2e ligne detailText (source) et gain du profil comparé ; sans amélioration :
+--     detailText gris seul ; ligne raid si un raid fait mieux (score, gain), cliquable à part.
 -- Clic : RowActions.click sur l'amélioration (fiche, Maj : lien, Ctrl : essayage) ; clic droit : RowActions.menu.
--- Alternatives (AltLines) : bouton flèche à droite de la 1re ligne, gain à sa gauche.
+-- Survol du bloc amélioration : info-bulle de l'objet proposé, objet porté remplacé, gain, source.
+-- Alternatives (AltLines) : bouton flèche à droite de la ligne d'amélioration, sous-lignes dessous.
 --   ns.GearRows.mark(button) : cadres de sélection (amélioration, ligne raid, sous-lignes)
--- Survol : info-bulle de l'objet porté (ou de l'emplacement vide) + score, remplacement, source, conseil.
 
 local _, ns = ...
 
@@ -21,74 +23,72 @@ local GearRows = {}
 ns.GearRows = GearRows
 
 local UNKNOWN_ICON = 134400 -- point d'interrogation (FileDataID)
-local SLOT_WIDTH = 66
 local LINE_HEIGHT = 14
 local ICON_SIZE = 30
 local ACCENT_WIDTH = 2
 local HINT = { r = 0.6, g = 0.6, b = 0.6 }
-local BASE_HEIGHT, RAID_HEIGHT = 40, 56
+local HEADER_HEIGHT = ns.GearHeader.HEIGHT
+local UPGRADE_HEIGHT, NONE_HEIGHT, RAID_LINE = 40, 20, 16
 local toggleHandler = function() end
+
+local function contentLeft()
+    return ACCENT_WIDTH + 4 + ICON_SIZE + ns.Theme.spacing.gap
+end
 
 function GearRows.onToggle(fn)
     toggleHandler = fn
 end
 
+local function blockBottom(row)
+    return HEADER_HEIGHT + (row.upgrade and UPGRADE_HEIGHT or NONE_HEIGHT)
+end
+
 function GearRows.baseHeight(row)
-    return row.raid and RAID_HEIGHT or BASE_HEIGHT
+    return blockBottom(row) + (row.raid and RAID_LINE or 0)
 end
 
 local function setColor(region, color)
     region:SetTextColor(color.r, color.g, color.b)
 end
 
-local function slotLabel(row)
-    return ns.Compat.GlobalString(row.slotName) or L.SLOT_FALLBACK:format(row.slot)
+local function closeTooltip()
+    GameTooltip:Hide()
 end
 
-local function addUpgradeLines(row)
-    local upgrade = row.upgrade
-    if row.scoreText ~= "" then
-        GameTooltip:AddLine(L.GEAR_TOOLTIP_SCORE:format(row.scoreText), HINT.r, HINT.g, HINT.b)
-    end
-    if row.scoreText == "?" then
-        GameTooltip:AddLine(L.GEAR_UNKNOWN_HINT, HINT.r, HINT.g, HINT.b, true)
-    end
+-- Bloc amélioration : objet proposé, puis objet porté remplacé, gain et source.
+local function showUpgradeTooltip(button)
+    local row = button.row
+    local upgrade = row and row.upgrade
     if not upgrade then
-        return
+        return ns.GearHeader.showTooltip(button.header)
     end
-    local gain = ns.Theme.colors.gain
+    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+    GameTooltip:SetHyperlink("item:" .. upgrade.itemID)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine(L.GEAR_TOOLTIP_REPLACE, 1, 0.82, 0)
-    GameTooltip:AddDoubleLine(upgrade.name, upgrade.gainText, upgrade.nameColor.r, upgrade.nameColor.g,
-        upgrade.nameColor.b, gain.r, gain.g, gain.b)
+    GameTooltip:AddLine(row.wornText, 1, 1, 1)
+    local gain = row.gainColor
+    GameTooltip:AddDoubleLine(row.upgradeScoreText or " ", row.gainLabel, HINT.r, HINT.g, HINT.b,
+        gain.r, gain.g, gain.b)
     if upgrade.secondaryLabel then
         local second = upgrade.secondaryColor
         GameTooltip:AddDoubleLine(" ", upgrade.secondaryLabel, 1, 1, 1, second.r, second.g, second.b)
     end
-    GameTooltip:AddLine(row.detailText, 1, 1, 1, true)
-    GameTooltip:AddLine(L.ROW_MENU_HINT, HINT.r, HINT.g, HINT.b)
-end
-
-local function showTooltip(button)
-    local row = button.row
-    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
-    if row.itemID then
-        GameTooltip:SetInventoryItem("player", row.slot)
-    else
-        GameTooltip:SetText(slotLabel(row), 1, 0.82, 0)
+    if row.detailText ~= "" then
+        GameTooltip:AddLine(row.detailText, 1, 1, 1, true)
     end
-    addUpgradeLines(row)
+    GameTooltip:AddLine(L.ROW_MENU_HINT, HINT.r, HINT.g, HINT.b)
     GameTooltip:Show()
 end
 
 local function showRaidTooltip(line)
-    local raid = line:GetParent().row.raid
+    local row = line:GetParent().row
+    local raid = row and row.raid
     if not raid then
         return
     end
     GameTooltip:SetOwner(line, "ANCHOR_RIGHT")
     GameTooltip:SetHyperlink("item:" .. raid.itemID)
-    GameTooltip:AddLine(line:GetParent().row.raidText, 1, 1, 1, true)
+    GameTooltip:AddLine(row.raidText, 1, 1, 1, true)
     GameTooltip:AddLine(L.ROW_MENU_HINT, HINT.r, HINT.g, HINT.b)
     GameTooltip:Show()
 end
@@ -108,31 +108,6 @@ local function onRaidClick(line, mouseButton)
     end
 end
 
-local function buildRaidLine(button)
-    local theme = ns.Theme
-    local line = CreateFrame("Button", nil, button)
-    line:SetHeight(LINE_HEIGHT)
-    line:SetPoint("TOPLEFT", button.detail, "BOTTOMLEFT", 0, -2)
-    line:SetPoint("RIGHT", -(4 + ns.AltLines.TOGGLE_WIDTH + theme.spacing.gap), 0)
-    line.gain = line:CreateFontString(nil, "OVERLAY", theme.fonts.number)
-    line.gain:SetPoint("RIGHT")
-    line.text = line:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    line.text:SetPoint("LEFT")
-    line.text:SetPoint("RIGHT", line.gain, "LEFT", -theme.spacing.gap, 0)
-    line.text:SetJustifyH("LEFT")
-    line.text:SetWordWrap(false)
-    local highlight = line:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
-    line:SetScript("OnEnter", showRaidTooltip)
-    line:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-    line:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    line:SetScript("OnClick", onRaidClick)
-    button.raidLine = line
-end
-
 local function onRowClick(button, mouseButton)
     local upgrade = button.row and button.row.upgrade
     if upgrade then
@@ -140,48 +115,70 @@ local function onRowClick(button, mouseButton)
     end
 end
 
+local function addHighlight(frame)
+    local highlight = frame:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints()
+    highlight:SetColorTexture(1, 1, 1, 0.08)
+end
+
+local function buildRaidLine(button)
+    local theme = ns.Theme
+    local line = CreateFrame("Button", nil, button)
+    line:SetHeight(LINE_HEIGHT)
+    line:SetPoint("RIGHT", -(4 + ns.AltLines.TOGGLE_WIDTH + theme.spacing.gap), 0)
+    line.gain = line:CreateFontString(nil, "OVERLAY", theme.fonts.number)
+    line.gain:SetPoint("RIGHT")
+    line.score = line:CreateFontString(nil, "OVERLAY", theme.fonts.small)
+    line.score:SetPoint("RIGHT", line.gain, "LEFT", -theme.spacing.gap, 0)
+    setColor(line.score, theme.colors.muted)
+    line.text = line:CreateFontString(nil, "OVERLAY", theme.fonts.small)
+    line.text:SetPoint("LEFT")
+    line.text:SetPoint("RIGHT", line.score, "LEFT", -theme.spacing.gap, 0)
+    line.text:SetJustifyH("LEFT")
+    line.text:SetWordWrap(false)
+    addHighlight(line)
+    line:SetScript("OnEnter", showRaidTooltip)
+    line:SetScript("OnLeave", closeTooltip)
+    line:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    line:SetScript("OnClick", onRaidClick)
+    button.raidLine = line
+end
+
 local function buildRow(button)
     local theme = ns.Theme
     local gain = theme.colors.gain
+    local top = -HEADER_HEIGHT
+    button.header = ns.GearHeader.new(button)
     button.accent = button:CreateTexture(nil, "ARTWORK")
-    button.accent:SetPoint("TOPLEFT", 0, -3)
-    button.accent:SetPoint("BOTTOMLEFT", 0, 3)
-    button.accent:SetWidth(ACCENT_WIDTH)
+    button.accent:SetPoint("TOPLEFT", 0, top - 3)
+    button.accent:SetSize(ACCENT_WIDTH, UPGRADE_HEIGHT - 6)
     button.accent:SetColorTexture(gain.r, gain.g, gain.b, 0.9)
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(ICON_SIZE, ICON_SIZE)
-    button.icon:SetPoint("TOPLEFT", ACCENT_WIDTH + 4, -5)
-    button.slotText = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    button.slotText:SetPoint("TOPLEFT", button.icon, "TOPRIGHT", theme.spacing.gap, -1)
-    button.slotText:SetWidth(SLOT_WIDTH)
-    button.slotText:SetJustifyH("LEFT")
-    button.slotText:SetWordWrap(false)
-    setColor(button.slotText, theme.colors.muted)
-    button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
+    button.icon:SetPoint("TOPLEFT", ACCENT_WIDTH + 4, top - 5)
     ns.AltLines.build(button, function(key)
         toggleHandler(key)
     end)
-    button.altToggle:SetPoint("TOPRIGHT", -4, -2)
+    button.altToggle:SetPoint("TOPRIGHT", -4, top - 2)
+    button.gain = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
     button.gain:SetPoint("TOPRIGHT", button.altToggle, "TOPLEFT", -theme.spacing.gap, -3)
+    button.score = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
+    button.score:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
+    setColor(button.score, theme.colors.muted)
     button.name = button:CreateFontString(nil, "OVERLAY", theme.fonts.body)
-    button.name:SetPoint("LEFT", button.slotText, "RIGHT", theme.spacing.gap, 0)
-    button.name:SetPoint("RIGHT", button.gain, "LEFT", -theme.spacing.gap, 0)
+    button.name:SetPoint("TOPLEFT", contentLeft(), top - 6)
+    button.name:SetPoint("RIGHT", button.score, "LEFT", -theme.spacing.gap, 0)
     button.name:SetJustifyH("LEFT")
     button.name:SetWordWrap(false)
-    button.detail = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
-    button.detail:SetPoint("TOPLEFT", button.slotText, "BOTTOMLEFT", 0, -4)
     button.gain2 = button:CreateFontString(nil, "OVERLAY", theme.fonts.number)
     button.gain2:SetPoint("TOPRIGHT", button.gain, "BOTTOMRIGHT", 0, -4)
+    button.detail = button:CreateFontString(nil, "OVERLAY", theme.fonts.small)
     button.detail:SetPoint("RIGHT", button.gain2, "LEFT", -theme.spacing.gap, 0)
     button.detail:SetJustifyH("LEFT")
     button.detail:SetWordWrap(false)
-    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(1, 1, 1, 0.08)
-    button:SetScript("OnEnter", showTooltip)
-    button:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
+    addHighlight(button)
+    button:SetScript("OnEnter", showUpgradeTooltip)
+    button:SetScript("OnLeave", closeTooltip)
     button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:SetScript("OnClick", onRowClick)
     buildRaidLine(button)
@@ -198,34 +195,52 @@ function GearRows.mark(button)
     ns.AltLines.mark(button)
 end
 
+local function renderUpgrade(button, row)
+    local upgrade, colors = row.upgrade, ns.Theme.colors
+    button.accent:SetShown(upgrade ~= nil)
+    button.icon:SetShown(upgrade ~= nil)
+    button.name:SetShown(upgrade ~= nil)
+    button.detail:ClearAllPoints()
+    button.detail:SetPoint("RIGHT", button.gain2, "LEFT", -ns.Theme.spacing.gap, 0)
+    if upgrade then
+        button.icon:SetTexture(row.upgradeIcon or UNKNOWN_ICON)
+        button.name:SetText(upgrade.name)
+        setColor(button.name, upgrade.nameColor)
+        button.detail:SetPoint("TOPLEFT", button.name, "BOTTOMLEFT", 0, -4)
+    else
+        button.detail:SetPoint("TOPLEFT", contentLeft(), -(HEADER_HEIGHT + 4))
+    end
+    button.score:SetText(row.upgradeScoreText or "")
+    button.gain:SetText(row.gainLabel)
+    setColor(button.gain, row.gainColor)
+    button.gain2:SetText(upgrade and upgrade.secondaryLabel or "")
+    setColor(button.gain2, upgrade and upgrade.secondaryColor or colors.muted)
+    button.detail:SetText(row.detailText)
+    setColor(button.detail, row.detailColor)
+end
+
+local function renderRaid(button, row)
+    local line = button.raidLine
+    line:SetShown(row.raid ~= nil)
+    if not row.raid then
+        return
+    end
+    line:SetPoint("TOPLEFT", contentLeft(), -(blockBottom(row) - 2))
+    line.text:SetText(row.raidText)
+    setColor(line.text, ns.Theme.colors.text)
+    line.score:SetText(row.raidScoreText or "")
+    line.gain:SetText(row.raidGainLabel)
+    setColor(line.gain, row.raidGainColor)
+end
+
 function GearRows.init(button, row)
     if not button.icon then
         buildRow(button)
     end
     button.row = row
-    button.accent:SetShown(row.upgrade ~= nil)
-    local empty = row.itemID == nil
-    button.icon:SetTexture(empty and (ns.Compat.GetInventorySlotTexture(row.slotName) or UNKNOWN_ICON)
-        or row.icon or UNKNOWN_ICON)
-    button.icon:SetDesaturated(empty)
-    button.icon:SetAlpha(empty and 0.5 or 1)
-    button.slotText:SetText(slotLabel(row))
-    button.name:SetText(row.name)
-    setColor(button.name, row.nameColor)
-    button.gain:SetText(row.gainLabel)
-    setColor(button.gain, row.gainColor)
-    local upgrade = row.upgrade
-    button.gain2:SetText(upgrade and upgrade.secondaryLabel or "")
-    setColor(button.gain2, upgrade and upgrade.secondaryColor or ns.Theme.colors.muted)
-    button.detail:SetText(row.detailText)
-    setColor(button.detail, row.detailColor)
-    ns.AltLines.render(button, row, GearRows.baseHeight(row), ACCENT_WIDTH + 4 + ICON_SIZE + ns.Theme.spacing.gap)
-    button.raidLine:SetShown(row.raid ~= nil)
-    if row.raid then
-        button.raidLine.text:SetText(row.raidText)
-        setColor(button.raidLine.text, ns.Theme.colors.text)
-        button.raidLine.gain:SetText(row.raidGainLabel)
-        setColor(button.raidLine.gain, row.raidGainColor)
-    end
+    ns.GearHeader.render(button.header, row)
+    renderUpgrade(button, row)
+    renderRaid(button, row)
+    ns.AltLines.render(button, row, GearRows.baseHeight(row), contentLeft())
     GearRows.mark(button)
 end

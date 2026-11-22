@@ -157,6 +157,8 @@
   "SORT_MENU": "排序",
   "FILTER_SORT_BY": "排序方式",
   "GEAR_TOOLTIP_SCORE": "评分：%s",
+  "GEAR_WORN": "已装备：%s",
+  "GEAR_SCORE": "评分 %s",
   "GEAR_TOOLTIP_REPLACE": "替换为：",
   "GEAR_ESTIMATED": "估算属性",
   "GEAR_UNKNOWN_HINT": "?：在游戏中见到该物品之前属性未知。",

@@ -161,6 +161,8 @@
   "SORT_MENU": "Сортировка",
   "FILTER_SORT_BY": "Сортировать по",
   "GEAR_TOOLTIP_SCORE": "Оценка: %s",
+  "GEAR_WORN": "надето: %s",
+  "GEAR_SCORE": "оценка %s",
   "GEAR_TOOLTIP_REPLACE": "Заменить на:",
   "GEAR_ESTIMATED": "оценочные характеристики",
   "GEAR_UNKNOWN_HINT": "? : характеристики неизвестны, пока предмет не встречен в игре.",

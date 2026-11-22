@@ -10,7 +10,8 @@
 --   (StuffPlannerDB.ui.gearOnlyUpgrades), bouton « Filtres » à droite (ns.FilterMenu : origines de la page,
 --   ns.PageOrigins "gear", passées à Chat.currentZone et RouteResults.get/current ; tri Par emplacement / Meilleur
 --   gain, StuffPlannerDB.ui.gearByGain, GearPresenter.sortByGain).
--- Lignes : UI/GearRows.lua (40 px, 56 avec une ligne raid, + alternatives dépliées : AltLines) ; état
+-- Lignes : UI/GearRows.lua (en-tête porté 18 px + amélioration 40 px, ou 20 sans ; +16 avec une ligne raid ;
+--   + alternatives dépliées : AltLines) ; état
 -- déplié local (non gardé), par emplacement.
 -- Objets portés absents de la base : stats lues par Compat.GetItemStats + StatParser.fromApi.
 
