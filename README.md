@@ -33,10 +33,11 @@ effort it costs.
 | **Now page** | Quests of the current zone sorted by gear gain, with their source and a confidence level; the play session at the top. |
 | **Route page** | A plan for your next steps: quest chains, dungeons, raids and crafts, weighted by effort, XP and how long the item will last. |
 | **Dungeons page** | Instances sorted by expected gain, with each boss and its useful drops. |
-| **Gear page** | Your target list on top (the items you aim for: star on any item row, share with friends), then the best upgrade for each slot, where to get it and how much it helps. |
+| **Gear page** | Your target list on top (the items you aim for: star on any item row, share with friends), then each slot: the worn item and its score, and below it the best upgrade, where to get it and how many points it adds. |
 | **Profile page** | Your stat weights, a stat priority editor, import/export of custom weights (`SPW1` strings), comparison with a secondary profile; your gear score over time and the bag items worth sending to your other characters. |
 | **Floating frame** | One frame that follows what you do: dungeon bosses, then the followed quest chain, then the best upgrades of the zone. Its mode icons switch mode; right-click its header for its menu. |
 | **Tooltips** | Gain line on item tooltips (also for your other characters); badges on bags, merchants and the auction house; best quest reward highlighted; Need/Greed advice on rolls. |
+| **Loot alert** | A sound and a banner when a target list item or an upgrade drops (boss, trash or world loot, group roll) or is offered by a quest you turn in; optional minimum gain. |
 | **Item sources** | Each of the Now, Route and Gear pages has its own choice of item sources (quests, dungeons, raids, crafts, world drops) in its Filters menu: only the chosen sources are suggested. |
 | **Navigation** | Built-in 3D waypoint arrow; world map and minimap pins shown as small round badges beside the quest giver, so the `!` and `?` stay visible. Uses TomTom when installed. |
 | **Stat weights** | 27 specializations, each with a leveling and a level 60 profile (several imported from WoWSims). |

@@ -3,7 +3,7 @@
 --   ns.OptionsLayout.sections() -> {{title, rows}...} : Fenêtre, Cadre flottant, Sur les objets, Alertes,
 --     Carte et flèche, Parcours, Partage ; chaque réglage de ns.Options une fois.
 --     row = {kind = "checkbox" | "slider" | "choice", key, format? (slider : percent | decimal | integer |
---       yards), values? (choice : {{valeur, libellé}...})}
+--       yards | points), values? (choice : {{valeur, libellé}...})}
 --       | {kind = "note", text} | {kind = "button", action, label, when?}
 --     action : reload (when = "skinPending" : montré seulement si l'habillage attend un rechargement),
 --       resetPositions, welcome, defaults (dernier bouton, confirmation en deux clics)
@@ -20,7 +20,8 @@ ns.OptionsLayout = OptionsLayout
 local TIPS = {
     ["window.skin"] = true, ["tooltip.alts"] = true, ["questHint.enabled"] = true, ["hud.lines"] = true,
     ["toast.zone"] = true, ["roll.hint"] = true, ["arrow.arrival"] = true, ["waypoint.preferTomTom"] = true,
-    ["planner.calibrate"] = true, ["pins.style"] = true,
+    ["planner.calibrate"] = true, ["pins.style"] = true, ["loot.alert"] = true, ["loot.sound"] = true,
+    ["loot.minGain"] = true,
 }
 
 local function suffix(key)
@@ -69,7 +70,10 @@ function OptionsLayout.sections()
             check("tooltip.enabled"), check("tooltip.alts"), check("badges.bags"), check("badges.merchant"),
             check("badges.auction"), check("questHint.enabled"),
         } },
-        { title = L.OPTIONS_SECTION_ALERTS, rows = { check("toast.zone"), check("roll.hint") } },
+        { title = L.OPTIONS_SECTION_ALERTS, rows = {
+            check("toast.zone"), check("roll.hint"), check("loot.alert"), check("loot.sound"),
+            slider("loot.minGain", "points"),
+        } },
         { title = L.OPTIONS_SECTION_MAP, rows = {
             check("pins.world"), check("pins.minimap"), slider("pins.worldScale", "percent"),
             slider("pins.minimapScale", "percent"),

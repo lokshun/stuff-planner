@@ -488,5 +488,12 @@
   "OPTION_PINS_STYLE_TIP": "Abzeichen in der Ecke: kleines rundes Symbol neben dem Questgeber, damit ! und ? des Spiels oder von Questie sichtbar bleiben.",
   "LOOT_ALERT_WISHLIST": "Zielliste: %s",
   "LOOT_ALERT_UPGRADE": "Verbesserung: %s",
-  "LOOT_ALERT_QUEST": "Questbelohnung: %s"
+  "LOOT_ALERT_QUEST": "Questbelohnung: %s",
+  "OPTION_LOOT_ALERT": "Banner, wenn ein gewünschter Gegenstand fällt",
+  "OPTION_LOOT_SOUND": "Ton, wenn ein gewünschter Gegenstand fällt",
+  "OPTION_LOOT_MINGAIN": "Mindestgewinn für die Meldung einer Verbesserung",
+  "LOOT_MIN_GAIN_ANY": "jede Verbesserung",
+  "OPTION_LOOT_ALERT_TIP": "Gegenstand der Zielliste oder Verbesserung im Beutefenster (Boss, Trash, Welt), bei einem Gruppenwurf oder unter den Belohnungen einer Quest, die Ihr abgebt.",
+  "OPTION_LOOT_SOUND_TIP": "Schlachtzugswarnton, auch im Kampf, für dieselben Gegenstände wie das Banner.",
+  "OPTION_LOOT_MINGAIN_TIP": "Kleinere Verbesserungen (in Wertungspunkten) werden nicht gemeldet. Gegenstände der Zielliste immer."
 }

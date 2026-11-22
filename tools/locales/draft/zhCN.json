@@ -487,5 +487,12 @@
   "OPTION_PINS_STYLE_TIP": "角落徽章：任务给予者旁的小圆形图标，游戏或 Questie 的 ! 和 ? 保持可见。",
   "LOOT_ALERT_WISHLIST": "目标清单：%s",
   "LOOT_ALERT_UPGRADE": "提升：%s",
-  "LOOT_ALERT_QUEST": "任务奖励：%s"
+  "LOOT_ALERT_QUEST": "任务奖励：%s",
+  "OPTION_LOOT_ALERT": "想要的物品掉落时显示横幅",
+  "OPTION_LOOT_SOUND": "想要的物品掉落时播放声音",
+  "OPTION_LOOT_MINGAIN": "提示提升的最低增益",
+  "LOOT_MIN_GAIN_ANY": "任何提升",
+  "OPTION_LOOT_ALERT_TIP": "拾取窗口（首领、小怪、野外）、队伍掷骰或交任务奖励中的目标清单物品或提升物品。",
+  "OPTION_LOOT_SOUND_TIP": "团队警告音效，战斗中也会播放，适用于与横幅相同的物品。",
+  "OPTION_LOOT_MINGAIN_TIP": "较小的提升（按评分）不会提示。目标清单物品始终提示。"
 }

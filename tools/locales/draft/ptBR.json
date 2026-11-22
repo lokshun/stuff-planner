@@ -488,5 +488,12 @@
   "OPTION_PINS_STYLE_TIP": "Selo no canto: pequeno ícone redondo ao lado de quem dá a missão, para que o ! e o ? do jogo ou do Questie continuem visíveis.",
   "LOOT_ALERT_WISHLIST": "Lista alvo: %s",
   "LOOT_ALERT_UPGRADE": "Melhoria: %s",
-  "LOOT_ALERT_QUEST": "Recompensa de missão: %s"
+  "LOOT_ALERT_QUEST": "Recompensa de missão: %s",
+  "OPTION_LOOT_ALERT": "Aviso quando cai um item desejado",
+  "OPTION_LOOT_SOUND": "Som quando cai um item desejado",
+  "OPTION_LOOT_MINGAIN": "Ganho mínimo para avisar de uma melhoria",
+  "LOOT_MIN_GAIN_ANY": "qualquer melhoria",
+  "OPTION_LOOT_ALERT_TIP": "Item da lista alvo ou melhoria na janela de saque (chefe, inimigos comuns, mundo), numa rolagem de grupo ou entre as recompensas de uma missão que você entrega.",
+  "OPTION_LOOT_SOUND_TIP": "Som de alerta de raide, mesmo em combate, para os mesmos itens do aviso.",
+  "OPTION_LOOT_MINGAIN_TIP": "Melhorias menores (em pontos de pontuação) não são avisadas. Itens da lista alvo sempre são."
 }

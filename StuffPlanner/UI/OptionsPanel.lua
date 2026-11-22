@@ -39,7 +39,12 @@ local function yards(value)
     return L.ARROW_DISTANCE:format(ns.Format.number(value))
 end
 
-local FORMATS = { percent = percent, decimal = decimal, integer = integer, yards = yards }
+-- Gain minimum de l'alerte de butin : 0 = toute amélioration.
+local function points(value)
+    return value > 0 and ns.Format.points(value) or L.LOOT_MIN_GAIN_ANY
+end
+
+local FORMATS = { percent = percent, decimal = decimal, integer = integer, yards = yards, points = points }
 local CONDITIONS = {
     skinPending = function()
         return ns.Skin.pending()

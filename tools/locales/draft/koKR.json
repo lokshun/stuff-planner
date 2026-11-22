@@ -487,5 +487,12 @@
   "OPTION_PINS_STYLE_TIP": "모서리 배지: 퀘스트 제공자 옆의 작은 둥근 아이콘이라 게임이나 Questie의 ! 와 ? 가 가려지지 않습니다.",
   "LOOT_ALERT_WISHLIST": "목표 목록: %s",
   "LOOT_ALERT_UPGRADE": "개선: %s",
-  "LOOT_ALERT_QUEST": "퀘스트 보상: %s"
+  "LOOT_ALERT_QUEST": "퀘스트 보상: %s",
+  "OPTION_LOOT_ALERT": "원하는 아이템이 나오면 알림 띄우기",
+  "OPTION_LOOT_SOUND": "원하는 아이템이 나오면 소리 재생",
+  "OPTION_LOOT_MINGAIN": "개선 알림 최소 증가량",
+  "LOOT_MIN_GAIN_ANY": "모든 개선",
+  "OPTION_LOOT_ALERT_TIP": "전리품 창(우두머리, 일반 몹, 필드), 파티 주사위, 또는 완료하는 퀘스트 보상에 있는 목표 목록 아이템이나 개선 아이템.",
+  "OPTION_LOOT_SOUND_TIP": "공격대 경보 소리, 전투 중에도 재생, 알림과 같은 아이템 대상.",
+  "OPTION_LOOT_MINGAIN_TIP": "더 작은 개선(점수 기준)은 알리지 않습니다. 목표 목록 아이템은 항상 알립니다."
 }

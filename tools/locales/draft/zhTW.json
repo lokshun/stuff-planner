@@ -488,5 +488,12 @@
   "OPTION_PINS_STYLE_TIP": "角落徽章：任務給予者旁的小圓形圖示，遊戲或 Questie 的 ! 和 ? 保持可見。",
   "LOOT_ALERT_WISHLIST": "目標清單：%s",
   "LOOT_ALERT_UPGRADE": "提升：%s",
-  "LOOT_ALERT_QUEST": "任務獎勵：%s"
+  "LOOT_ALERT_QUEST": "任務獎勵：%s",
+  "OPTION_LOOT_ALERT": "想要的物品掉落時顯示橫幅",
+  "OPTION_LOOT_SOUND": "想要的物品掉落時播放音效",
+  "OPTION_LOOT_MINGAIN": "提示提升的最低增益",
+  "LOOT_MIN_GAIN_ANY": "任何提升",
+  "OPTION_LOOT_ALERT_TIP": "拾取視窗（首領、小怪、野外）、隊伍擲骰或交任務獎勵中的目標清單物品或提升物品。",
+  "OPTION_LOOT_SOUND_TIP": "團隊警告音效，戰鬥中也會播放，適用於與橫幅相同的物品。",
+  "OPTION_LOOT_MINGAIN_TIP": "較小的提升（依評分）不會提示。目標清單物品一律提示。"
 }

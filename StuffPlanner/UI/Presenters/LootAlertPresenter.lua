@@ -3,8 +3,10 @@
 -- groupe : boss, trash, monde) ou qu'offre une quête rendue. Pur : aucun appel d'API (ns.L, ns.Format lus à l'appel).
 --   ns.LootAlertPresenter.match(items, ctx) -> {{itemID, link, reason, gain, gainText}...}
 --     items = {{itemID, link?}...} ; ctx = {has(itemID) -> bool (WishlistStore.has),
---       gainOf(item) -> gain en points | nil (BadgePresenter.build sur le lien : objet hors base lu en jeu)} ;
---     reason "wishlist" (épinglé, même sans gain) | "upgrade" (gain > 0) ; gainText = Format.points | nil ;
+--       gainOf(item) -> gain en points | nil (BadgePresenter.build sur le lien : objet hors base lu en jeu),
+--       minGain = seuil en points | nil (réglage loot.minGain ; 0 ou nil : tout gain > 0)} ;
+--     reason "wishlist" (épinglé, même sans gain ni seuil) | "upgrade" (gain > 0 et ≥ minGain) ;
+--     gainText = Format.points | nil ;
 --     un objet au plus une fois ; liste cible d'abord, puis gain décroissant, ordre reçu à égalité
 --   ns.LootAlertPresenter.text(match, name, quest?) -> L.LOOT_ALERT_WISHLIST | LOOT_ALERT_UPGRADE
 --     (LOOT_ALERT_QUEST si quest) avec le nom, suivi du gain
@@ -46,7 +48,8 @@ function LootAlertPresenter.match(items, ctx)
         if itemID and not done[itemID] then
             done[itemID] = true
             local gain = gainOf(ctx, item)
-            local reason = (ctx.has and ctx.has(itemID)) and "wishlist" or (gain and "upgrade")
+            local reason = (ctx.has and ctx.has(itemID)) and "wishlist"
+                or (gain and gain >= (ctx.minGain or 0) and "upgrade") or nil
             if reason then
                 local match = { itemID = itemID, link = item.link, reason = reason, gain = gain,
                     gainText = gain and ns.Format.points(gain) or nil }

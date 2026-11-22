@@ -488,5 +488,12 @@
   "OPTION_PINS_STYLE_TIP": "Insignia en la esquina: pequeño icono redondo junto al que da la misión, para que el ! y el ? del juego o de Questie sigan visibles.",
   "LOOT_ALERT_WISHLIST": "Lista objetivo: %s",
   "LOOT_ALERT_UPGRADE": "Mejora: %s",
-  "LOOT_ALERT_QUEST": "Recompensa de misión: %s"
+  "LOOT_ALERT_QUEST": "Recompensa de misión: %s",
+  "OPTION_LOOT_ALERT": "Aviso cuando cae un objeto deseado",
+  "OPTION_LOOT_SOUND": "Sonido cuando cae un objeto deseado",
+  "OPTION_LOOT_MINGAIN": "Ganancia mínima para avisar de una mejora",
+  "LOOT_MIN_GAIN_ANY": "cualquier mejora",
+  "OPTION_LOOT_ALERT_TIP": "Objeto de la lista objetivo o mejora en la ventana de botín (jefe, enemigos menores, mundo), en una tirada de grupo o entre las recompensas de una misión que entregas.",
+  "OPTION_LOOT_SOUND_TIP": "Sonido de alerta de banda, incluso en combate, para los mismos objetos que el aviso.",
+  "OPTION_LOOT_MINGAIN_TIP": "Las mejoras menores (en puntos de puntuación) no se avisan. Los objetos de la lista objetivo, siempre."
 }

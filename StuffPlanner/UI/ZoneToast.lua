@@ -1,7 +1,7 @@
 -- CONTRAT
 -- Toast d'entrée de carte : « Forêt d'Elwynn : 4 améliorations, la meilleure +12 % » (ZoneToastPresenter),
--- 5 s en haut de l'écran ; clic : onglet Zone de la fenêtre principale. Charger après Chat.lua,
--- ZoneToastPresenter.lua et MainFrame.lua.
+-- 5 s en haut de l'écran (ns.Toast) ; clic : onglet Zone de la fenêtre principale. Charger après Chat.lua,
+-- ZoneToastPresenter.lua, Toast.lua et MainFrame.lua.
 -- Vérifié à chaque SP_RESULTS_UPDATED (gains de la carte calculés, Results.busy() faux) : une fois par
 -- carte (mapID de l'instantané, une sous-zone ne change rien) et par session ; carte marquée vue dès
 -- que son classement est lisible, même vide (aucun toast sans amélioration).
@@ -18,17 +18,15 @@ ns.ZoneToast = ZoneToast
 local OPTION = "toast.zone"
 local DURATION = 5
 local OFFSET_Y = -140
-local HEIGHT = 34
 local MAX_ENTRIES = 999
 
 local seen = {}
 local deferred = false
-local frame, label
-local shownAt = 0
+local toast
 
 local function hide()
-    if frame then
-        frame:Hide()
+    if toast then
+        toast:hide()
     end
 end
 
@@ -39,45 +37,9 @@ local function openZone()
     end)
 end
 
-local function create()
-    local theme = ns.Theme
-    frame = CreateFrame("Button", nil, UIParent)
-    frame:SetFrameStrata("MEDIUM")
-    frame:SetHeight(HEIGHT)
-    frame:SetPoint("TOP", UIParent, "TOP", 0, OFFSET_Y)
-    local background = frame:CreateTexture(nil, "BACKGROUND")
-    background:SetAllPoints()
-    local bg = theme.colors.background
-    background:SetColorTexture(bg.r, bg.g, bg.b, 0.85)
-    local edge = theme.colors.border
-    for _, side in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" } }) do
-        local line = frame:CreateTexture(nil, "BORDER")
-        line:SetColorTexture(edge.r, edge.g, edge.b, 0.8)
-        line:SetHeight(theme.spacing.border)
-        line:SetPoint(side[1])
-        line:SetPoint(side[2])
-    end
-    label = frame:CreateFontString(nil, "OVERLAY", theme.fonts.header)
-    label:SetPoint("CENTER")
-    frame:RegisterForClicks("LeftButtonUp")
-    frame:SetScript("OnClick", openZone)
-    frame:Hide()
-end
-
 function ZoneToast.display(text)
-    if not frame then
-        create()
-    end
-    label:SetText(text)
-    frame:SetWidth(label:GetStringWidth() + 2 * ns.Theme.spacing.padding)
-    frame:Show()
-    shownAt = shownAt + 1
-    local token = shownAt
-    C_Timer.After(DURATION, function()
-        if token == shownAt then
-            hide()
-        end
-    end)
+    toast = toast or ns.Toast.new({ offsetY = OFFSET_Y, duration = DURATION, onClick = openZone })
+    toast:show(text)
 end
 
 function ZoneToast.check()

@@ -59,6 +59,7 @@ return {
     "UnitDefense",
     "InCombatLockdown",
     "GetTime",
+    "PlaySound",
     "IsShiftKeyDown",
     "GetInventorySlotInfo",
     "IsControlKeyDown",
