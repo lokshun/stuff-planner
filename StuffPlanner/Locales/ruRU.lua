@@ -444,6 +444,7 @@ L.SHARE_COUNTS = "Сообщений отправлено: %d, получено:
 L.ROLL_NEED = "Нужно: %s"
 L.LOOT_ALERT_WISHLIST = "Список целей: %s"
 L.LOOT_ALERT_UPGRADE = "Улучшение: %s"
+L.LOOT_ALERT_QUEST = "Награда за задание: %s"
 L.ROLL_GREED = "Не откажусь"
 L.ROLL_CHAT = "%s: %s"
 L.PROFILE_SECONDARY_HINT = "ПКМ: сравнить с этим профилем"

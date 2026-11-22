@@ -1,14 +1,13 @@
 -- CONTRAT
--- Butins voulus : objets de la liste cible ou améliorations du donjon courant parmi ceux qui tombent (fenêtre de
--- butin, jet de groupe). Pur : aucun appel d'API (ns.L et ns.Format lus à l'appel).
---   ns.LootAlertPresenter.match(itemIDs, ctx) -> {{itemID, reason, gain, gainText}...} dans l'ordre reçu (ipairs),
---     un objet au plus une fois ; ctx = {has(itemID) -> bool (WishlistStore.has), dungeonSet = {[itemID] = true}
---     | nil (hors instance), delta(itemID) -> {abs} | nil (Results.delta)} ;
---     reason "wishlist" (épinglé, même sans gain : prioritaire) | "dungeon" (dans dungeonSet et abs > 0) ;
---     gain = abs > 0 | nil, gainText = Format.points(gain) | nil
---   ns.LootAlertPresenter.dungeonSet(view) -> {[itemID] = true} des objets de DungeonPresenter.build (boss et
---     butin hors boss : même règle que le cadre donjon) | nil sans vue
---   ns.LootAlertPresenter.text(match, name) -> L.LOOT_ALERT_WISHLIST | LOOT_ALERT_UPGRADE (nom), suivi du gain
+-- Butins voulus : objets de la liste cible ou améliorations parmi ceux qui tombent (fenêtre de butin, jet de
+-- groupe : boss, trash, monde) ou qu'offre une quête rendue. Pur : aucun appel d'API (ns.L, ns.Format lus à l'appel).
+--   ns.LootAlertPresenter.match(items, ctx) -> {{itemID, link, reason, gain, gainText}...}
+--     items = {{itemID, link?}...} ; ctx = {has(itemID) -> bool (WishlistStore.has),
+--       gainOf(item) -> gain en points | nil (BadgePresenter.build sur le lien : objet hors base lu en jeu)} ;
+--     reason "wishlist" (épinglé, même sans gain) | "upgrade" (gain > 0) ; gainText = Format.points | nil ;
+--     un objet au plus une fois ; liste cible d'abord, puis gain décroissant, ordre reçu à égalité
+--   ns.LootAlertPresenter.text(match, name, quest?) -> L.LOOT_ALERT_WISHLIST | LOOT_ALERT_UPGRADE
+--     (LOOT_ALERT_QUEST si quest) avec le nom, suivi du gain
 --   ns.LootAlertPresenter.fresh(seen, itemID, now) -> vrai si l'objet n'a pas été signalé depuis
 --     REPEAT_SECONDS (alors noté dans seen = {[itemID] = instant}) ; fenêtre rouverte, jet puis butin
 --   ns.LootAlertPresenter.REPEAT_SECONDS = 60
@@ -20,57 +19,53 @@ ns.LootAlertPresenter = LootAlertPresenter
 
 LootAlertPresenter.REPEAT_SECONDS = 60
 
-local function gainOf(ctx, itemID)
-    local delta = ctx.delta and ctx.delta(itemID)
-    local abs = delta and delta.abs
-    return abs and abs > 0 and abs or nil
+local function gainOf(ctx, item)
+    local gain = ctx.gainOf and ctx.gainOf(item)
+    return gain and gain > 0 and gain or nil
 end
 
-local function reasonOf(ctx, itemID, gain)
-    if ctx.has and ctx.has(itemID) then
-        return "wishlist"
-    elseif ctx.dungeonSet and ctx.dungeonSet[itemID] and gain then
-        return "dungeon"
-    end
-end
-
-function LootAlertPresenter.match(itemIDs, ctx)
-    local found, done = {}, {}
-    for _, itemID in ipairs(itemIDs or {}) do
-        if not done[itemID] then
-            done[itemID] = true
-            local gain = gainOf(ctx, itemID)
-            local reason = reasonOf(ctx, itemID, gain)
-            if reason then
-                found[#found + 1] = { itemID = itemID, reason = reason, gain = gain,
-                    gainText = gain and ns.Format.points(gain) or nil }
-            end
+local function ranked(found, order)
+    table.sort(found, function(a, b)
+        local wa, wb = a.reason == "wishlist", b.reason == "wishlist"
+        if wa ~= wb then
+            return wa
         end
-    end
+        local ga, gb = a.gain or 0, b.gain or 0
+        if ga ~= gb then
+            return ga > gb
+        end
+        return order[a] < order[b]
+    end)
     return found
 end
 
-local function addItems(result, items)
+function LootAlertPresenter.match(items, ctx)
+    local found, done, order = {}, {}, {}
     for _, item in ipairs(items or {}) do
-        result[item.itemID] = true
+        local itemID = item.itemID
+        if itemID and not done[itemID] then
+            done[itemID] = true
+            local gain = gainOf(ctx, item)
+            local reason = (ctx.has and ctx.has(itemID)) and "wishlist" or (gain and "upgrade")
+            if reason then
+                local match = { itemID = itemID, link = item.link, reason = reason, gain = gain,
+                    gainText = gain and ns.Format.points(gain) or nil }
+                found[#found + 1] = match
+                order[match] = #found
+            end
+        end
     end
+    return ranked(found, order)
 end
 
-function LootAlertPresenter.dungeonSet(view)
-    if not view then
-        return nil
-    end
-    local result = {}
-    for _, boss in ipairs(view.bosses or {}) do
-        addItems(result, boss.items)
-    end
-    addItems(result, view.trash and view.trash.items)
-    return result
-end
-
-function LootAlertPresenter.text(match, name)
+function LootAlertPresenter.text(match, name, quest)
     local L = ns.L
-    local format = match.reason == "wishlist" and L.LOOT_ALERT_WISHLIST or L.LOOT_ALERT_UPGRADE
+    local format = L.LOOT_ALERT_UPGRADE
+    if match.reason == "wishlist" then
+        format = L.LOOT_ALERT_WISHLIST
+    elseif quest then
+        format = L.LOOT_ALERT_QUEST
+    end
     local text = format:format(name or "")
     return match.gainText and (text .. " " .. match.gainText) or text
 end

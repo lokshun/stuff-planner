@@ -444,6 +444,7 @@ L.SHARE_COUNTS = "Mensajes enviados: %d, recibidos: %d, aplicados: %d, rechazado
 L.ROLL_NEED = "Necesidad: %s"
 L.LOOT_ALERT_WISHLIST = "Lista objetivo: %s"
 L.LOOT_ALERT_UPGRADE = "Mejora: %s"
+L.LOOT_ALERT_QUEST = "Recompensa de misión: %s"
 L.ROLL_GREED = "Codicia"
 L.ROLL_CHAT = "%s: %s"
 L.PROFILE_SECONDARY_HINT = "Clic derecho: comparar con este perfil"

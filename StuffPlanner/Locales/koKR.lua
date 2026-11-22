@@ -444,6 +444,7 @@ L.SHARE_COUNTS = "보낸 메시지: %d, 받은 메시지: %d, 적용: %d, 거부
 L.ROLL_NEED = "입찰: %s"
 L.LOOT_ALERT_WISHLIST = "목표 목록: %s"
 L.LOOT_ALERT_UPGRADE = "개선: %s"
+L.LOOT_ALERT_QUEST = "퀘스트 보상: %s"
 L.ROLL_GREED = "차비"
 L.ROLL_CHAT = "%s: %s"
 L.PROFILE_SECONDARY_HINT = "오른쪽 클릭: 이 프로필과 비교"

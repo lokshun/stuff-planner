@@ -486,5 +486,6 @@
   "OPTIONS_PINS_CENTER": "가운데 아이콘",
   "OPTION_PINS_STYLE_TIP": "모서리 배지: 퀘스트 제공자 옆의 작은 둥근 아이콘이라 게임이나 Questie의 ! 와 ? 가 가려지지 않습니다.",
   "LOOT_ALERT_WISHLIST": "목표 목록: %s",
-  "LOOT_ALERT_UPGRADE": "개선: %s"
+  "LOOT_ALERT_UPGRADE": "개선: %s",
+  "LOOT_ALERT_QUEST": "퀘스트 보상: %s"
 }

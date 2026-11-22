@@ -487,5 +487,6 @@
   "OPTIONS_PINS_CENTER": "Ícono centrado",
   "OPTION_PINS_STYLE_TIP": "Insignia en la esquina: pequeño ícono redondo junto al que da la misión, para que el ! y el ? del juego o de Questie sigan visibles.",
   "LOOT_ALERT_WISHLIST": "Lista objetivo: %s",
-  "LOOT_ALERT_UPGRADE": "Mejora: %s"
+  "LOOT_ALERT_UPGRADE": "Mejora: %s",
+  "LOOT_ALERT_QUEST": "Recompensa de misión: %s"
 }

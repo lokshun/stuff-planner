@@ -444,6 +444,7 @@ L.SHARE_COUNTS = "訊息已傳送：%d，已接收：%d，已套用：%d，已�
 L.ROLL_NEED = "需求：%s"
 L.LOOT_ALERT_WISHLIST = "目標清單：%s"
 L.LOOT_ALERT_UPGRADE = "提升：%s"
+L.LOOT_ALERT_QUEST = "任務獎勵：%s"
 L.ROLL_GREED = "貪婪"
 L.ROLL_CHAT = "%s：%s"
 L.PROFILE_SECONDARY_HINT = "右鍵：與此設定比較"

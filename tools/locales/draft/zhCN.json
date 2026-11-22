@@ -486,5 +486,6 @@
   "OPTIONS_PINS_CENTER": "居中图标",
   "OPTION_PINS_STYLE_TIP": "角落徽章：任务给予者旁的小圆形图标，游戏或 Questie 的 ! 和 ? 保持可见。",
   "LOOT_ALERT_WISHLIST": "目标清单：%s",
-  "LOOT_ALERT_UPGRADE": "提升：%s"
+  "LOOT_ALERT_UPGRADE": "提升：%s",
+  "LOOT_ALERT_QUEST": "任务奖励：%s"
 }
